@@ -8,7 +8,7 @@ Go to the directory where you store this repository, then type `npm install` and
 ## Usage
 `$ node index.js`
 If this is the first time you execute this command, it'll generate `config.json` file. Close that command and then configure `config.json` file.
-After that, you can run that command again.
+After that, you can run that command again and bot will go live.
 
 ## Plugins
 Currently, there's only 2 plugins writen by me: 
