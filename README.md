@@ -35,3 +35,41 @@ This bot is in early state, so only EN are supported and `language` in config ha
 A Facebook test account is an account just like normal accounts, however it can't contract with normal accounts. This account can be used to test and config the bot before going live.
 
 You can create one in [here](https://www.facebook.com/whitehat/accounts/).
+
+## Example config
+If you don't want the bot create a `config.json` file for you, then here is the content that bot will write into `config.json` file:
+```json
+{
+    "testmode": false,
+    "baseprefix": "[Bot]",
+    "botname": "C3CBot",
+    "enablefb": false,
+    "usefbappstate": true,
+	  "fbemail": "",
+    "fbpassword": "",
+    "fbuseragent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
+    "fblistenwhitelist": false,
+    "fblisten": [
+        "0"
+    ],
+    "enablediscord": false,
+    "discordtoken": "",
+    "discordlistenwhitelist": false,
+    "discordlisten": [
+        "0"
+    ],
+    "admins": [
+        "FB-0",
+        "DC-0"
+    ],
+    "blacklistedUsers": [
+        "FB-0",
+        "DC-0"
+    ],
+    "allowAdminUseRestartCommand": false,
+    "allowUserUsePluginsCommand": false,
+    "allowUserUseReloadCommand": false,
+    "language": "VI",
+    "enableThanosTimeGems": false
+}
+```
