@@ -1,5 +1,6 @@
 # C3C
-<img alt="vulnerabilities" src="https://img.shields.io/snyk/vulnerabilities/github/lequanglam/c3c.svg?style=flat-square"><img alt="vulnerabilities" src="https://img.shields.io/discord/591223706643070976.svg?style=flat-square">
+<img alt="vulnerabilities" src="https://img.shields.io/snyk/vulnerabilities/github/lequanglam/c3c.svg?style=flat-square"> <img alt="vulnerabilities" src="https://img.shields.io/discord/591223706643070976.svg?style=flat-square">
+
 A bot that can be customized using plugins. Currently supports Facebook Messenger (using facebook-chat-api) and Discord (using discord.js)
 
 ## Install
