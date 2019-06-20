@@ -4,8 +4,7 @@
 A bot that can be customized using plugins. Currently supports Facebook Messenger (using facebook-chat-api) and Discord (using discord.js)
 
 ## Install
-Install Node.JS and Git if you don't have one, then clone this repository.
-Go to the directory where you store this repository, then type: 
+Install Node.JS and Git if you don't have one, then download latest releases. Extract it then go to the directory where it extracted, then type: 
 ```bash
 npm install
 ``` 
