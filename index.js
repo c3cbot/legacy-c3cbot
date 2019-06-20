@@ -839,8 +839,7 @@ function temp5() {
 													api: api,
 													prefix: prefix,
 													admin: admin,
-													mentions: mentions,
-													client: client
+													mentions: mentions
 												});
 												if (returndata.handler == "core") {
 													api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
