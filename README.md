@@ -45,7 +45,7 @@ If you don't want the bot create a `config.json` file for you, then here is the 
     "botname": "C3CBot",
     "enablefb": false,
     "usefbappstate": true,
-	  "fbemail": "",
+    "fbemail": "",
     "fbpassword": "",
     "fbuseragent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
     "fblistenwhitelist": false,
