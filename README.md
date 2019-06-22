@@ -20,13 +20,16 @@ If this is the first time you execute this command, it'll generate `config.json`
 After that, you can run that command again and bot will go live.
 
 ## Plugins
-Currently, there's only 2 plugins writen by me: 
-- SimSimi (/plugins/SimSimi.z3p)
+Currently, there's only 3 plugins writen by me: 
+- SimSimi (`/plugins/SimSimi.z3p`)
 
 -- Main function: Allow users to chat with SimSimi.
-- Economy (/plugins/Economy.z3p)
+- Economy (`/plugins/Economy.z3p`)
 
 -- Main function: Create an economy.
+- Economy-Income (`/plugin/Economy-Income.z3p`)
+
+-- Main function: Add a way to earn money. Extends `Economy`
 
 ## Localize
 This bot is in early state, so only EN are supported and `language` in config has no function.
