@@ -438,7 +438,7 @@ findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function(list) {
                                 try {
                                     global.nodemodule[nid] = require(nid);
                                 } catch (ex) {
-                                    global.nodemodule["child_process"].execSync("npm i " + nid);
+                                    global.nodemodule["child_process"].execSync("npm i " + nid + "@" + plinfo["node_depends"][nid]);
                                     try {
                                         global.nodemodule[nid] = require(nid);
                                     } catch (ex) {
