@@ -94,7 +94,7 @@ global.config = fs.existsSync(__dirname + "/config.json") ? JSON.parse(fs.readFi
         allowAdminUseRestartCommand: false,
         allowUserUsePluginsCommand: false,
         allowUserUseReloadCommand: false,
-        language: "VI", //Not working blyat
+        language: "en_US",
         enableThanosTimeGems: true //Anti-Unsend
     }
     try {
@@ -108,6 +108,8 @@ global.config = fs.existsSync(__dirname + "/config.json") ? JSON.parse(fs.readFi
 var testmode = global.config.testmode;
 var prefix = global.config.baseprefix;
 var botname = global.config.botname;
+
+global.lang = YAML.parse(fs.existsSync(__dirname + "/lang/" + global.config.language + ".yml") ? fs.readFileSync(__dirname + "/lang/" + global.config.language + ".yml") : (function(){log("[INTERNAL]", __dirname + "/lang/" + global.config.language + ".yml", ": not found | Defaulting to en_US.yml ..."); return fs.readFileSync(__dirname + "/lang/en_US.yml")}));
 
 //OBFUSCATOR PART
 function obf(data) {
@@ -509,14 +511,14 @@ function temp5() {
             }
         }
         global.commandMapping["help"] = {
-            args: "[page]",
-            desc: "A guide to commands in here.",
+            args: global.lang["HELP_ARGS"],
+            desc: global.lang["HELP_DESC"],
             scope: function (type, data) {
                 var page = 1;
                 page = parseInt(data.args[1]) || 1; 
                 if (page < 1) page = 1; 
                 var mts = "";
-                mts += "Book o' guide: ";
+                mts += global.lang["HELP_OUTPUT_PREFIX"];
                 var hl = [];
                 for (var no in global.commandMapping) {
                     var tempx = global.commandMapping[no];
@@ -538,7 +540,7 @@ function temp5() {
                 if (type == "Discord") {
                     mts += "\r\n```"
                 }
-                mts += '\r\n(Page ' + page + '/' + (hl.length / 5).ceil() + ')'; 
+                mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 5).ceil() + ')'; 
                 return {
                     handler: "core",
                     data: mts
@@ -550,7 +552,7 @@ function temp5() {
         
         global.commandMapping["restart"] = {
             args: "",
-            desc: "Restart the Bot.",
+            desc: global.lang["RESTART_DESC"],
             scope: function (type, data) {
                 if (data.admin && global.config.allowAdminUseRestartCommand) {
                     process.exit(7378278);
@@ -561,7 +563,7 @@ function temp5() {
                 } else {
                     return {
                         handler: "core",
-                        data: "Insufficient permission."
+                        data: global.lang["INSUFFICIENT_PERM"]
                     }
                 }
             },
@@ -571,19 +573,19 @@ function temp5() {
 
         global.commandMapping["plugins"] = {
             args: "",
-            desc: "List all plugins installed on this bot.",
+            desc: global.lang["PLUGINS_DESC"],
             scope: function (type, data) {
                 if (!data.admin && !global.config.allowUserUsePluginsCommand) {
                     return {
                         handler: "core",
-                        data: "Insufficient permission."
+                        data: global.lang["INSUFFICIENT_PERM"]
                     }
                 }
                 var page = 1;
                 page = parseInt(data.args[1]) || 1; 
                 if (page < 1) page = 1; 
                 var mts = "";
-                mts += "Plugin list: ";
+                mts += global.lang["PLUGINS_OUTPUT_PREFIX"];
                 var hl = [];
                 for (var no in global.loadedPlugins) {
                     var tempx = global.loadedPlugins[no];
@@ -617,12 +619,12 @@ function temp5() {
         
         global.commandMapping["reload"] = {
             args: "",
-            desc: "Reload all plugin.",
+            desc: global.lang["RELOAD_DESC"],
             scope: function (type, data) {
                 if (!data.admin && !global.config.allowUserUseReloadCommand) {
                     return {
                         handler: "core",
-                        data: "Insufficient permission."
+                        data: global.lang["INSUFFICIENT_PERM"]
                     }
                 }
                 for (var name in global.loadedPlugins) {
@@ -755,7 +757,7 @@ function temp5() {
                     }
                 }
                 temp6();
-                return {
+				return {
                     handler: "core",
                     data: "Reloaded"
                 }
@@ -820,7 +822,7 @@ function temp5() {
                                     arg.map(xy => xy.replace(/["]/g, ""));
                                     if (global.commandMapping[arg[0].substr(1)]) {
                                         if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                                            api.sendMessage(prefix + " Sorry, but that command is not supported in this interface.", message.threadID, function(){}, message.messageID);
+                                            api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function(){}, message.messageID);
                                         } else {
                                             var admin = false;
                                             for (var no in global.config.admins) {
@@ -851,7 +853,7 @@ function temp5() {
                                             }
                                         }
                                     } else {
-                                        api.sendMessage(prefix + " Unknown command. Try /help", message.threadID, function(){}, message.messageID);
+                                        api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function(){}, message.messageID);
                                     }
                                 } else {
                                     log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
@@ -869,7 +871,7 @@ function temp5() {
                             break;
                         case "message_unsend":
                             if (global.config.enableThanosTimeGems) {
-                                api.sendMessage(prefix + " THANOS TIME GEM ACTIVATED! CONTENT: " + global.data.messageList[message.messageID].body + "\r\nATTACHMENT: " + JSON.stringify(global.data.messageList[message.messageID].attachments), message.threadID, function(){}, message.messageID);
+                                api.sendMessage(prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", global.data.messageList[message.messageID].body).replace("{1}", JSON.stringify(global.data.messageList[message.messageID].attachments)), message.threadID, function(){}, message.messageID);
                                 api.markAsRead(message.threadID);
                                 log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
                             } else {
@@ -880,6 +882,7 @@ function temp5() {
                             if (global.config.enableThanosTimeGems) {
                                 global.data.messageList[message.messageID] = message;
                             }
+							log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
                             api.markAsRead(message.threadID);
                             break;
                     }
@@ -944,7 +947,7 @@ function temp5() {
                         arg.map(xy => xy.replace(/[\"]/g, ""));
                         if (global.commandMapping[arg[0].substr(1)]) {
                             if (!(global.commandMapping[arg[0].substr(1)].compatibly & 2) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                                message.reply("\r\n" + prefix + " Sorry, but that command is not supported in this interface.");
+                                message.reply("\r\n" + prefix + " " + global.lang["UNSUPPORTED_INTERFACE"]);
                             } else {
                                 var admin = false;
                                 for (var no in global.config.admins) {
@@ -977,7 +980,7 @@ function temp5() {
                                 }
                             }
                         } else {
-                            message.reply("\r\n" + prefix + " Unknown command. Try /help");
+                            message.reply("\r\n" + prefix + " " + global.lang["UNKNOWN_CMD"]);
                         }
                     } else {
                         log("[Discord]", message.author.id, "(" + message.author.tag + ")", (message.channel instanceof Discord.DMChannel ? "DMed:" : "messaged in channel " + message.channel.id + " (" + message.channel.name + "):"), message.content, (message.attachments.size > 0 ? message.attachments : ""));
