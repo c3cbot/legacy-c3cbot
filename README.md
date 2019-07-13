@@ -76,7 +76,7 @@ If you don't want the bot create a `config.json` file for you, then here is the 
     "allowAdminUseRestartCommand": false,
     "allowUserUsePluginsCommand": false,
     "allowUserUseReloadCommand": false,
-    "language": "VI",
+    "language": "en_US",
     "enableThanosTimeGems": false
 }
 ```
