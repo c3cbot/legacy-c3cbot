@@ -109,7 +109,7 @@ var testmode = global.config.testmode;
 var prefix = global.config.baseprefix;
 var botname = global.config.botname;
 
-global.lang = YAML.parse(fs.existsSync(__dirname + "/lang/" + global.config.language + ".yml") ? fs.readFileSync(__dirname + "/lang/" + global.config.language + ".yml") : (function(){log("[INTERNAL]", __dirname + "/lang/" + global.config.language + ".yml", ": not found | Defaulting to en_US.yml ..."); return fs.readFileSync(__dirname + "/lang/en_US.yml")}));
+global.lang = require("yaml").parse(fs.existsSync(__dirname + "/lang/" + global.config.language + ".yml") ? fs.readFileSync(__dirname + "/lang/" + global.config.language + ".yml") : (function(){log("[INTERNAL]", __dirname + "/lang/" + global.config.language + ".yml", ": not found | Defaulting to en_US.yml ..."); return fs.readFileSync(__dirname + "/lang/en_US.yml")}));
 
 //OBFUSCATOR PART
 function obf(data) {
@@ -792,7 +792,7 @@ function temp5() {
                     api.getUserInfo(id, (err, ret) => {
                         if(err) return log("[INTERNAL]", err);
                         log("[CACHENAME]", id + " => " + ret[id].name);
-                        global.data.cacheName[id] = ret[id].name;
+                        global.data.cacheName["FB-" + id] = ret[id].name;
                         try {
                             callingback();
                         } catch (ex) {
@@ -955,11 +955,11 @@ function temp5() {
                                         admin = true;
                                     }
                                 }
-                                global.data.cacheName[message.author.id] = message.author.tag;
+                                global.data.cacheName["DC-" + message.author.id] = message.author.tag;
                                 var mentions = {};
                                 message.mentions.users.forEach(function(y, x) {
                                     mentions["DC-" + x] = y;
-                                    cacheName[x] = y.username + "#" + y.discrimator;
+                                    cacheName["DC-" + x] = y.username + "#" + y.discrimator;
                                 });
                                 try {
                                     var returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
