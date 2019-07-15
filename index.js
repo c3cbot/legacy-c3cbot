@@ -855,7 +855,7 @@ function temp5() {
 														api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
 														endTyping();
 														api.markAsRead(message.threadID);
-													}, returndata.data.length, api, returndata, endTyping, message);
+													}, returndata.data.length * 25, api, returndata, endTyping, message);
                                                 }
                                             } catch (ex) {
                                                 log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
