@@ -807,6 +807,7 @@ function temp5() {
                 try {
                     switch (message.type) {
                         case "message":
+							api.markAsRead(message.threadID);
                             if (global.config.enableThanosTimeGems) {
                                 global.data.messageList[message.messageID] = message;
                             }
@@ -845,7 +846,12 @@ function temp5() {
                                                 });
                                                 if (!returndata) return undefined;
                                                 if (returndata.handler == "core") {
-                                                    api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
+													var endTyping = api.sendTypingIndicator(message.threadID);
+													setTimeout(function(api, returndata, endTyping, message) {
+														api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
+														endTyping();
+														api.markAsRead(message.threadID);
+													}, returndata.data.length, api, returndata, endTyping, message);
                                                 }
                                             } catch (ex) {
                                                 log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
@@ -860,7 +866,6 @@ function temp5() {
                             } else {
                                 log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
                             }
-                            api.markAsRead(message.threadID);
                             break;
                         case "event":
                             console.log(message);
