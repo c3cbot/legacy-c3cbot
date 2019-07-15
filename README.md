@@ -24,7 +24,7 @@ If this is the first time you execute this command, it'll generate `config.json`
 After that, you can run that command again and bot will go live.
 
 ## Plugins
-Currently, there's only 3 plugins writen by me: 
+Currently, there's 4 plugins writen by me: 
 - SimSimi (`/plugins/SimSimi.z3p`)
 
 -- Main function: Allow users to chat with SimSimi.
@@ -34,9 +34,12 @@ Currently, there's only 3 plugins writen by me:
 - Economy-Income (`/plugin/Economy-Income.z3p`)
 
 -- Main function: Add a way to earn money. Extends `Economy`
+- Economy-Gambling (`/plugins/Economy-Gambling.z3p`)
+
+-- Main function: Add some gambling games to bot. Extends `Economy`
 
 ## Localize
-This bot is in early state, so only EN are supported and `language` in config has no function.
+This bot currently supporting 2 language: `en_US` (English) and `vi_VN` (Tiếng Việt). You can change languages in `config.json`.
 
 ## Facebook test accounts
 A Facebook test account is an account just like normal accounts, however it can't contract with normal accounts. This account can be used to test and config the bot before going live.
