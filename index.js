@@ -784,7 +784,7 @@ function temp5() {
 				if (!callingback) {
 					callingback = function(){}
 				}
-                if (!global.data.cacheName[id] || !!force) {
+                if (!global.data.cacheName["FB-" + id] || !!force) {
 					api.getUserInfo(id, (err, ret) => {
                         if(err) return log("[INTERNAL]", err);
                         log("[CACHENAME]", id + " => " + ret[id].name);
