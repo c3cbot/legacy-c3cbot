@@ -431,7 +431,7 @@ findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function(list) {
                                         chunkSize: 2048
                                     }); 
                                     fmsb.put(fmb);
-                                    global.fileMap[plinfo["file_map"][fd]] = fmb;
+                                    global.fileMap[plinfo["file_map"][fd]] = fmsb;
                                 } catch (ex) {
                                     log("[INTERNAL]", list, "is not containing a file to be mapped writen in \"plugins.json\" file (\"" + fd + "\"). It can't be mapped. Skipping...");
                                 }
