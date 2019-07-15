@@ -109,7 +109,7 @@ var testmode = global.config.testmode;
 var prefix = global.config.baseprefix;
 var botname = global.config.botname;
 
-global.lang = require("yaml").eval(fs.existsSync(__dirname + "/lang/" + global.config.language + ".yml") ? fs.readFileSync(__dirname + "/lang/" + global.config.language + ".yml") : (function(){log("[INTERNAL]", __dirname + "/lang/" + global.config.language + ".yml", ": not found | Defaulting to en_US.yml ..."); return fs.readFileSync(__dirname + "/lang/en_US.yml")})());
+global.lang = require('js-yaml').load(fs.existsSync(__dirname + "/lang/" + global.config.language + ".yml") ? fs.readFileSync(__dirname + "/lang/" + global.config.language + ".yml", {encoding: 'utf-8'}) : (function(){log("[INTERNAL]", __dirname + "/lang/" + global.config.language + ".yml", ": not found | Defaulting to en_US.yml ..."); return fs.readFileSync(__dirname + "/lang/en_US.yml", {encoding: 'utf-8'})})());
 
 //OBFUSCATOR PART
 function obf(data) {
