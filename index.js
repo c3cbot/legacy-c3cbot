@@ -880,7 +880,7 @@ function temp5() {
 								break;
 							case "message_unsend":
 								if (global.config.enableThanosTimeGems) {
-									api.sendMessage(prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", global.data.messageList[message.messageID].body).replace("{1}", JSON.stringify(global.data.messageList[message.messageID].attachments)), message.threadID, function(){}, message.messageID);
+									api.sendMessage(prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", global.data.messageList[message.messageID].body).replace("{1}", JSON.stringify(global.data.messageList[message.messageID].attachments)), message.threadID, function(){});
 									api.markAsRead(message.threadID);
 									log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
 									for (var id in global.data.messageList) {
