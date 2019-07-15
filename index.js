@@ -791,7 +791,9 @@ function temp5() {
                         log("[CACHENAME]", id + " => " + ret[id].name);
                         global.data.cacheName["FB-" + id] = ret[id].name;
                         try {
-                            callingback();
+                            if (typeof callingback == "function") {
+								callingback();
+							}
                         } catch (ex) {
                             log("[INTERNAL]", ex);
                         }
