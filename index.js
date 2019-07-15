@@ -903,6 +903,8 @@ function temp5() {
 							log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
                             api.markAsRead(message.threadID);
                             break;
+						default:
+							break;
                     }
                 } catch (ex) {
                     log("[Facebook]", ex);
