@@ -981,7 +981,7 @@ function temp5() {
                                 var mentions = {};
                                 message.mentions.users.forEach(function(y, x) {
                                     mentions["DC-" + x] = y;
-                                    cacheName["DC-" + x] = y.username + "#" + y.discrimator;
+                                    global.data.cacheName["DC-" + x] = y.username + "#" + y.discrimator;
                                 });
                                 try {
                                     var returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
