@@ -781,19 +781,18 @@ function temp5() {
             }
             
             function fetchName(id, force, callingback) {
+				if (!callingback) {
+					callingback = function(){}
+				}
                 if (!!global.data.cacheName[id] && !force) {
-                    if (typeof callingback == "function") {
-                        callingback();
-                    }
+                    callingback();
                 } else { 
                     api.getUserInfo(id, (err, ret) => {
                         if(err) return log("[INTERNAL]", err);
                         log("[CACHENAME]", id + " => " + ret[id].name);
                         global.data.cacheName["FB-" + id] = ret[id].name;
                         try {
-                            if (typeof callingback == "function") {
-								callingback();
-							}
+							callingback();
                         } catch (ex) {
                             log("[INTERNAL]", ex);
                         }
