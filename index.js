@@ -22,12 +22,14 @@ const fs = require('fs');
 var path = require("path");
 const util = require('util');
 var nodeCleanup = require('node-cleanup');
+var streamBuffers = require('stream-buffers');
 global.nodemodule.fs = require('fs');
 global.nodemodule.http = require('http');
 global.nodemodule.https = require('https');
 global.nodemodule.striptags = require("striptags");
 global.nodemodule.util = require("util");
 global.nodemodule["child_process"] = require('child_process');
+global.nodemodule["stream-buffers"] = require('stream-buffers');
 const readline = require('readline');
 const rl = readline.createInterface({
   input: process.stdin,
