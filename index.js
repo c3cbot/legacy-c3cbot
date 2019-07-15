@@ -754,7 +754,7 @@ function temp5() {
                     }
                 }
                 temp6();
-				return {
+                return {
                     handler: "core",
                     data: "Reloaded"
                 }
@@ -781,16 +781,16 @@ function temp5() {
             }
             
             function fetchName(id, force, callingback) {
-				if (!callingback) {
-					callingback = function(){}
-				}
+                if (!callingback) {
+                    callingback = function(){}
+                }
                 if (!global.data.cacheName["FB-" + id] || !!force) {
-					api.getUserInfo(id, (err, ret) => {
+                    api.getUserInfo(id, (err, ret) => {
                         if(err) return log("[INTERNAL]", err);
                         log("[CACHENAME]", id + " => " + ret[id].name);
                         global.data.cacheName["FB-" + id] = ret[id].name;
                         try {
-							callingback();
+                            callingback();
                         } catch (ex) {
                             log("[INTERNAL]", ex);
                         }
@@ -804,110 +804,110 @@ function temp5() {
             !global.data.messageList ? global.data.messageList = {} : "";
             fblistener = api.listen(function callback(err, message) {
                 try {
-					if (!!message.type) { 
-						switch (message.type) {
-							case "message":
-								api.markAsRead(message.threadID);
-								if (global.config.enableThanosTimeGems) {
-									global.data.messageList[message.messageID] = message;
-									for (var id in global.data.messageList) {
-										if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
-											delete global.data.messageList[id];
-										}
-									}
-								}
-								if (message.body.startsWith("/")) {
-									fetchName(message.senderID);
-									if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)) {
-										log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
-										var receivetime = new Date();
-										var arg = message.body.split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-											return !(el == null || el == "" || el == " ");
-										});
-										arg.map(xy => xy.replace(/["]/g, ""));
-										if (global.commandMapping[arg[0].substr(1)]) {
-											if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-												api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function(){}, message.messageID);
-											} else {
-												var admin = false;
-												for (var no in global.config.admins) {
-													if (global.config.admins[no] == "FB-" + message.senderID) {
-														admin = true;
-													}
-												}
-												var mentions = {};
-												for (var y in message.mentions) {
-													mentions["FB-" + y] = message.mentions[y];
-												}
-												try {
-													var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-														args: arg,
-														time: receivetime,
-														msgdata: message,
-														api: api,
-														prefix: prefix,
-														admin: admin,
-														mentions: mentions
-													});
-													if (!returndata) return undefined;
-													if (returndata.handler == "core") {
-														var endTyping = api.sendTypingIndicator(message.threadID);
-														setTimeout(function(api, returndata, endTyping, message) {
-															api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
-															endTyping();
-															api.markAsRead(message.threadID);
-														}, returndata.data.length * 50, api, returndata, endTyping, message);
-													}
-												} catch (ex) {
-													log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
-												}
-											}
-										} else {
-											api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function(){}, message.messageID);
-										}
-									} else {
-										log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
-									}
-								} else {
-									log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
-								}
-								break;
-							case "event":
-								console.log(message);
-								break;
-							case "message_reaction":
-								console.log(message);
-								break;
-							case "message_unsend":
-								if (global.config.enableThanosTimeGems) {
-									api.sendMessage(prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", global.data.messageList[message.messageID].body).replace("{1}", JSON.stringify(global.data.messageList[message.messageID].attachments)), message.threadID, function(){});
-									api.markAsRead(message.threadID);
-									log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
-									for (var id in global.data.messageList) {
-										if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
-											delete global.data.messageList[id];
-										}
-									}
-								} else {
-									log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID, ". (" + message.messageID + ")");
-								}
-								break;
-							case "message_reply":
-								if (global.config.enableThanosTimeGems) {
-									global.data.messageList[message.messageID] = message;
-									for (var id in global.data.messageList) {
-										if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
-											delete global.data.messageList[id];
-										}
-									}
-								}
-								log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
-								api.markAsRead(message.threadID);
-								break;
-							default:
-								break;
-						}
-					}
+                    if (message != undefined) { 
+                        switch (message.type) {
+                            case "message":
+                                api.markAsRead(message.threadID);
+                                if (global.config.enableThanosTimeGems) {
+                                    global.data.messageList[message.messageID] = message;
+                                    for (var id in global.data.messageList) {
+                                        if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
+                                            delete global.data.messageList[id];
+                                        }
+                                    }
+                                }
+                                if (message.body.startsWith("/")) {
+                                    fetchName(message.senderID);
+                                    if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)) {
+                                        log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
+                                        var receivetime = new Date();
+                                        var arg = message.body.split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                                            return !(el == null || el == "" || el == " ");
+                                        });
+                                        arg.map(xy => xy.replace(/["]/g, ""));
+                                        if (global.commandMapping[arg[0].substr(1)]) {
+                                            if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
+                                                api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function(){}, message.messageID);
+                                            } else {
+                                                var admin = false;
+                                                for (var no in global.config.admins) {
+                                                    if (global.config.admins[no] == "FB-" + message.senderID) {
+                                                        admin = true;
+                                                    }
+                                                }
+                                                var mentions = {};
+                                                for (var y in message.mentions) {
+                                                    mentions["FB-" + y] = message.mentions[y];
+                                                }
+                                                try {
+                                                    var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                                                        args: arg,
+                                                        time: receivetime,
+                                                        msgdata: message,
+                                                        api: api,
+                                                        prefix: prefix,
+                                                        admin: admin,
+                                                        mentions: mentions
+                                                    });
+                                                    if (!returndata) return undefined;
+                                                    if (returndata.handler == "core") {
+                                                        var endTyping = api.sendTypingIndicator(message.threadID);
+                                                        setTimeout(function(api, returndata, endTyping, message) {
+                                                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
+                                                            endTyping();
+                                                            api.markAsRead(message.threadID);
+                                                        }, returndata.data.length * 50, api, returndata, endTyping, message);
+                                                    }
+                                                } catch (ex) {
+                                                    log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
+                                                }
+                                            }
+                                        } else {
+                                            api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function(){}, message.messageID);
+                                        }
+                                    } else {
+                                        log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
+                                    }
+                                } else {
+                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
+                                }
+                                break;
+                            case "event":
+                                console.log(message);
+                                break;
+                            case "message_reaction":
+                                console.log(message);
+                                break;
+                            case "message_unsend":
+                                if (global.config.enableThanosTimeGems) {
+                                    api.sendMessage(prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", global.data.messageList[message.messageID].body).replace("{1}", JSON.stringify(global.data.messageList[message.messageID].attachments)), message.threadID, function(){});
+                                    api.markAsRead(message.threadID);
+                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                                    for (var id in global.data.messageList) {
+                                        if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
+                                            delete global.data.messageList[id];
+                                        }
+                                    }
+                                } else {
+                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID, ". (" + message.messageID + ")");
+                                }
+                                break;
+                            case "message_reply":
+                                if (global.config.enableThanosTimeGems) {
+                                    global.data.messageList[message.messageID] = message;
+                                    for (var id in global.data.messageList) {
+                                        if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
+                                            delete global.data.messageList[id];
+                                        }
+                                    }
+                                }
+                                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
+                                api.markAsRead(message.threadID);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                 } catch (ex) {
                     log("[Facebook]", ex, message);
                 }
