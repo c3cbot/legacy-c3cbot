@@ -784,10 +784,8 @@ function temp5() {
 				if (!callingback) {
 					callingback = function(){}
 				}
-                if (!!global.data.cacheName[id] && !force) {
-                    callingback();
-                } else { 
-                    api.getUserInfo(id, (err, ret) => {
+                if (!global.data.cacheName[id] || !!force) {
+					api.getUserInfo(id, (err, ret) => {
                         if(err) return log("[INTERNAL]", err);
                         log("[CACHENAME]", id + " => " + ret[id].name);
                         global.data.cacheName["FB-" + id] = ret[id].name;
@@ -797,6 +795,8 @@ function temp5() {
                             log("[INTERNAL]", ex);
                         }
                     });
+                } else { 
+                    callingback();
                 }
             }
             fbapi.fetchName = fetchName;
@@ -818,7 +818,7 @@ function temp5() {
                             if (message.body.startsWith("/")) {
                                 fetchName(message.senderID);
                                 if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)) {
-                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
+                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
                                     var receivetime = new Date();
                                     var arg = message.body.split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                                         return !(el == null || el == "" || el == " ");
@@ -865,10 +865,10 @@ function temp5() {
                                         api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function(){}, message.messageID);
                                     }
                                 } else {
-                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
+                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
                                 }
                             } else {
-                                log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
+                                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
                             }
                             break;
                         case "event":
@@ -881,14 +881,14 @@ function temp5() {
                             if (global.config.enableThanosTimeGems) {
                                 api.sendMessage(prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", global.data.messageList[message.messageID].body).replace("{1}", JSON.stringify(global.data.messageList[message.messageID].attachments)), message.threadID, function(){}, message.messageID);
                                 api.markAsRead(message.threadID);
-                                log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
 								for (var id in global.data.messageList) {
 									if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
 										delete global.data.messageList[id];
 									}
 								}
                             } else {
-                                log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", "deleted a message in " + message.threadID, ". (" + message.messageID + ")");
+                                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID, ". (" + message.messageID + ")");
                             }
                             break;
                         case "message_reply":
@@ -900,7 +900,7 @@ function temp5() {
 									}
 								}
                             }
-							log("[Facebook]", message.senderID, "(" + global.data.cacheName[message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
+							log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
                             api.markAsRead(message.threadID);
                             break;
                     }
