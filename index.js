@@ -909,7 +909,7 @@ function temp5() {
 						}
 					}
                 } catch (ex) {
-                    log("[Facebook]", ex);
+                    log("[Facebook]", ex, message);
                 }
             });
         }
