@@ -763,17 +763,17 @@ function temp5() {
             handler: "INTERNAL"
         }
         
-        var fbapi = {};
+        var facebook = {};
         var fblistener = "";
         facebookcb = function callback(err, api) {
             if (err) { 
-                var fcaerr = err;
+                facebook.error = err;
                 log("[Facebook]", err);
-                log("[Facebook]", "Error saved to variable 'fcaerr'.");
+                log("[Facebook]", "Error saved to 'facebook.error'.");
                 return false;
             }
             log("[Facebook]", "Logged in.");
-			Object.assign(fbapi, api);
+			facebook.api = api;
             try {
                 fs.writeFileSync(__dirname + "/fbstate.json", JSON.stringify(api.getAppState()));
             } catch (ex) {
