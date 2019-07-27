@@ -165,7 +165,7 @@ function obf(data) {
 
 	Obfuscator.prototype.obfuscate = function(str) {
 		var rv = "";
-		for(var i = 0; i < str.length; i++) {
+		for(var i = 0; i < str.toString().length; i++) {
 			var c = str.charAt(i);
 			var r = this.replacements[c];
 			if (r) {
@@ -180,7 +180,7 @@ function obf(data) {
 
 	Obfuscator.prototype.deobfuscate = function(str) {
 		var rv = "";
-		for(var i = 0; i < str.length; i++) {
+		for(var i = 0; i < str.toString().length; i++) {
 			var c = str.charAt(i);
 			var r = this.revreplacements[c];
 			if (r) {
@@ -828,6 +828,11 @@ function temp5() {
 										}
 									}
 								}
+								var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+									return !(el == null || el == "" || el == " ");
+								});
+								arg.map(xy => xy.replace(/["]/g, ""));
+								if (arg.indexOf("@everyone") != -1) {}
 								if (message.body.startsWith("/")) {
 									fetchName(message.senderID);
 									if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)) {
