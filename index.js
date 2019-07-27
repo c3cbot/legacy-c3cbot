@@ -1110,6 +1110,7 @@ function temp5() {
 		}
 		process.on('SIGTERM', shutdownHandler);
 		process.on('SIGINT', shutdownHandler);
+		rl.on('SIGINT', shutdownHandler);
 	} else {
 		setTimeout(temp5, 1000);
 	}
