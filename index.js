@@ -100,7 +100,6 @@ var defaultconfig = {
 //Load config
 global.config = fs.existsSync(__dirname + "/config.json") ? (function(){
 	var readedConfig = JSON.parse(fs.readFileSync(__dirname + "/config.json"));
-	console.log(readedConfig);
 	for (var configName in defaultconfig) {
 		if (!readedConfig.hasOwnProperty(configName)) {
 			readedConfig[configName] = defaultconfig[configName];
@@ -109,7 +108,7 @@ global.config = fs.existsSync(__dirname + "/config.json") ? (function(){
 	}
 	fs.writeFileSync(__dirname + "/config.json", JSON.stringify(readedConfig, null, 4));
 	return readedConfig;
-}) : (function(){
+})() : (function(){
 	log("[INTERNAL]", "Config file not found. Creating a default one...");
 	try {
 		fs.writeFileSync(__dirname + "/config.json", JSON.stringify(defaultconfig, null, 4));
