@@ -941,6 +941,10 @@ function temp5() {
                                         }
                                     }
                                 }
+								var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                                    return !(el == null || el == "" || el == " ");
+                                });
+                                arg.map(xy => xy.replace(/["]/g, ""));
                                 if (arg.indexOf("@everyone") != -1) {
                                     api.getThreadInfo(message.threadID, function (err, data) {
                                         var participants = data.participantIDs;
