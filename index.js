@@ -100,6 +100,7 @@ var defaultconfig = {
 //Load config
 global.config = fs.existsSync(__dirname + "/config.json") ? (function(){
 	var readedConfig = JSON.parse(fs.readFileSync(__dirname + "/config.json"));
+	console.log(readedConfig);
 	for (var configName in defaultconfig) {
 		if (!readedConfig.hasOwnProperty(configName)) {
 			readedConfig[configName] = defaultconfig[configName];
@@ -165,7 +166,7 @@ function obf(data) {
 
 	Obfuscator.prototype.obfuscate = function(str) {
 		var rv = "";
-		for(var i = 0; i < str.toString().length; i++) {
+		for(var i = 0; i < str.length; i++) {
 			var c = str.charAt(i);
 			var r = this.replacements[c];
 			if (r) {
@@ -180,7 +181,7 @@ function obf(data) {
 
 	Obfuscator.prototype.deobfuscate = function(str) {
 		var rv = "";
-		for(var i = 0; i < str.toString().length; i++) {
+		for(var i = 0; i < str.length; i++) {
 			var c = str.charAt(i);
 			var r = this.revreplacements[c];
 			if (r) {
