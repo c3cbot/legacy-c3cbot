@@ -773,7 +773,7 @@ function temp5() {
                 return false;
             }
             log("[Facebook]", "Logged in.");
-            fbapi = api;
+			Object.assign(fbapi, api);
             try {
                 fs.writeFileSync(__dirname + "/fbstate.json", JSON.stringify(api.getAppState()));
             } catch (ex) {
@@ -1018,3 +1018,7 @@ function temp5() {
     }
 }
 temp5();
+
+var shutdownHandler = function() {
+	//WIP
+}
