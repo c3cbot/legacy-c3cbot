@@ -63,42 +63,53 @@ function log(...message) {
 var version = require("./package.json").version;
 log("Starting C3CBot version", version, "...");
 
+var defaultconfig = {
+    testmode: false,
+    baseprefix: "[Bot]",
+    botname: "C3CBot",
+    enablefb: false,
+    usefbappstate: true,
+    fbemail: "",
+    fbpassword: "",
+    fbuseragent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
+    fblistenwhitelist: false,
+    fblisten: [
+        "0" //Replace 0 with FB Thread ID
+    ],
+    enablediscord: false,
+    discordtoken: "",
+    discordlistenwhitelist: false,
+    discordlisten: [
+        "0" //Replace 0 with Discord channel ID
+    ],
+    admins: [
+        "FB-0", //Replace 0 with FBID
+        "DC-0"  //Replace 0 with Discord ID
+    ],
+    blacklistedUsers: [
+        "FB-0", //Replace 0 with FBID
+        "DC-0"  //Replace 0 with Discord ID
+    ],
+    allowAdminUseRestartCommand: false,
+    allowUserUsePluginsCommand: false,
+    allowUserUseReloadCommand: false,
+    language: "en_US",
+    enableThanosTimeGems: true //Anti-Unsend
+}
+
 //Load config
-global.config = fs.existsSync(__dirname + "/config.json") ? JSON.parse(fs.readFileSync(__dirname + "/config.json")) : (function(){
+global.config = fs.existsSync(__dirname + "/config.json") ? (function(){
+	var readedConfig = JSON.parse(fs.readFileSync(__dirname + "/config.json"));
+	for (var configName in defaultconfig) {
+		if (!readedConfig.hasOwnProperty(configName)) {
+			readedConfig[configName] = defaultconfig[configName];
+			log("[INTERNAL]", "Missing", configName, "in config file. Adding with default value (" + defaultconfig[configName] + ")...");
+		}
+	}
+	fs.writeFileSync(__dirname + "/config.json", JSON.stringify(readedConfig, null, 4));
+	return readedConfig;
+}) : (function(){
     log("[INTERNAL]", "Config file not found. Creating a default one...");
-    var defaultconfig = {
-        testmode: false,
-        baseprefix: "[Bot]",
-        botname: "C3CBot",
-        enablefb: false,
-        usefbappstate: true,
-        fbemail: "",
-        fbpassword: "",
-        fbuseragent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
-        fblistenwhitelist: false,
-        fblisten: [
-            "0" //Replace 0 with FB Thread ID
-        ],
-        enablediscord: false,
-        discordtoken: "",
-        discordlistenwhitelist: false,
-        discordlisten: [
-            "0" //Replace 0 with FB Thread ID
-        ],
-        admins: [
-            "FB-0", //Replace 0 with FBID
-            "DC-0"  //Replace 0 with Discord ID
-        ],
-        blacklistedUsers: [
-            "FB-0", //Replace 0 with FBID
-            "DC-0"  //Replace 0 with Discord ID
-        ],
-        allowAdminUseRestartCommand: false,
-        allowUserUsePluginsCommand: false,
-        allowUserUseReloadCommand: false,
-        language: "en_US",
-        enableThanosTimeGems: true //Anti-Unsend
-    }
     try {
         fs.writeFileSync(__dirname + "/config.json", JSON.stringify(defaultconfig, null, 4));
     } catch (ex) {
