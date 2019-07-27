@@ -165,6 +165,7 @@ function obf(data) {
 	}
 
 	Obfuscator.prototype.obfuscate = function(str) {
+		str = str + "";
 		var rv = "";
 		for(var i = 0; i < str.length; i++) {
 			var c = str.charAt(i);
@@ -180,6 +181,7 @@ function obf(data) {
 	}
 
 	Obfuscator.prototype.deobfuscate = function(str) {
+		str = str + "";
 		var rv = "";
 		for(var i = 0; i < str.length; i++) {
 			var c = str.charAt(i);
