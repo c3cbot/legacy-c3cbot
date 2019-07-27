@@ -520,6 +520,18 @@ function temp5() {
                 }
             }
         }
+		global.commandMapping["version"] = {
+            args: "",
+            desc: global.lang["VERSION_DESC"],
+            scope: function (type, data) {
+                return {
+                    handler: "core",
+                    data: version
+                }
+            },
+            compatibly: 0,
+            handler: "INTERNAL"
+        }
         global.commandMapping["help"] = {
             args: global.lang["HELP_ARGS"],
             desc: global.lang["HELP_DESC"],
