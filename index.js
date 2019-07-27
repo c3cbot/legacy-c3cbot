@@ -924,6 +924,7 @@ function temp5() {
 					log("[Facebook]", ex, message);
 				}
 			});
+			log("[Facebook]", "Started Facebook listener");
 		}
 
 		consoles = function consoles() {
@@ -941,6 +942,7 @@ function temp5() {
 		!global.data.cacheName ? global.data.cacheName = {} : "";
 		
 		if (global.config.enablefb) {
+			var temporaryAppState = {};
 			var fbloginobj = {};
 			fbloginobj.email = global.config.fbemail;
 			fbloginobj.password = global.config.fbpassword;
@@ -949,12 +951,31 @@ function temp5() {
 			}
 			try {
 				log("[Facebook]", "Logging in...");
-				require("facebook-chat-api")(fbloginobj, {
+				var instance = require("facebook-chat-api")(fbloginobj, {
 					userAgent: global.config.fbuseragent,
 					logLevel: "silent", 
 					selfListen: true,
 					listenEvents: true
 				}, facebookcb);
+				setInterval(function() {
+					log("[Facebook]", "12 hours has passed. Destroying FCA instance and creating a new one...");
+					if (!!facebook.listener) {
+						facebook.listener();
+						log("[Facebook]", "Stopped Facebook listener");
+						temporaryAppState = facebook.api.getAppState();
+					}
+					instance = undefined;
+					instance = require("facebook-chat-api")({
+						appState: temporaryAppState
+					}, {
+						userAgent: global.config.fbuseragent,
+						logLevel: "silent", 
+						selfListen: true,
+						listenEvents: true
+					}, facebookcb);
+					log("[Facebook]", "New instance created.");
+					log("[Facebook]", "Logging in...");
+				}, 43200000);
 			} catch (ex) {
 				log("[Facebook]", "Error found in codebase:", ex);
 			}
