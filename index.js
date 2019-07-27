@@ -1074,7 +1074,7 @@ function temp5() {
 				log("[Discord]", "Logged out and destroyed client.");
 			}
 			//Logout if don't use appstates
-			if (!global.config.usefbappstate) {
+			if (!global.config.usefbappstate && !!facebook.api) {
 				facebook.api.logout();
 				log("[Facebook]", "Logged out");
 			}
