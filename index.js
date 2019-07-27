@@ -821,7 +821,6 @@ function temp5() {
                     if (message != undefined) { 
                         switch (message.type) {
                             case "message":
-                                api.markAsRead(message.threadID);
                                 if (global.config.enableThanosTimeGems) {
                                     global.data.messageList[message.messageID] = message;
                                     for (var id in global.data.messageList) {
@@ -830,87 +829,90 @@ function temp5() {
                                         }
                                     }
                                 }
-                                var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                                    return !(el == null || el == "" || el == " ");
-                                });
-                                arg.map(xy => xy.replace(/["]/g, ""));
-                                if (arg.indexOf("@everyone") != -1) {
-                                    api.getThreadInfo(message.threadID, function (err, data) {
-                                        var participants = data.participantIDs;
-                                        var character = "ͥ";
-                                        var sendString = "";
-                                        var mentionObj = [];
-                                        var i = 0;
-                                        for (var n in participants) {
-                                            sendString += character;
-                                            mentionObj.push({
-                                                tag: character,
-                                                id: participants[n],
-                                                fromIndex: i
-                                            });
-                                            i++;
-                                        }
-                                        api.sendMessage({
-                                            body: sendString,
-                                            mentions: mentionObj
-                                        }, message.threadID, function(){}, message.messageID);
+                                setTimeout(function() {
+                                    api.markAsRead(message.threadID);
+                                    var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                                        return !(el == null || el == "" || el == " ");
                                     });
-                                }
-                                if (message.body.startsWith("/")) {
-                                    fetchName(message.senderID);
-                                    if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)) {
-                                        log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
-                                        var receivetime = new Date();
-                                        var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                                            return !(el == null || el == "" || el == " ");
+                                    arg.map(xy => xy.replace(/["]/g, ""));
+                                    if (arg.indexOf("@everyone") != -1) {
+                                        api.getThreadInfo(message.threadID, function (err, data) {
+                                            var participants = data.participantIDs;
+                                            var character = "ͥ";
+                                            var sendString = "";
+                                            var mentionObj = [];
+                                            var i = 0;
+                                            for (var n in participants) {
+                                                sendString += character;
+                                                mentionObj.push({
+                                                    tag: character,
+                                                    id: participants[n],
+                                                    fromIndex: i
+                                                });
+                                                i++;
+                                            }
+                                            api.sendMessage({
+                                                body: sendString,
+                                                mentions: mentionObj
+                                            }, message.threadID, function(){}, message.messageID);
                                         });
-                                        arg.map(xy => xy.replace(/["]/g, ""));
-                                        if (global.commandMapping[arg[0].substr(1)]) {
-                                            if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                                                api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function(){}, message.messageID);
+                                    }
+                                    if (message.body.startsWith("/")) {
+                                        fetchName(message.senderID);
+                                        if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)) {
+                                            log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
+                                            var receivetime = new Date();
+                                            var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                                                return !(el == null || el == "" || el == " ");
+                                            });
+                                            arg.map(xy => xy.replace(/["]/g, ""));
+                                            if (global.commandMapping[arg[0].substr(1)]) {
+                                                if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
+                                                    api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function(){}, message.messageID);
+                                                } else {
+                                                    var admin = false;
+                                                    for (var no in global.config.admins) {
+                                                        if (global.config.admins[no] == "FB-" + message.senderID) {
+                                                            admin = true;
+                                                        }
+                                                    }
+                                                    var mentions = {};
+                                                    for (var y in message.mentions) {
+                                                        mentions["FB-" + y] = message.mentions[y];
+                                                    }
+                                                    try {
+                                                        var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                                                            args: arg,
+                                                            time: receivetime,
+                                                            msgdata: message,
+                                                            api: api,
+                                                            prefix: prefix,
+                                                            admin: admin,
+                                                            mentions: mentions
+                                                        });
+                                                        if (!returndata) return undefined;
+                                                        if (returndata.handler == "core") {
+                                                            var endTyping = api.sendTypingIndicator(message.threadID);
+                                                            setTimeout(function(api, returndata, endTyping, message) {
+                                                                api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
+                                                                endTyping();
+                                                                api.markAsRead(message.threadID);
+                                                            }, returndata.data.length * 37, api, returndata, endTyping, message);
+                                                        }
+                                                    } catch (ex) {
+                                                        log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
+                                                    }
+                                                }
                                             } else {
-                                                var admin = false;
-                                                for (var no in global.config.admins) {
-                                                    if (global.config.admins[no] == "FB-" + message.senderID) {
-                                                        admin = true;
-                                                    }
-                                                }
-                                                var mentions = {};
-                                                for (var y in message.mentions) {
-                                                    mentions["FB-" + y] = message.mentions[y];
-                                                }
-                                                try {
-                                                    var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                                                        args: arg,
-                                                        time: receivetime,
-                                                        msgdata: message,
-                                                        api: api,
-                                                        prefix: prefix,
-                                                        admin: admin,
-                                                        mentions: mentions
-                                                    });
-                                                    if (!returndata) return undefined;
-                                                    if (returndata.handler == "core") {
-                                                        var endTyping = api.sendTypingIndicator(message.threadID);
-                                                        setTimeout(function(api, returndata, endTyping, message) {
-                                                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
-                                                            endTyping();
-                                                            api.markAsRead(message.threadID);
-                                                        }, returndata.data.length * 29, api, returndata, endTyping, message);
-                                                    }
-                                                } catch (ex) {
-                                                    log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
-                                                }
+                                                api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function(){}, message.messageID);
                                             }
                                         } else {
-                                            api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function(){}, message.messageID);
+                                            log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
                                         }
                                     } else {
                                         log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
                                     }
-                                } else {
-                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
-                                }
+                                }, 195);
                                 break;
                             case "event":
                                 console.log(message);
@@ -941,34 +943,36 @@ function temp5() {
                                         }
                                     }
                                 }
-								var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                                    return !(el == null || el == "" || el == " ");
-                                });
-                                arg.map(xy => xy.replace(/["]/g, ""));
-                                if (arg.indexOf("@everyone") != -1) {
-                                    api.getThreadInfo(message.threadID, function (err, data) {
-                                        var participants = data.participantIDs;
-                                        var character = "ͥ";
-                                        var sendString = "";
-                                        var mentionObj = [];
-                                        var i = 0;
-                                        for (var n in participants) {
-                                            sendString += character;
-                                            mentionObj.push({
-                                                tag: character,
-                                                id: participants[n],
-                                                fromIndex: i
-                                            });
-                                            i++;
-                                        }
-                                        api.sendMessage({
-                                            body: sendString,
-                                            mentions: mentionObj
-                                        }, message.threadID, function(){}, message.messageID);
+                                setTimeout(function() {
+                                    api.markAsRead(message.threadID);
+                                    var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                                        return !(el == null || el == "" || el == " ");
                                     });
-                                }
-                                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
-                                api.markAsRead(message.threadID);
+                                    arg.map(xy => xy.replace(/["]/g, ""));
+                                    if (arg.indexOf("@everyone") != -1) {
+                                        api.getThreadInfo(message.threadID, function (err, data) {
+                                            var participants = data.participantIDs;
+                                            var character = "ͥ";
+                                            var sendString = "";
+                                            var mentionObj = [];
+                                            var i = 0;
+                                            for (var n in participants) {
+                                                sendString += character;
+                                                mentionObj.push({
+                                                    tag: character,
+                                                    id: participants[n],
+                                                    fromIndex: i
+                                                });
+                                                i++;
+                                            }
+                                            api.sendMessage({
+                                                body: sendString,
+                                                mentions: mentionObj
+                                            }, message.threadID, function(){}, message.messageID);
+                                        });
+                                    }
+                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
+                                }, 150);
                                 break;
                             default:
                                 break;
