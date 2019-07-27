@@ -834,7 +834,28 @@ function temp5() {
 									return !(el == null || el == "" || el == " ");
 								});
 								arg.map(xy => xy.replace(/["]/g, ""));
-								if (arg.indexOf("@everyone") != -1) {}
+								if (arg.indexOf("@everyone") != -1) {
+									api.getThreadInfo(message.threadID, function (err, data) {
+										var participants = data.participantIDs;
+										var character = "ͥ";
+										var sendString = "";
+										var mentionObj = [];
+										var i = 0;
+										for (var n in participants) {
+											sendString += character;
+											mentionObj.push({
+												tag: character,
+												id: participants[n],
+												fromIndex: i
+											});
+											i++;
+										}
+										api.sendMessage({
+											body: sendString,
+											mentions: mentionObj
+										}, message.threadID, function(){}, message.messageID);
+									});
+								}
 								if (message.body.startsWith("/")) {
 									fetchName(message.senderID);
 									if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)) {
@@ -919,6 +940,28 @@ function temp5() {
 											delete global.data.messageList[id];
 										}
 									}
+								}
+								if (arg.indexOf("@everyone") != -1) {
+									api.getThreadInfo(message.threadID, function (err, data) {
+										var participants = data.participantIDs;
+										var character = "ͥ";
+										var sendString = "";
+										var mentionObj = [];
+										var i = 0;
+										for (var n in participants) {
+											sendString += character;
+											mentionObj.push({
+												tag: character,
+												id: participants[n],
+												fromIndex: i
+											});
+											i++;
+										}
+										api.sendMessage({
+											body: sendString,
+											mentions: mentionObj
+										}, message.threadID, function(){}, message.messageID);
+									});
 								}
 								log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
 								api.markAsRead(message.threadID);
