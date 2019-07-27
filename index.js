@@ -103,7 +103,7 @@ global.config = fs.existsSync(__dirname + "/config.json") ? (function(){
 	for (var configName in defaultconfig) {
 		if (!readedConfig.hasOwnProperty(configName)) {
 			readedConfig[configName] = defaultconfig[configName];
-			log("[INTERNAL]", "Missing", configName, "in config file. Adding with default value (" + defaultconfig[configName] + ")...");
+			log("[INTERNAL]", "Missing", configName, "in config file. Adding with default value (", defaultconfig[configName], ")...");
 		}
 	}
 	fs.writeFileSync(__dirname + "/config.json", JSON.stringify(readedConfig, null, 4));
