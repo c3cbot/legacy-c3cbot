@@ -795,7 +795,9 @@ function temp5() {
                 log("[Facebook]", err);
                 log("[Facebook]", "Error saved to 'facebook.error'.");
                 return false;
-            }
+            } else {
+				facebook.error = undefined;
+			}
             log("[Facebook]", "Logged in.");
             facebook.api = api;
             if (!!global.config.usefbappstate) {
@@ -1027,7 +1029,7 @@ function temp5() {
                     selfListen: true,
                     listenEvents: true
                 }, facebookcb);
-                setInterval(function() {
+				function forceReconnect() {
                     log("[Facebook]", "12 hours has passed. Destroying FCA instance and creating a new one...");
                     if (!!facebook.listener) {
                         facebook.listener();
@@ -1045,7 +1047,14 @@ function temp5() {
                     }, facebookcb);
                     log("[Facebook]", "New instance created.");
                     log("[Facebook]", "Logging in...");
-                }, 43200000);
+					setTimeout(function(fr) {
+						if (!!facebook.error) {
+							log("[Facebook]", "Detected error. Attempting to reconnect...");
+							fr();
+						}
+					}, 15000, forceReconnect)
+                }
+                setInterval(forceReconnect, 43200000);
             } catch (ex) {
                 log("[Facebook]", "Error found in codebase:", ex);
             }
