@@ -902,6 +902,7 @@ function temp5() {
                                                 return !(el == null || el == "" || el == " ");
                                             });
                                             arg.map(xy => xy.replace(/["]/g, ""));
+											var toarg = arg;
                                             if (global.commandMapping[arg[0].substr(1)]) {
                                                 if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
                                                     api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function(){}, message.messageID);
@@ -917,9 +918,8 @@ function temp5() {
                                                         mentions["FB-" + y] = message.mentions[y];
                                                     }
                                                     try {
-														var toarg = arg;
                                                         var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                                                            args: toarg,
+                                                            args: arg,
                                                             time: receivetime,
                                                             msgdata: message,
                                                             api: api,
@@ -937,7 +937,11 @@ function temp5() {
                                                             }, returndata.data.length * 37, api, returndata, endTyping, message);
                                                         }
                                                     } catch (ex) {
-                                                        log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex);
+														try {
+															log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
+														} catch (exp) {
+															log("[INTERNAL]", toarg[0], "contain an error:", ex);
+														}
                                                     }
                                                 }
                                             } else {
