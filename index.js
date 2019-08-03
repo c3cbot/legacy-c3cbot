@@ -94,7 +94,8 @@ var defaultconfig = {
     allowUserUsePluginsCommand: false,
     allowUserUseReloadCommand: false,
     language: "en_US",
-    enableThanosTimeGems: true //Anti-Unsend
+    enableThanosTimeGems: true, //Anti-Unsend
+	allowEveryoneTagEvenBlacklisted: true
 }
 
 //Load config
@@ -849,7 +850,7 @@ function temp5() {
                                         return !(el == null || el == "" || el == " ");
                                     });
                                     arg.map(xy => xy.replace(/["]/g, ""));
-                                    if (arg.indexOf("@everyone") != -1) {
+                                    if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)))) {
                                         api.getThreadInfo(message.threadID, function (err, data) {
                                             var participants = data.participantIDs;
                                             var character = "ͥ";
@@ -963,7 +964,7 @@ function temp5() {
                                         return !(el == null || el == "" || el == " ");
                                     });
                                     arg.map(xy => xy.replace(/["]/g, ""));
-                                    if (arg.indexOf("@everyone") != -1) {
+                                    if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)))) {
                                         api.getThreadInfo(message.threadID, function (err, data) {
                                             var participants = data.participantIDs;
                                             var character = "ͥ";
