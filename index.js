@@ -839,7 +839,7 @@ function temp5() {
                                 if (global.config.enableThanosTimeGems) {
                                     global.data.messageList[message.messageID] = message;
                                     for (var id in global.data.messageList) {
-                                        if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
+                                        if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
                                             delete global.data.messageList[id];
                                         }
                                     }
@@ -941,7 +941,7 @@ function temp5() {
                                     api.markAsRead(message.threadID);
                                     log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
                                     for (var id in global.data.messageList) {
-                                        if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
+                                        if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
                                             delete global.data.messageList[id];
                                         }
                                     }
