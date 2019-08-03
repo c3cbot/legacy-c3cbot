@@ -394,7 +394,7 @@ if (testmode) {
 global.isDataSaving = false;
 global.dataSavingTimes = 0;
 var autosave = setInterval(function(testmode, log) {
-	if (!global.isDataSaving && global.dataSavingTimes > 3) {
+	if (!global.isDataSaving || global.dataSavingTimes > 3) {
 		if (global.dataSavingTimes > 3) {
 			log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
 			global.dataSavingTimes = 0;
