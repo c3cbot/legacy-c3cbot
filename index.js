@@ -917,8 +917,9 @@ function temp5() {
                                                         mentions["FB-" + y] = message.mentions[y];
                                                     }
                                                     try {
+														var toarg = arg;
                                                         var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                                                            args: arg,
+                                                            args: toarg,
                                                             time: receivetime,
                                                             msgdata: message,
                                                             api: api,
