@@ -391,13 +391,31 @@ if (testmode) {
 }
 
 //Auto-save global data clock
-var autosave = setInterval(function(testmode) {
-    if (testmode) {
-        fs.writeFileSync(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4));
-    } else {
-        fs.writeFileSync(__dirname + "/data.json", JSON.stringify(global.data, null, 4));
-    }
-}, 1000, testmode);
+global.isDataSaving = false;
+global.dataSavingTimes = 0;
+var autosave = setInterval(function(testmode, log) {
+	if (!global.isDataSaving && global.dataSavingTimes > 3) {
+		global.isDataSaving = true;
+		if (testmode) {
+			fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function(err) {
+				if (err) {
+					log("[INTERNAL]", "Auto-save encounted an error:", err);
+				}
+				global.isDataSaving = false;
+			});
+		} else {
+			fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
+				if (err) {
+					log("[INTERNAL]", "Auto-save encounted an error:", err);
+				}
+				global.isDataSaving = false;
+			});
+		}
+	} else {
+		global.dataSavingTimes++;
+		log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
+	}
+}, 10000, testmode, log);
 
 //"require" from code string
 function requireFromString(src, filename) {
