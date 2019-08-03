@@ -936,7 +936,7 @@ function temp5() {
                                                             }, returndata.data.length * 37, api, returndata, endTyping, message);
                                                         }
                                                     } catch (ex) {
-                                                        log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
+                                                        log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex);
                                                     }
                                                 }
                                             } else {
