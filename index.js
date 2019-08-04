@@ -21,7 +21,6 @@ global.nodemodule = {};
 const fs = require('fs');
 var path = require("path");
 const util = require('util');
-var nodeCleanup = require('node-cleanup');
 var streamBuffers = require('stream-buffers');
 global.nodemodule.fs = require('fs');
 global.nodemodule.http = require('http');
@@ -851,6 +850,20 @@ function temp5() {
             }
             facebook.api.fetchName = fetchName;
             
+			var removePendingClock = setInterval(function(api) {
+				api[0].getThreadList(10, null, ["PENDING"], function(err, list) {
+					if (err) {
+						return console.error(err);
+					}
+					for (var i in list) {
+						setTimeout(function(id) {
+							api[0].sendMessage("Please send again!", id);
+						}, i * 500, list[i].threadID);
+					}
+				});
+			}, 60000, [api]);
+			facebook.removePendingClock = removePendingClock;
+			
             !global.data.messageList ? global.data.messageList = {} : "";
             facebook.listener = api.listen(function callback(err, message) {
                 try {
@@ -934,7 +947,7 @@ function temp5() {
                                                                 api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
                                                                 endTyping();
                                                                 api.markAsRead(message.threadID);
-                                                            }, returndata.data.length * 37, api, returndata, endTyping, message);
+                                                            }, returndata.data.length * 34, api, returndata, endTyping, message);
                                                         }
                                                     } catch (ex) {
 														try {
@@ -1057,12 +1070,15 @@ function temp5() {
                     listenEvents: true
                 }, facebookcb);
 				function forceReconnect() {
-                    log("[Facebook]", "12 hours has passed. Destroying FCA instance and creating a new one...");
+                    log("[Facebook]", "6 hours has passed. Destroying FCA instance and creating a new one...");
                     if (!!facebook.listener) {
                         facebook.listener();
                         log("[Facebook]", "Stopped Facebook listener");
                         temporaryAppState = facebook.api.getAppState();
                     }
+					try {
+						clearInterval(facebook.removePendingClock);
+					} catch (ex) {}
                     instance = undefined;
                     instance = require("facebook-chat-api")({
                         appState: temporaryAppState
@@ -1079,9 +1095,9 @@ function temp5() {
 							log("[Facebook]", "Detected error. Attempting to reconnect...");
 							fr();
 						}
-					}, 15000, forceReconnect)
+					}, 15000, forceReconnect);
                 }
-                setInterval(forceReconnect, 43200000);
+                setInterval(forceReconnect, 21600000);
             } catch (ex) {
                 log("[Facebook]", "Error found in codebase:", ex);
             }

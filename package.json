@@ -1,6 +1,6 @@
 {
   "name": "c3cbot",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A customizable bot that runs on Facebook and Discord.",
   "main": "index.js",
   "scripts": {
@@ -32,7 +32,6 @@
     "https": "^1.0.0",
     "js-yaml": "^3.13.1",
     "libsodium-wrappers": "^0.7.4",
-    "node-cleanup": "^2.1.2",
     "node-opus": "^0.3.2",
     "node-stream-zip": "^1.8.0",
     "path": "^0.12.7",
