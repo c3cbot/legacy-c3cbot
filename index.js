@@ -94,7 +94,7 @@ var defaultconfig = {
     allowUserUseReloadCommand: false,
     language: "en_US",
     enableThanosTimeGems: true, //Anti-Unsend
-	allowEveryoneTagEvenBlacklisted: true
+    allowEveryoneTagEvenBlacklisted: true
 }
 
 //Load config
@@ -393,30 +393,30 @@ if (testmode) {
 global.isDataSaving = false;
 global.dataSavingTimes = 0;
 var autosave = setInterval(function(testmode, log) {
-	if (!global.isDataSaving || global.dataSavingTimes > 3) {
-		if (global.dataSavingTimes > 3) {
-			log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
-			global.dataSavingTimes = 0;
-		}
-		global.isDataSaving = true;
-		if (testmode) {
-			fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function(err) {
-				if (err) {
-					log("[INTERNAL]", "Auto-save encounted an error:", err);
-				}
-				global.isDataSaving = false;
-			});
-		} else {
-			fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
-				if (err) {
-					log("[INTERNAL]", "Auto-save encounted an error:", err);
-				}
-				global.isDataSaving = false;
-			});
-		}
-	} else {
-		global.dataSavingTimes++;
-	}
+    if (!global.isDataSaving || global.dataSavingTimes > 3) {
+        if (global.dataSavingTimes > 3) {
+            log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
+            global.dataSavingTimes = 0;
+        }
+        global.isDataSaving = true;
+        if (testmode) {
+            fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function(err) {
+                if (err) {
+                    log("[INTERNAL]", "Auto-save encounted an error:", err);
+                }
+                global.isDataSaving = false;
+            });
+        } else {
+            fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
+                if (err) {
+                    log("[INTERNAL]", "Auto-save encounted an error:", err);
+                }
+                global.isDataSaving = false;
+            });
+        }
+    } else {
+        global.dataSavingTimes++;
+    }
 }, 10000, testmode, log);
 
 //"require" from code string
@@ -541,7 +541,7 @@ function temp5() {
                 }
             }
         }
-		global.commandMapping["version"] = {
+        global.commandMapping["version"] = {
             args: "",
             desc: global.lang["VERSION_DESC"],
             scope: function (type, data) {
@@ -817,8 +817,8 @@ function temp5() {
                 log("[Facebook]", "Error saved to 'facebook.error'.");
                 return false;
             } else {
-				facebook.error = undefined;
-			}
+                facebook.error = undefined;
+            }
             log("[Facebook]", "Logged in.");
             facebook.api = api;
             if (!!global.config.usefbappstate) {
@@ -850,20 +850,20 @@ function temp5() {
             }
             facebook.api.fetchName = fetchName;
             
-			var removePendingClock = setInterval(function(api) {
-				api[0].getThreadList(10, null, ["PENDING"], function(err, list) {
-					if (err) {
-						return console.error(err);
-					}
-					for (var i in list) {
-						setTimeout(function(id) {
-							api[0].sendMessage("Please send again!", id);
-						}, i * 500, list[i].threadID);
-					}
-				});
-			}, 60000, [api]);
-			facebook.removePendingClock = removePendingClock;
-			
+            var removePendingClock = setInterval(function(api) {
+                api[0].getThreadList(10, null, ["PENDING"], function(err, list) {
+                    if (err) {
+                        return console.error(err);
+                    }
+                    for (var i in list) {
+                        setTimeout(function(id) {
+                            api[0].sendMessage("Please send again!", id);
+                        }, i * 500, list[i].threadID);
+                    }
+                });
+            }, 60000, [api]);
+            facebook.removePendingClock = removePendingClock;
+            
             !global.data.messageList ? global.data.messageList = {} : "";
             facebook.listener = api.listen(function callback(err, message) {
                 try {
@@ -915,7 +915,7 @@ function temp5() {
                                                 return !(el == null || el == "" || el == " ");
                                             });
                                             arg.map(xy => xy.replace(/["]/g, ""));
-											var toarg = arg;
+                                            var toarg = arg;
                                             if (global.commandMapping[arg[0].substr(1)]) {
                                                 if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
                                                     api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function(){}, message.messageID);
@@ -942,19 +942,25 @@ function temp5() {
                                                         });
                                                         if (!returndata) return undefined;
                                                         if (returndata.handler == "core") {
-                                                            var endTyping = api.sendTypingIndicator(message.threadID);
+                                                            if (!message.isGroup) {
+                                                                var endTyping = api.sendTypingIndicator(message.threadID);
+                                                            } else {
+                                                                var endTyping = function(){};
+                                                            }
                                                             setTimeout(function(api, returndata, endTyping, message) {
                                                                 api.sendMessage(prefix + " " + returndata.data, message.threadID, function(){}, message.messageID);
                                                                 endTyping();
-                                                                api.markAsRead(message.threadID);
+                                                                setTimeout(function(api, message) {
+                                                                    api.markAsRead(message.threadID);
+                                                                }, 200, api, message);
                                                             }, returndata.data.length * 34, api, returndata, endTyping, message);
                                                         }
                                                     } catch (ex) {
-														try {
-															log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
-														} catch (exp) {
-															log("[INTERNAL]", toarg[0], "contain an error:", ex);
-														}
+                                                        try {
+                                                            log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
+                                                        } catch (exp) {
+                                                            log("[INTERNAL]", toarg[0], "contain an error:", ex);
+                                                        }
                                                     }
                                                 }
                                             } else {
@@ -1069,16 +1075,16 @@ function temp5() {
                     selfListen: true,
                     listenEvents: true
                 }, facebookcb);
-				function forceReconnect() {
+                function forceReconnect() {
                     log("[Facebook]", "6 hours has passed. Destroying FCA instance and creating a new one...");
                     if (!!facebook.listener) {
                         facebook.listener();
                         log("[Facebook]", "Stopped Facebook listener");
                         temporaryAppState = facebook.api.getAppState();
                     }
-					try {
-						clearInterval(facebook.removePendingClock);
-					} catch (ex) {}
+                    try {
+                        clearInterval(facebook.removePendingClock);
+                    } catch (ex) {}
                     instance = undefined;
                     instance = require("facebook-chat-api")({
                         appState: temporaryAppState
@@ -1090,12 +1096,12 @@ function temp5() {
                     }, facebookcb);
                     log("[Facebook]", "New instance created.");
                     log("[Facebook]", "Logging in...");
-					setTimeout(function(fr) {
-						if (!!facebook.error) {
-							log("[Facebook]", "Detected error. Attempting to reconnect...");
-							fr();
-						}
-					}, 15000, forceReconnect);
+                    setTimeout(function(fr) {
+                        if (!!facebook.error) {
+                            log("[Facebook]", "Detected error. Attempting to reconnect...");
+                            fr();
+                        }
+                    }, 15000, forceReconnect);
                 }
                 setInterval(forceReconnect, 21600000);
             } catch (ex) {
