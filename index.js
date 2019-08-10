@@ -986,8 +986,9 @@ function temp5() {
                                 break;
                             case "message_unsend":
                                 if (global.config.enableThanosTimeGems && global.data.messageList.hasOwnProperty(message.messageID)) {
+									var removedMessage = global.data.messageList[message.messageID];
                                     api.sendMessage({
-										body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", global.data.messageList[message.messageID].body),
+										body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body),
 										mentions: [
 											{
 												tag: "@" + global.data.cacheName["FB-" + message.senderID],
@@ -997,8 +998,26 @@ function temp5() {
 										]
 									}, message.threadID, function(){});
 									var attachmentsArray = [];
-									for (var n in message.attachments) {
-										attachmentArray.push(sync-request("GET", "<insert url here>").body);
+									for (var n in removedMessage.attachments) {
+										switch (removedMessage.attachments[n].type) {
+											case "file": 
+											case "photo":
+											case "animated_image":
+												attachmentArray.push({
+													type: removedMessage.attachments[n].type,
+													data: sync-request("GET", removedMessage.attachments[n].url).body,
+													name: removedMessage.attachments[n].filename
+												});
+												break;
+											case "sticker":
+												attachmentArray.push({
+													type: removedMessage.attachments[n].type,
+													data: sync-request("GET", removedMessage.attachments[n].url).body,
+													name: removedMessage.attachments[n].ID + ".png"
+												});
+												break;
+											
+										}
 									}
                                     api.markAsRead(message.threadID);
                                     log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
@@ -1008,7 +1027,7 @@ function temp5() {
                                         }
                                     }
                                 } else {
-                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID, ". (" + message.messageID + ")");
+                                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + ". (" + message.messageID + ")");
                                 }
                                 break;
                             case "message_reply":
