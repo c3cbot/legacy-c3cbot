@@ -546,7 +546,9 @@ function temp5() {
             args: "",
             desc: global.lang["VERSION_DESC"],
             scope: function (type, data) {
-				var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags").body.toString());
+				var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
+					"User-Agent": global.config.fbuseragent
+				}).body.toString());
 				var latestrelease = githubdata[githubdata.length - 1];
 				var latestversion = latestrelease.ref.replace("refs/tags/", "");
                 return {
