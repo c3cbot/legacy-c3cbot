@@ -1036,7 +1036,11 @@ function temp5() {
 											}
 										],
 										attachments: att
-									}, message.threadID, function(){});
+									}, message.threadID, function(err){
+										if (err) {
+											console.log("[CONSOLE-ONLY]", "[Facebook]", err);
+										}
+									});
                                     api.markAsRead(message.threadID);
                                     log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
                                     for (var id in global.data.messageList) {
