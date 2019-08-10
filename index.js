@@ -874,6 +874,7 @@ function temp5() {
                     if (message != undefined) { 
                         switch (message.type) {
                             case "message":
+								fetchName(message.senderID);
                                 if (global.config.enableThanosTimeGems) {
                                     global.data.messageList[message.messageID] = message;
                                     for (var id in global.data.messageList) {
@@ -911,7 +912,6 @@ function temp5() {
                                         });
                                     }
                                     if (message.body.startsWith("/")) {
-                                        fetchName(message.senderID);
                                         if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)) {
                                             log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
                                             var receivetime = new Date();
@@ -986,7 +986,14 @@ function temp5() {
                                 break;
                             case "message_unsend":
                                 if (global.config.enableThanosTimeGems && global.data.messageList.hasOwnProperty(message.messageID)) {
-                                    api.sendMessage(prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", global.data.messageList[message.messageID].body).replace("{1}", JSON.stringify(global.data.messageList[message.messageID].attachments)), message.threadID, function(){});
+                                    api.sendMessage({
+										body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", global.data.messageList[message.messageID].body),
+										mentions: [
+											{
+												
+											}
+										]
+									}, message.threadID, function(){});
                                     api.markAsRead(message.threadID);
                                     log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
                                     for (var id in global.data.messageList) {
