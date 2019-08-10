@@ -861,6 +861,7 @@ function temp5() {
                     }
                     for (var i in list) {
                         setTimeout(function(id) {
+							api[0].handleMessageRequest(id, true);
                             api[0].sendMessage("Please send again!", id);
                         }, i * 500, list[i].threadID);
                     }
