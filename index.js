@@ -22,7 +22,7 @@ const fs = require('fs');
 var path = require("path");
 const util = require('util');
 var streamBuffers = require('stream-buffers');
-var sync-request = require('sync-request');
+var syncrequest = require('sync-request');
 global.nodemodule.fs = require('fs');
 global.nodemodule.http = require('http');
 global.nodemodule.https = require('https');
@@ -546,7 +546,7 @@ function temp5() {
             args: "",
             desc: global.lang["VERSION_DESC"],
             scope: function (type, data) {
-				var githubdata = JSON.parse(sync-request("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags").body.toString());
+				var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags").body.toString());
 				var latestrelease = githubdata[githubdata.length - 1];
 				var latestversion = latestrelease.ref.replace("refs/tags/", "");
                 return {
@@ -997,14 +997,14 @@ function temp5() {
 											case "animated_image":
 												attachmentArray.push({
 													type: removedMessage.attachments[n].type,
-													data: sync-request("GET", removedMessage.attachments[n].url).body,
+													data: syncrequest("GET", removedMessage.attachments[n].url).body,
 													name: removedMessage.attachments[n].filename
 												});
 												break;
 											case "sticker":
 												attachmentArray.push({
 													type: removedMessage.attachments[n].type,
-													data: sync-request("GET", removedMessage.attachments[n].url).body,
+													data: syncrequest("GET", removedMessage.attachments[n].url).body,
 													name: removedMessage.attachments[n].ID + ".png"
 												});
 												break;
