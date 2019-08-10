@@ -991,6 +991,7 @@ function temp5() {
                                 break;
                             case "message_unsend":
                                 if (global.config.enableThanosTimeGems && global.data.messageList.hasOwnProperty(message.messageID)) {
+									var removedMessage = global.data.messageList[message.messageID];
 									var attachmentArray = [];
 									for (var n in removedMessage.attachments) {
 										switch (removedMessage.attachments[n].type) {
@@ -1025,7 +1026,6 @@ function temp5() {
 										imagesx.stop();
 										att.push(imagesx);
 									}
-									var removedMessage = global.data.messageList[message.messageID];
                                     api.sendMessage({
 										body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body),
 										mentions: [
