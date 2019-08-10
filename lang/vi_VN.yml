@@ -1,6 +1,6 @@
 UNKNOWN_CMD: "Câu lệnh không rõ. Hãy thử /help"
 UNSUPPORTED_INTERFACE: "Xin lỗi, lệnh này không thể thực hiện được tại đây."
-TIME_GEM_ACTIVATION_MSG: "KÍCH HOẠT THANOS TIME GEM! NỘI DUNG: {0}\r\nĐÍNH KÈM: {1}"
+TIME_GEM_ACTIVATION_MSG: "THANOS TIME GEM: {0} đã cố gắng xoá tin nhắn.\r\nNội dung: {1}"
 HELP_ARGS: "[trang]"
 HELP_DESC: "Hướng dẫn về các lệnh ở đây."
 HELP_OUTPUT_PREFIX: "Danh sách lệnh:"

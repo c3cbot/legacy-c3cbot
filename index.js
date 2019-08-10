@@ -987,7 +987,7 @@ function temp5() {
                                 break;
                             case "message_unsend":
                                 if (global.config.enableThanosTimeGems && global.data.messageList.hasOwnProperty(message.messageID)) {
-									var attachmentsArray = [];
+									var attachmentArray = [];
 									for (var n in removedMessage.attachments) {
 										switch (removedMessage.attachments[n].type) {
 											case "file": 
@@ -1008,8 +1008,18 @@ function temp5() {
 													name: removedMessage.attachments[n].ID + ".png"
 												});
 												break;
-											
 										}
+									}
+									var att = [];
+									for (var n in attachmentArray) {
+										var imagesx = new streamBuffers.ReadableStreamBuffer({
+											frequency: 10,  
+											chunkSize: 2048
+										});
+										imagesx.path = attachmentArray[n].name;
+										imagesx.put(attachmentArray[n].data);
+										imagesx.stop();
+										att.push(imagesx);
 									}
 									var removedMessage = global.data.messageList[message.messageID];
                                     api.sendMessage({
@@ -1020,7 +1030,8 @@ function temp5() {
 												id: message.senderID,
 												fromIndex: 0
 											}
-										]
+										],
+										attachments: att
 									}, message.threadID, function(){});
                                     api.markAsRead(message.threadID);
                                     log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);

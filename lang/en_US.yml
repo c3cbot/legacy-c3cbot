@@ -1,6 +1,6 @@
 UNKNOWN_CMD: "Unknown command. Try /help"
 UNSUPPORTED_INTERFACE: "Sorry, but that command is not supported in this interface."
-TIME_GEM_ACTIVATION_MSG: "THANOS TIME GEM ACTIVATED! CONTENT: {0}\r\nATTACHMENT: {1}"
+TIME_GEM_ACTIVATION_MSG: "THANOS TIME GEM: {0} tried to delete messages.\r\nContent: {1}"
 HELP_ARGS: "[page]"
 HELP_DESC: "A guide to commands in here."
 HELP_OUTPUT_PREFIX: "Command list:"
