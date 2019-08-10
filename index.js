@@ -1063,9 +1063,10 @@ function temp5() {
 									}, message.threadID, function(err){
 										if (err) {
 											console.log("[CONSOLE-ONLY]", "[Facebook]", err);
+										} else {
+											api.markAsRead(message.threadID);
 										}
 									});
-                                    api.markAsRead(message.threadID);
                                     log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
                                     for (var id in global.data.messageList) {
                                         if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
