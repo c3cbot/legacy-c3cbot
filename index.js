@@ -990,7 +990,9 @@ function temp5() {
 										body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", global.data.messageList[message.messageID].body),
 										mentions: [
 											{
-												
+												tag: "@" + global.data.cacheName["FB-" + message.senderID],
+												id: message.senderID,
+												fromIndex: 0
 											}
 										]
 									}, message.threadID, function(){});
