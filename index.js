@@ -1035,7 +1035,7 @@ function temp5() {
 												fromIndex: 0
 											}
 										],
-										attachments: att
+										attachment: att
 									}, message.threadID, function(err){
 										if (err) {
 											console.log("[CONSOLE-ONLY]", "[Facebook]", err);
