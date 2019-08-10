@@ -987,22 +987,13 @@ function temp5() {
                                 break;
                             case "message_unsend":
                                 if (global.config.enableThanosTimeGems && global.data.messageList.hasOwnProperty(message.messageID)) {
-									var removedMessage = global.data.messageList[message.messageID];
-                                    api.sendMessage({
-										body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body),
-										mentions: [
-											{
-												tag: "@" + global.data.cacheName["FB-" + message.senderID],
-												id: message.senderID,
-												fromIndex: 0
-											}
-										]
-									}, message.threadID, function(){});
 									var attachmentsArray = [];
 									for (var n in removedMessage.attachments) {
 										switch (removedMessage.attachments[n].type) {
 											case "file": 
 											case "photo":
+											case "audio":
+											case "video":
 											case "animated_image":
 												attachmentArray.push({
 													type: removedMessage.attachments[n].type,
@@ -1020,6 +1011,17 @@ function temp5() {
 											
 										}
 									}
+									var removedMessage = global.data.messageList[message.messageID];
+                                    api.sendMessage({
+										body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body),
+										mentions: [
+											{
+												tag: "@" + global.data.cacheName["FB-" + message.senderID],
+												id: message.senderID,
+												fromIndex: 0
+											}
+										]
+									}, message.threadID, function(){});
                                     api.markAsRead(message.threadID);
                                     log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
                                     for (var id in global.data.messageList) {
