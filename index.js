@@ -1122,7 +1122,7 @@ function temp5() {
             
             discordMessageHandler = function (message) {
                 if (message.content.startsWith("/")) {
-                    if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) || (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.toString().substr(2, message.channel.toString().length - 1)) == -1)) && message.author.tag != client.user.tag && !global.config.blacklistedUsers.hasOwnProperty("DC-" + message.author.id)) {
+                    if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) || (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) && message.author.tag != client.user.tag && !global.config.blacklistedUsers.hasOwnProperty("DC-" + message.author.id)) {
                         log("[Discord]", message.author.id, "(" + message.author.tag + ")", "issued command in", message.channel.id + " (" + message.channel.name + "):", message.content, (message.attachments.size > 0 ? message.attachments : ""));
                         var currenttime = new Date();
                         var arg = message.content.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
