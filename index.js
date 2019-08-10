@@ -996,14 +996,38 @@ function temp5() {
 									for (var n in removedMessage.attachments) {
 										switch (removedMessage.attachments[n].type) {
 											case "file": 
-											case "photo":
-											case "audio":
-											case "video":
-											case "animated_image":
 												attachmentArray.push({
 													type: removedMessage.attachments[n].type,
 													data: syncrequest("GET", removedMessage.attachments[n].url).body,
 													name: removedMessage.attachments[n].filename
+												});
+												break;
+											case "photo":
+												attachmentArray.push({
+													type: removedMessage.attachments[n].type,
+													data: syncrequest("GET", removedMessage.attachments[n].url).body,
+													name: removedMessage.attachments[n].filename + ".png"
+												});
+												break;
+											case "audio":
+												attachmentArray.push({
+													type: removedMessage.attachments[n].type,
+													data: syncrequest("GET", removedMessage.attachments[n].url).body,
+													name: removedMessage.attachments[n].filename + ".mp3"
+												});
+												break;
+											case "video":
+												attachmentArray.push({
+													type: removedMessage.attachments[n].type,
+													data: syncrequest("GET", removedMessage.attachments[n].url).body,
+													name: removedMessage.attachments[n].filename + ".mp4"
+												});
+												break;
+											case "animated_image":
+												attachmentArray.push({
+													type: removedMessage.attachments[n].type,
+													data: syncrequest("GET", removedMessage.attachments[n].url).body,
+													name: removedMessage.attachments[n].filename + ".gif"
 												});
 												break;
 											case "sticker":
