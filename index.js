@@ -523,8 +523,24 @@ function temp5() {
                         } else if (!global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope]) {
                             log("[INTERNAL]", plname, "is missing a function for /" + cmd);
                         } else {
+                            var oldstr;
+                            if (typeof cmdo.hdesc != "object") {
+                                oldstr = cmdo.hdesc;
+                                cmdo.hdesc = {};
+                                cmdo.hdesc[global.config.language] = oldstr;
+                            }
+                            if (!!cmdo.hargs) {
+                                if (typeof cmdo.hargs != "object") {
+                                    oldstr = cmdo.hargs;
+                                    cmdo.hargs = {};
+                                    cmdo.hargs[global.config.language] = oldstr;
+                                }
+                            } else {
+                                cmdo.hargs = {};
+                                cmdo.hargs[global.config.language] = "";
+                            }
                             global.commandMapping[cmd] = {
-                                args: (cmdo.hargs ? cmdo.hargs : ""),
+                                args: cmdo.hargs,
                                 desc: cmdo.hdesc,
                                 scope: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope],
                                 compatibly: parseInt(cmdo.compatibly),
@@ -546,13 +562,13 @@ function temp5() {
             args: "",
             desc: global.lang["VERSION_DESC"],
             scope: function (type, data) {
-				var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
-					headers: {
-						"User-Agent": global.config.fbuseragent
-					}
-				}).body.toString());
-				var latestrelease = githubdata[githubdata.length - 1];
-				var latestversion = latestrelease.ref.replace("refs/tags/", "");
+                var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
+                    headers: {
+                        "User-Agent": global.config.fbuseragent
+                    }
+                }).body.toString());
+                var latestrelease = githubdata[githubdata.length - 1];
+                var latestversion = latestrelease.ref.replace("refs/tags/", "");
                 return {
                     handler: "core",
                     data: "Currently running on version " + version + ".\r\nLatest GitHub version: " + latestversion
@@ -583,9 +599,9 @@ function temp5() {
                     if (i < hl.length) { 
                         mts += "\r\n" + (i + 1).toString() + ". /" + hl[i].command; 
                         if (!!hl[i].args && hl[i].args != "") {
-                            mts += " " + hl[i].args; 
+                            mts += " " + hl[i].args[global.config.language]; 
                         }
-                        mts += ": " + hl[i].desc; 
+                        mts += ": " + hl[i].desc[global.config.language]; 
                     } 
                 } 
                 if (type == "Discord") {
@@ -712,6 +728,8 @@ function temp5() {
                                 let plinfo = JSON.parse(zip.entryDataSync('plugins.json').toString('utf8'));
                                 if (!plinfo["plugin_name"] || !plinfo["plugin_scope"] || !plinfo["plugin_exec"]) {
                                     log("[INTERNAL]", list, "has \"plugins.json\" file, but contains not enough info. This plugin can't be loaded. Skipping...");
+                                } else if (!global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope]) {
+                                    log("[INTERNAL]", plname, "is missing a function for /" + cmd);
                                 } else {
                                     try {
                                         let plexec = zip.entryDataSync(plinfo["plugin_exec"]).toString('utf8');
@@ -784,8 +802,24 @@ function temp5() {
                                         if (!cmdo["hdesc"] || !cmdo["fscope"] || isNaN(parseInt(cmdo["compatibly"]))) {
                                             log("[INTERNAL]", plname, "has a command that isn't have enough information to define (/" + cmd + ")");
                                         } else {
+                                            var oldstr;
+                                            if (typeof cmdo.hdesc != "object") {
+                                                oldstr = cmdo.hdesc;
+                                                cmdo.hdesc = {};
+                                                cmdo.hdesc[global.config.language] = oldstr;
+                                            }
+                                            if (!!cmdo.hargs) {
+                                                if (typeof cmdo.hargs != "object") {
+                                                    oldstr = cmdo.hargs;
+                                                    cmdo.hargs = {};
+                                                    cmdo.hargs[global.config.language] = oldstr;
+                                                }
+                                            } else {
+                                                cmdo.hargs = {};
+                                                cmdo.hargs[global.config.language] = "";
+                                            }
                                             global.commandMapping[cmd] = {
-                                                args: (cmdo.hargs ? cmdo.hargs : ""),
+                                                args: cmdo.hargs,
                                                 desc: cmdo.hdesc,
                                                 scope: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope],
                                                 compatibly: parseInt(cmdo.compatibly),
@@ -865,7 +899,7 @@ function temp5() {
                     }
                     for (var i in list) {
                         setTimeout(function(id) {
-							api[0].handleMessageRequest(id, true);
+                            api[0].handleMessageRequest(id, true);
                             api[0].sendMessage("Please send again!", id);
                         }, i * 500, list[i].threadID);
                     }
@@ -879,7 +913,7 @@ function temp5() {
                     if (message != undefined) { 
                         switch (message.type) {
                             case "message":
-								fetchName(message.senderID);
+                                fetchName(message.senderID);
                                 if (global.config.enableThanosTimeGems) {
                                     global.data.messageList[message.messageID] = message;
                                     for (var id in global.data.messageList) {
@@ -991,82 +1025,82 @@ function temp5() {
                                 break;
                             case "message_unsend":
                                 if (global.config.enableThanosTimeGems && global.data.messageList.hasOwnProperty(message.messageID)) {
-									var removedMessage = global.data.messageList[message.messageID];
-									var attachmentArray = [];
-									for (var n in removedMessage.attachments) {
-										switch (removedMessage.attachments[n].type) {
-											case "file": 
-												attachmentArray.push({
-													type: removedMessage.attachments[n].type,
-													data: syncrequest("GET", removedMessage.attachments[n].url).body,
-													name: removedMessage.attachments[n].filename
-												});
-												break;
-											case "photo":
-												attachmentArray.push({
-													type: removedMessage.attachments[n].type,
-													data: syncrequest("GET", removedMessage.attachments[n].url).body,
-													name: removedMessage.attachments[n].filename + ".png"
-												});
-												break;
-											case "audio":
-												attachmentArray.push({
-													type: removedMessage.attachments[n].type,
-													data: syncrequest("GET", removedMessage.attachments[n].url).body,
-													name: removedMessage.attachments[n].filename + ".mp3"
-												});
-												break;
-											case "video":
-												attachmentArray.push({
-													type: removedMessage.attachments[n].type,
-													data: syncrequest("GET", removedMessage.attachments[n].url).body,
-													name: removedMessage.attachments[n].filename + ".mp4"
-												});
-												break;
-											case "animated_image":
-												attachmentArray.push({
-													type: removedMessage.attachments[n].type,
-													data: syncrequest("GET", removedMessage.attachments[n].url).body,
-													name: removedMessage.attachments[n].filename + ".gif"
-												});
-												break;
-											case "sticker":
-												attachmentArray.push({
-													type: removedMessage.attachments[n].type,
-													data: syncrequest("GET", removedMessage.attachments[n].url).body,
-													name: removedMessage.attachments[n].ID + ".png"
-												});
-												break;
-										}
-									}
-									var att = [];
-									for (var n in attachmentArray) {
-										var imagesx = new streamBuffers.ReadableStreamBuffer({
-											frequency: 10,  
-											chunkSize: 2048
-										});
-										imagesx.path = attachmentArray[n].name;
-										imagesx.put(attachmentArray[n].data);
-										imagesx.stop();
-										att.push(imagesx);
-									}
+                                    var removedMessage = global.data.messageList[message.messageID];
+                                    var attachmentArray = [];
+                                    for (var n in removedMessage.attachments) {
+                                        switch (removedMessage.attachments[n].type) {
+                                            case "file": 
+                                                attachmentArray.push({
+                                                    type: removedMessage.attachments[n].type,
+                                                    data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                                    name: removedMessage.attachments[n].filename
+                                                });
+                                                break;
+                                            case "photo":
+                                                attachmentArray.push({
+                                                    type: removedMessage.attachments[n].type,
+                                                    data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                                    name: removedMessage.attachments[n].filename + ".png"
+                                                });
+                                                break;
+                                            case "audio":
+                                                attachmentArray.push({
+                                                    type: removedMessage.attachments[n].type,
+                                                    data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                                    name: removedMessage.attachments[n].filename + ".mp3"
+                                                });
+                                                break;
+                                            case "video":
+                                                attachmentArray.push({
+                                                    type: removedMessage.attachments[n].type,
+                                                    data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                                    name: removedMessage.attachments[n].filename + ".mp4"
+                                                });
+                                                break;
+                                            case "animated_image":
+                                                attachmentArray.push({
+                                                    type: removedMessage.attachments[n].type,
+                                                    data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                                    name: removedMessage.attachments[n].filename + ".gif"
+                                                });
+                                                break;
+                                            case "sticker":
+                                                attachmentArray.push({
+                                                    type: removedMessage.attachments[n].type,
+                                                    data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                                    name: removedMessage.attachments[n].ID + ".png"
+                                                });
+                                                break;
+                                        }
+                                    }
+                                    var att = [];
+                                    for (var n in attachmentArray) {
+                                        var imagesx = new streamBuffers.ReadableStreamBuffer({
+                                            frequency: 10,  
+                                            chunkSize: 2048
+                                        });
+                                        imagesx.path = attachmentArray[n].name;
+                                        imagesx.put(attachmentArray[n].data);
+                                        imagesx.stop();
+                                        att.push(imagesx);
+                                    }
                                     api.sendMessage({
-										body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body),
-										mentions: [
-											{
-												tag: "@" + global.data.cacheName["FB-" + message.senderID],
-												id: message.senderID,
-												fromIndex: 0
-											}
-										],
-										attachment: att
-									}, message.threadID, function(err){
-										if (err) {
-											console.log("[CONSOLE-ONLY]", "[Facebook]", err);
-										} else {
-											api.markAsRead(message.threadID);
-										}
-									});
+                                        body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body),
+                                        mentions: [
+                                            {
+                                                tag: "@" + global.data.cacheName["FB-" + message.senderID],
+                                                id: message.senderID,
+                                                fromIndex: 0
+                                            }
+                                        ],
+                                        attachment: att
+                                    }, message.threadID, function(err){
+                                        if (err) {
+                                            console.log("[CONSOLE-ONLY]", "[Facebook]", err);
+                                        } else {
+                                            api.markAsRead(message.threadID);
+                                        }
+                                    });
                                     log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
                                     for (var id in global.data.messageList) {
                                         if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
