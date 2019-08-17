@@ -482,7 +482,6 @@ findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function(list) {
                             }
                         }
                         log("[INTERNAL]", "Unpacked", list);
-                        left -= 1;
                     } catch (ex) {
                         log("[INTERNAL]", list, "is not containing executable javascript writen in \"plugins.json\" file (\"" + plinfo["plugin_exec"] + "\") or it's malformed. This plugin can't be loaded. Additional information:", ex);
                     }
@@ -491,7 +490,7 @@ findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function(list) {
                 log("[INTERNAL]", list, "is not containing \"plugins.json\" file or it's malformed. This plugin cannot be loaded. Additional information: ", ex);
             }
             zip.close();
-            blocking = false;
+			left -= 1;
         });
     } catch(ex) {
         log("[INTERNAL] ", ex);
@@ -765,7 +764,6 @@ function temp5() {
                                             }
                                         }
                                         log("[INTERNAL]", "Unpacked", list);
-                                        left -= 1;
                                     } catch (ex) {
                                         log("[INTERNAL]", list, "is not containing executable javascript writen in \"plugins.json\" file (\"" + plinfo["plugin_exec"] + "\") or it's malformed. This plugin can't be loaded. Additional information:", ex);
                                     }
@@ -774,7 +772,7 @@ function temp5() {
                                 log("[INTERNAL]", list, "is not containing \"plugins.json\" file or it's malformed. This plugin cannot be loaded. Additional information: ", ex);
                             }
                             zip.close();
-                            blocking = false;
+							left -= 1;
                         });
                     } catch(ex) {
                         log("[INTERNAL] ", ex);
@@ -1347,6 +1345,7 @@ function temp5() {
         }
         process.on('SIGTERM', shutdownHandler);
         process.on('SIGINT', shutdownHandler);
+		rl.on('SIGTERM', shutdownHandler);
         rl.on('SIGINT', shutdownHandler);
     } else {
         setTimeout(temp5, 1000);
