@@ -490,7 +490,7 @@ findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function(list) {
                 log("[INTERNAL]", list, "is not containing \"plugins.json\" file or it's malformed. This plugin cannot be loaded. Additional information: ", ex);
             }
             zip.close();
-			left -= 1;
+            left -= 1;
         });
     } catch(ex) {
         log("[INTERNAL] ", ex);
@@ -576,9 +576,9 @@ function temp5() {
             compatibly: 0,
             handler: "INTERNAL"
         }
-		global.commandMapping["version"].args[global.config.language] = "";
-		global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
-		
+        global.commandMapping["version"].args[global.config.language] = "";
+        global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
+        
         global.commandMapping["help"] = {
             args: {},
             desc: [],
@@ -619,7 +619,7 @@ function temp5() {
             handler: "INTERNAL"
         }
         global.commandMapping["help"].args[global.config.language] = global.lang["HELP_ARGS"];
-		global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
+        global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
         global.commandMapping["restart"] = {
             args: {},
             desc: {},
@@ -640,9 +640,9 @@ function temp5() {
             compatibly: 0,
             handler: "INTERNAL"
         }
-		global.commandMapping["restart"].args[global.config.language] = "";
-		global.commandMapping["restart"].desc[global.config.language] = global.lang["RESTART_DESC"];
-		
+        global.commandMapping["restart"].args[global.config.language] = "";
+        global.commandMapping["restart"].desc[global.config.language] = global.lang["RESTART_DESC"];
+        
         global.commandMapping["plugins"] = {
             args: {},
             desc: {},
@@ -688,8 +688,8 @@ function temp5() {
             compatibly: 0,
             handler: "INTERNAL"
         }
-		global.commandMapping["plugins"].args[global.config.language] = "";
-		global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
+        global.commandMapping["plugins"].args[global.config.language] = "";
+        global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
         
         global.commandMapping["reload"] = {
             args: {},
@@ -780,7 +780,7 @@ function temp5() {
                                 log("[INTERNAL]", list, "is not containing \"plugins.json\" file or it's malformed. This plugin cannot be loaded. Additional information: ", ex);
                             }
                             zip.close();
-							left -= 1;
+                            left -= 1;
                         });
                     } catch(ex) {
                         log("[INTERNAL] ", ex);
@@ -856,8 +856,8 @@ function temp5() {
             compatibly: 0,
             handler: "INTERNAL"
         }
-		global.commandMapping["reload"].args[global.config.language] = "";
-		global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
+        global.commandMapping["reload"].args[global.config.language] = "";
+        global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
         
         var facebook = {};
         facebookcb = function callback(err, api) {
@@ -1355,7 +1355,7 @@ function temp5() {
         }
         process.on('SIGTERM', shutdownHandler);
         process.on('SIGINT', shutdownHandler);
-		rl.on('SIGTERM', shutdownHandler);
+        rl.on('SIGTERM', shutdownHandler);
         rl.on('SIGINT', shutdownHandler);
     } else {
         setTimeout(temp5, 1000);
