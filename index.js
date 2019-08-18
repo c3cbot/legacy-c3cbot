@@ -558,8 +558,8 @@ function temp5() {
             }
         }
         global.commandMapping["version"] = {
-            args: "",
-            desc: global.lang["VERSION_DESC"],
+            args: {},
+            desc: {},
             scope: function (type, data) {
                 var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
                     headers: {
@@ -576,9 +576,12 @@ function temp5() {
             compatibly: 0,
             handler: "INTERNAL"
         }
+		global.commandMapping["version"].args[global.config.language] = "";
+		global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
+		
         global.commandMapping["help"] = {
-            args: global.lang["HELP_ARGS"],
-            desc: global.lang["HELP_DESC"],
+            args: {},
+            desc: [],
             scope: function (type, data) {
                 var page = 1;
                 page = parseInt(data.args[1]) || 1; 
@@ -615,10 +618,11 @@ function temp5() {
             compatibly: 0,
             handler: "INTERNAL"
         }
-        
+        global.commandMapping["help"].args[global.config.language] = global.lang["HELP_ARGS"];
+		global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
         global.commandMapping["restart"] = {
-            args: "",
-            desc: global.lang["RESTART_DESC"],
+            args: {},
+            desc: {},
             scope: function (type, data) {
                 if (data.admin && global.config.allowAdminUseRestartCommand) {
                     shutdownHandler();
@@ -636,10 +640,12 @@ function temp5() {
             compatibly: 0,
             handler: "INTERNAL"
         }
-
+		global.commandMapping["restart"].args[global.config.language] = "";
+		global.commandMapping["restart"].desc[global.config.language] = global.lang["RESTART_DESC"];
+		
         global.commandMapping["plugins"] = {
-            args: "",
-            desc: global.lang["PLUGINS_DESC"],
+            args: {},
+            desc: {},
             scope: function (type, data) {
                 if (!data.admin && !global.config.allowUserUsePluginsCommand) {
                     return {
@@ -682,10 +688,12 @@ function temp5() {
             compatibly: 0,
             handler: "INTERNAL"
         }
+		global.commandMapping["plugins"].args[global.config.language] = "";
+		global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
         
         global.commandMapping["reload"] = {
-            args: "",
-            desc: global.lang["RELOAD_DESC"],
+            args: {},
+            desc: {},
             scope: function (type, data) {
                 if (!data.admin && !global.config.allowUserUseReloadCommand) {
                     return {
@@ -848,6 +856,8 @@ function temp5() {
             compatibly: 0,
             handler: "INTERNAL"
         }
+		global.commandMapping["reload"].args[global.config.language] = "";
+		global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
         
         var facebook = {};
         facebookcb = function callback(err, api) {
