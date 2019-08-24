@@ -13,6 +13,49 @@ Number.prototype.pad = function(width, z) {
 Number.prototype.round = function(decimal) { var dec = decimal || 0; var dec2 = Math.pow(10, dec); var num = this.valueOf(); return Math.round(num * dec2) / dec2; };
 Number.prototype.ceil = function(decimal) { var dec = decimal || 0; var dec2 = Math.pow(10, dec); var num = this.valueOf(); return Math.ceil(num * dec2) / dec2; };
 Number.prototype.floor = function(decimal) { var dec = decimal || 0; var dec2 = Math.pow(10, dec); var num = this.valueOf(); return Math.floor(num * dec2) / dec2; };
+// object.watch
+if (!Object.prototype.watch) {
+	Object.defineProperty(Object.prototype, "watch", {
+		  enumerable: false
+		, configurable: true
+		, writable: false
+		, value: function (prop, handler) {
+			var
+			  oldval = this[prop]
+			, newval = oldval
+			, getter = function () {
+				return newval;
+			}
+			, setter = function (val) {
+				oldval = newval;
+				return newval = handler.call(this, prop, oldval, val);
+			}
+			;
+			
+			if (delete this[prop]) { // can't watch constants
+				Object.defineProperty(this, prop, {
+					  get: getter
+					, set: setter
+					, enumerable: true
+					, configurable: true
+				});
+			}
+		}
+	});
+}
+// object.unwatch
+if (!Object.prototype.unwatch) {
+	Object.defineProperty(Object.prototype, "unwatch", {
+		  enumerable: false
+		, configurable: true
+		, writable: false
+		, value: function (prop) {
+			var val = this[prop];
+			delete this[prop]; // remove accessors
+			this[prop] = val;
+		}
+	});
+}
 var sizeObject = function(object) {
     return Object.keys(object).length;
 };
@@ -386,7 +429,11 @@ function ensureExists(path, mask, cb) {
 }
 
 //Global data load
-global.data = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json')).data;
+global.dataSave = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
+global.data = global.dataSave.data;
+global.watch('data', function () {
+	global.dataSave.data = global.data;
+});
 
 //Deprecated
 // if (testmode) {
