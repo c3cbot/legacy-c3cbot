@@ -573,10 +573,16 @@ function temp5() {
                     }
                 }).body.toString());
                 var latestrelease = githubdata[githubdata.length - 1];
-                var latestversion = latestrelease.ref.replace("refs/tags/", "");
+                var latestgithubversion = latestrelease.ref.replace("refs/tags/", "");
+				var codedata = JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
+                    headers: {
+                        "User-Agent": global.config.fbuseragent
+                    }
+                }).body.toString());
+				var latestcodeversion = codedata.version;
                 return {
                     handler: "core",
-                    data: "Currently running on version " + version + ".\r\nLatest GitHub version: " + latestversion
+                    data: "Currently running on version " + version + "\r\nLatest GitHub version: " + latestversion + "\r\nLatest code version: " + latestcodeversion
                 }
             },
             compatibly: 0,
@@ -1180,7 +1186,7 @@ function temp5() {
             rl.question('console@c3c:js# ', (message) => {
                 log("[INTERNAL]", "CONSOLE issued javascript code: ", message);
                 try {
-                    log("[JAVASCRIPT]", eval(`${message}`));
+                    log("[JAVASCRIPT]", eval(message));
                 } catch (ex) {
                     log("[JAVASCRIPT]", ex);
                 }
