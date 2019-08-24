@@ -1175,7 +1175,7 @@ function temp5() {
                                 break;
                         }
                     } else {
-						log("[Facebook]", "Detected undefined!");
+						log("[Facebook]", "Detected undefined!", err);
 					}
                 } catch (ex) {
                     log("[Facebook]", ex, message);
