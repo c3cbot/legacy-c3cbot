@@ -23,6 +23,9 @@ var path = require("path");
 const util = require('util');
 var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
+var autosave = require('json-autosave');
+var wait = require('wait-for-stuff');
+global.nodemodule["json-autosave"] = autosave;
 global.nodemodule.fs = require('fs');
 global.nodemodule.http = require('http');
 global.nodemodule.https = require('https');
@@ -383,42 +386,45 @@ function ensureExists(path, mask, cb) {
 }
 
 //Global data load
-global.data = {};
-if (testmode) {
-    fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : log("[INTERNAL]", "OwO, data file not found.");
-} else {
-    fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : log("[INTERNAL]", "OwO, data file not found.");
-}
+global.autoSaveData = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
+global.data = global.autoSaveData.data;
 
-//Auto-save global data clock
-global.isDataSaving = false;
-global.dataSavingTimes = 0;
-var autosave = setInterval(function(testmode, log) {
-    if (!global.isDataSaving || global.dataSavingTimes > 3) {
-        if (global.dataSavingTimes > 3) {
-            log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
-            global.dataSavingTimes = 0;
-        }
-        global.isDataSaving = true;
-        if (testmode) {
-            fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function(err) {
-                if (err) {
-                    log("[INTERNAL]", "Auto-save encounted an error:", err);
-                }
-                global.isDataSaving = false;
-            });
-        } else {
-            fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
-                if (err) {
-                    log("[INTERNAL]", "Auto-save encounted an error:", err);
-                }
-                global.isDataSaving = false;
-            });
-        }
-    } else {
-        global.dataSavingTimes++;
-    }
-}, 10000, testmode, log);
+//Deprecated
+// if (testmode) {
+    // fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : log("[INTERNAL]", "OwO, data file not found.");
+// } else {
+    // fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : log("[INTERNAL]", "OwO, data file not found.");
+// }
+//Auto-save global data clock (Deprecated)
+// global.isDataSaving = false;
+// global.dataSavingTimes = 0;
+// var autosave = setInterval(function(testmode, log) {
+    // if (!global.isDataSaving || global.dataSavingTimes > 3) {
+        // if (global.dataSavingTimes > 3) {
+            // log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
+            // global.dataSavingTimes = 0;
+        // }
+        // global.isDataSaving = true;
+        // if (testmode) {
+            // fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function(err) {
+                // if (err) {
+                    // log("[INTERNAL]", "Auto-save encounted an error:", err);
+                // }
+                // global.isDataSaving = false;
+            // });
+        // } else {
+            // fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
+                // if (err) {
+                    // log("[INTERNAL]", "Auto-save encounted an error:", err);
+                // }
+                // global.isDataSaving = false;
+            // });
+        // }
+    // } else {
+        // global.dataSavingTimes++;
+    // }
+// }, 10000, testmode, log);
+
 
 //"require" from code string
 function requireFromString(src, filename) {
