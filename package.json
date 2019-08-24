@@ -26,7 +26,7 @@
     "discord.js": "^11.5.1",
     "erlpack": "github:hammerandchisel/erlpack",
     "eslint": "^5.16.0",
-    "facebook-chat-api": "github:lequanglam/facebook-chat-api",
+    "facebook-chat-api": "github:Schmavery/facebook-chat-api",
     "fs": "0.0.1-security",
     "http": "0.0.0",
     "https": "^1.0.0",
