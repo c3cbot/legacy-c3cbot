@@ -386,8 +386,7 @@ function ensureExists(path, mask, cb) {
 }
 
 //Global data load
-global.autoSaveData = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
-global.data = global.autoSaveData.data;
+global.data = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json')).data;
 
 //Deprecated
 // if (testmode) {
