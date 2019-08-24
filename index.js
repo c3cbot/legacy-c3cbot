@@ -628,7 +628,7 @@ function temp5() {
 				var latestcodeversion = codedata.version;
                 return {
                     handler: "core",
-                    data: "Currently running on version " + version + "\r\nLatest GitHub version: " + latestversion + "\r\nLatest code version: " + latestcodeversion
+                    data: "Currently running on version " + version + "\r\nLatest GitHub version: " + latestgithubversion + "\r\nLatest code version: " + latestcodeversion
                 }
             },
             compatibly: 0,
