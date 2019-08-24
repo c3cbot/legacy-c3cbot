@@ -1310,7 +1310,6 @@ function temp5() {
         
         //Handling Ctrl+C and SIGTERM (X button)
         var shutdownHandler = function() {
-            //WIP
             log("[INTERNAL]", "Detected process is shutting down, handling...");
             //Stop Facebook listener
             if (!!facebook.listener) {
@@ -1329,13 +1328,13 @@ function temp5() {
                 facebook.api.logout();
                 log("[Facebook]", "Logged out");
             }
-            //Stop auto-saving
-            try {
-                clearInterval(autosave);
-                log("[INTERNAL]", "Stopped auto-save.");
-            } catch (ex) {
-                log("[INTERNAL]", ex);
-            }
+            //Stop auto-saving (Deprecated)
+            // try {
+                // clearInterval(autosave);
+                // log("[INTERNAL]", "Stopped auto-save.");
+            // } catch (ex) {
+                // log("[INTERNAL]", ex);
+            // }
             //Unload all plugins 
             for (var name in global.loadedPlugins) {
                 log("[INTERNAL]", "Attempting to unload plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
@@ -1348,13 +1347,14 @@ function temp5() {
                 log("[INTERNAL]", "Unloaded plugin ", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
                 delete global.loadedPlugins[name];
             }
-            //Save for the last time
-            if (testmode) {
-                fs.writeFileSync(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4));
-            } else {
-                fs.writeFileSync(__dirname + "/data.json", JSON.stringify(global.data, null, 4));
-            }
-            log("[INTERNAL]", "Saved data");
+            //Save for the last time (Deprecated)
+            // if (testmode) {
+                // fs.writeFileSync(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4));
+            // } else {
+                // fs.writeFileSync(__dirname + "/data.json", JSON.stringify(global.data, null, 4));
+            // }
+            // log("[INTERNAL]", "Saved data");
+			
             //All finished, kill the process!
             log("[INTERNAL]", "Killing process with SIGKILL...");
             process.exit();
