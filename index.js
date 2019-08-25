@@ -442,6 +442,7 @@ if (testmode) {
 } else {
     fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : log("[INTERNAL]", "OwO, data file not found.");
 }
+global.dataBackup = {};
 Object.assign(global.dataBackup, global.data);
 //Auto-save global data clock
 global.isDataSaving = false;
