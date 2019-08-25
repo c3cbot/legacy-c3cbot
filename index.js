@@ -430,48 +430,54 @@ function ensureExists(path, mask, cb) {
 }
 
 //Global data load
-global.dataSave = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
-global.data = onChange(global.dataSave.data, function(){});
-//Deprecated
+
+// global.dataSave = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
+// global.data = onChange(global.dataSave.data, function(){});
 // global.watch('data', function (id, oldval, newval) {
 	// global.dataSave.data = global.data;
 // });
 
-//Deprecated
-// if (testmode) {
-    // fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : log("[INTERNAL]", "OwO, data file not found.");
-// } else {
-    // fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : log("[INTERNAL]", "OwO, data file not found.");
-// }
-//Auto-save global data clock (Deprecated)
-// global.isDataSaving = false;
-// global.dataSavingTimes = 0;
-// var autosave = setInterval(function(testmode, log) {
-    // if (!global.isDataSaving || global.dataSavingTimes > 3) {
-        // if (global.dataSavingTimes > 3) {
-            // log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
-            // global.dataSavingTimes = 0;
-        // }
-        // global.isDataSaving = true;
-        // if (testmode) {
-            // fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function(err) {
-                // if (err) {
-                    // log("[INTERNAL]", "Auto-save encounted an error:", err);
-                // }
-                // global.isDataSaving = false;
-            // });
-        // } else {
-            // fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
-                // if (err) {
-                    // log("[INTERNAL]", "Auto-save encounted an error:", err);
-                // }
-                // global.isDataSaving = false;
-            // });
-        // }
-    // } else {
-        // global.dataSavingTimes++;
-    // }
-// }, 10000, testmode, log);
+if (testmode) {
+    fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : log("[INTERNAL]", "OwO, data file not found.");
+} else {
+    fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : log("[INTERNAL]", "OwO, data file not found.");
+}
+global.dataBackup = global.data;
+//Auto-save global data clock
+global.isDataSaving = false;
+global.dataSavingTimes = 0;
+var autosave = setInterval(function(testmode, log) {
+    if ((!global.isDataSaving || global.dataSavingTimes > 3) && JSON.stringify(global.data) != JSON.stringify(global.dataBackup)) {
+        if (global.dataSavingTimes > 3) {
+            log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
+            global.dataSavingTimes = 0;
+        }
+        global.isDataSaving = true;
+        if (testmode) {
+            fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function(err) {
+                if (err) {
+                    log("[INTERNAL]", "Auto-save encounted an error:", err);
+                }
+                global.isDataSaving = false;
+				global.dataSavingTimes = 0;
+				global.dataBackup = global.data;
+            });
+        } else {
+            fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
+                if (err) {
+                    log("[INTERNAL]", "Auto-save encounted an error:", err);
+                }
+                global.isDataSaving = false;
+				global.dataSavingTimes = 0;
+				global.dataBackup = global.data;
+            });
+        }
+    } else {
+		if (JSON.stringify(global.data) != JSON.stringify(global.dataBackup)) {
+			global.dataSavingTimes++;
+		}
+    }
+}, 10000, testmode, log);
 
 
 //"require" from code string
@@ -1384,13 +1390,13 @@ function temp5() {
                 facebook.api.logout();
                 log("[Facebook]", "Logged out");
             }
-            //Stop auto-saving (Deprecated)
-            // try {
-                // clearInterval(autosave);
-                // log("[INTERNAL]", "Stopped auto-save.");
-            // } catch (ex) {
-                // log("[INTERNAL]", ex);
-            // }
+            //Stop auto-saving
+            try {
+                clearInterval(autosave);
+                log("[INTERNAL]", "Stopped auto-save.");
+            } catch (ex) {
+                log("[INTERNAL]", ex);
+            }
             //Unload all plugins 
             for (var name in global.loadedPlugins) {
                 log("[INTERNAL]", "Attempting to unload plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
@@ -1403,13 +1409,13 @@ function temp5() {
                 log("[INTERNAL]", "Unloaded plugin ", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
                 delete global.loadedPlugins[name];
             }
-            //Save for the last time (Deprecated)
-            // if (testmode) {
-                // fs.writeFileSync(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4));
-            // } else {
-                // fs.writeFileSync(__dirname + "/data.json", JSON.stringify(global.data, null, 4));
-            // }
-            // log("[INTERNAL]", "Saved data");
+            //Save for the last time
+            if (testmode) {
+                fs.writeFileSync(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4));
+            } else {
+                fs.writeFileSync(__dirname + "/data.json", JSON.stringify(global.data, null, 4));
+            }
+            log("[INTERNAL]", "Saved data");
 			
             //All finished, kill the process!
             log("[INTERNAL]", "Killing process with SIGKILL...");
