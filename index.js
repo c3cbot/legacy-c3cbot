@@ -442,8 +442,7 @@ if (testmode) {
 } else {
     fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : log("[INTERNAL]", "OwO, data file not found.");
 }
-global.dataBackup = {};
-Object.assign(global.dataBackup, global.data);
+global.dataBackup = JSON.parse(JSON.stringify(global.data));
 //Auto-save global data clock
 global.isDataSaving = false;
 global.dataSavingTimes = 0;
@@ -461,7 +460,7 @@ var autosave = setInterval(function(testmode, log) {
                 }
                 global.isDataSaving = false;
 				global.dataSavingTimes = 0;
-				Object.assign(global.dataBackup, global.data);
+				global.dataBackup = JSON.parse(JSON.stringify(global.data));
             });
         } else {
             fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
@@ -470,7 +469,7 @@ var autosave = setInterval(function(testmode, log) {
                 }
                 global.isDataSaving = false;
 				global.dataSavingTimes = 0;
-				Object.assign(global.dataBackup, global.data);
+				global.dataBackup = JSON.parse(JSON.stringify(global.data));
             });
         }
     } else {
