@@ -442,12 +442,12 @@ if (testmode) {
 } else {
     fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : log("[INTERNAL]", "OwO, data file not found.");
 }
-global.dataBackup = global.data;
+Object.assign(global.dataBackup, global.data);
 //Auto-save global data clock
 global.isDataSaving = false;
 global.dataSavingTimes = 0;
 var autosave = setInterval(function(testmode, log) {
-    if ((!global.isDataSaving || global.dataSavingTimes > 3) && JSON.stringify(global.data) != JSON.stringify(global.dataBackup)) {
+    if ((!global.isDataSaving || global.dataSavingTimes > 3) && JSON.stringify(global.data) !== JSON.stringify(global.dataBackup)) {
         if (global.dataSavingTimes > 3) {
             log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
             global.dataSavingTimes = 0;
@@ -460,7 +460,7 @@ var autosave = setInterval(function(testmode, log) {
                 }
                 global.isDataSaving = false;
 				global.dataSavingTimes = 0;
-				global.dataBackup = global.data;
+				Object.assign(global.dataBackup, global.data);
             });
         } else {
             fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
@@ -469,7 +469,7 @@ var autosave = setInterval(function(testmode, log) {
                 }
                 global.isDataSaving = false;
 				global.dataSavingTimes = 0;
-				global.dataBackup = global.data;
+				Object.assign(global.dataBackup, global.data);
             });
         }
     } else {
