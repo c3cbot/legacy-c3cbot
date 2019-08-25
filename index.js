@@ -68,6 +68,7 @@ var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
 var autosave = require('json-autosave');
 var wait = require('wait-for-stuff');
+const onChange = require('on-change');
 global.nodemodule["json-autosave"] = autosave;
 global.nodemodule.fs = require('fs');
 global.nodemodule.http = require('http');
@@ -430,10 +431,11 @@ function ensureExists(path, mask, cb) {
 
 //Global data load
 global.dataSave = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
-global.data = global.dataSave.data;
-global.watch('data', function () {
-	global.dataSave.data = global.data;
-});
+global.data = onChange(global.dataSave.data, function(){});
+//Deprecated
+// global.watch('data', function (id, oldval, newval) {
+	// global.dataSave.data = global.data;
+// });
 
 //Deprecated
 // if (testmode) {
