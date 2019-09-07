@@ -163,7 +163,7 @@ var defaultconfig = {
 global.config = fs.existsSync(__dirname + "/config.json") ? (function() {
   var readedConfig = JSON.parse(fs.readFileSync(__dirname + "/config.json"));
   for (var configName in defaultconfig) {
-    if (!readedConfig.hasOwnProperty(configName)) {
+    if (!Object.prototype.hasOwnProperty.call(readedConfig, configName)) {
       readedConfig[configName] = defaultconfig[configName];
       log("[INTERNAL]", "Missing", configName, "in config file. Adding with default value (", defaultconfig[configName], ")...");
     }
@@ -1031,7 +1031,7 @@ function temp5() {
                     return !(el == null || el == "" || el == " ");
                   });
                   arg.map(xy => xy.replace(/["]/g, ""));
-                  if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)))) {
+                  if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
                     api.getThreadInfo(message.threadID, function(err, data) {
                       var participants = data.participantIDs;
                       var character = "ͥ";
@@ -1054,7 +1054,7 @@ function temp5() {
                     });
                   }
                   if (message.body.startsWith("/")) {
-                    if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)) {
+                    if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
                       log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
                       var receivetime = new Date();
                       var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function(el) {
@@ -1127,7 +1127,7 @@ function temp5() {
                 console.log(message);
                 break;
               case "message_unsend":
-                if (global.config.enableThanosTimeGems && global.data.messageList.hasOwnProperty(message.messageID)) {
+                if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
                   var removedMessage = global.data.messageList[message.messageID];
                   var attachmentArray = [];
                   for (var n in removedMessage.attachments) {
@@ -1227,7 +1227,7 @@ function temp5() {
                     return !(el == null || el == "" || el == " ");
                   });
                   arg.map(xy => xy.replace(/["]/g, ""));
-                  if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !global.config.blacklistedUsers.hasOwnProperty("FB-" + message.senderID)))) {
+                  if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
                     api.getThreadInfo(message.threadID, function(err, data) {
                       var participants = data.participantIDs;
                       var character = "ͥ";
@@ -1343,7 +1343,7 @@ function temp5() {
 
       discordMessageHandler = function(message) {
         if (message.content.startsWith("/")) {
-          if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) || (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) && message.author.tag != client.user.tag && !global.config.blacklistedUsers.hasOwnProperty("DC-" + message.author.id)) {
+          if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) || (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) && message.author.tag != client.user.tag && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, ("DC-" + message.author.id))) {
             log("[Discord]", message.author.id, "(" + message.author.tag + ")", "issued command in", message.channel.id + " (" + message.channel.name + "):", message.content, (message.attachments.size > 0 ? message.attachments : ""));
             var currenttime = new Date();
             var arg = message.content.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function(el) {
