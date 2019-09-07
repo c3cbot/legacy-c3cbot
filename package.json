@@ -5,14 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+	"lint": "./node_modules/.bin/eslint **.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lequanglam/c3c.git"
   },
   "keywords": [
-    "C\u001b[6~3C"
+    "C\u001b[6~3C",
+	"C3C"
   ],
   "author": "lequanglam",
   "license": "ISC",
