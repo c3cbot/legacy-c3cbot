@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-	"lint": "./node_modules/.bin/eslint **.js"
+    "lint": "./node_modules/.bin/eslint **.js"
   },
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
   },
   "keywords": [
     "C\u001b[6~3C",
-	"C3C"
+    "C3C"
   ],
   "author": "lequanglam",
   "license": "ISC",
