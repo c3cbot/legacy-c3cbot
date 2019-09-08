@@ -641,10 +641,11 @@ function temp5() {
               }
             }
           }
-          if (cmdo["chatHook"] && cmdo["chatHookType"]) {
+          if (cmdo["chatHook"] && cmdo["chatHookType"] && cmdo["chatHookPlatform"]) {
             global.chatHook.push({
               resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
-              listentype: parseInt(cmdo["chatHookType"]),
+              listentype: cmdo["chatHookType"],
+              listenplatform: cmdo["chatHookPlatform"],
               handler: plname
             });
           }
