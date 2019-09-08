@@ -526,6 +526,7 @@ pltemp1 = {}; //Plugin Info
 pltemp2 = {}; //Plugin Executable
 global.fileMap = {};
 global.loadedPlugins = {};
+global.chatHook = [];
 var left = 0;
 
 ensureExists(__dirname + "/plugins/");
@@ -639,6 +640,13 @@ function temp5() {
                 handler: plname
               }
             }
+          }
+          if (cmdo["chatHook"] && cmdo["chatHookType"]) {
+            global.chatHook.push({
+              resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
+              listentype: parseInt(cmdo["chatHookType"]),
+              handler: plname
+            });
           }
           global.loadedPlugins[plname] = {
             author: pltemp1[plname].author,
