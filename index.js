@@ -28,6 +28,24 @@ Number.prototype.floor = function(decimal) {
   var num = this.valueOf();
   return Math.floor(num * dec2) / dec2;
 };
+
+//Check folder exists and create it 
+function ensureExists(path, mask, cb) {
+  if (typeof mask == 'function') { // allow the `mask` parameter to be optional
+    cb = mask;
+    mask = 0o777;
+  }
+  try {
+    fs.mkdirSync(path, {
+      mode: mask,
+      recursive: true
+    });
+    return undefined;
+  } catch (ex) {
+    return {err: ex};
+  }
+}
+
 // object.watch
 if (!Object.prototype.watch) {
   Object.defineProperty(Object.prototype, "watch", {
@@ -101,6 +119,7 @@ const request = require('request');
 var delay = require('delay');
 const StreamZip = require('node-stream-zip');
 
+ensureExists(__dirname + "/logs/");
 function log(...message) {
   var date = new Date();
   readline.cursorTo(process.stdout, 0);
@@ -115,7 +134,7 @@ function log(...message) {
       tolog += " " + util.format("%s", message[n]);
     }
   }
-  fs.appendFile(__dirname + '/logging.log', tolog + "\r\n", (err) => {
+  fs.appendFile(__dirname + '/logs/log-' + date.getUTCFullYear().pad(4) + '-' + (date.getUTCMonth() + 1).pad(2) + '-' + date.getUTCDate().pad(2) + '.log', tolog + "\r\n", (err) => {
     if (err) console.log(err);
   });
 }
@@ -442,21 +461,6 @@ function findFromDir(startPath, filter, arrayOutput, callback) {
   }
 }
 
-//Check folder exists and create it 
-function ensureExists(path, mask, cb) {
-  if (typeof mask == 'function') { // allow the `mask` parameter to be optional
-    cb = mask;
-    // eslint-disable-next-line no-octal
-    mask = 0777;
-  }
-  fs.mkdir(path, mask, function(err) {
-    if (err) {
-      if (err.code == 'EEXIST') cb(null); // ignore the error if the folder already exists
-      else cb(err); // something else went wrong
-    } else cb(null); // successfully created folder
-  });
-}
-
 //Global data load
 
 // global.dataSave = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
@@ -524,7 +528,7 @@ global.fileMap = {};
 global.loadedPlugins = {};
 var left = 0;
 
-ensureExists(__dirname + "/plugins/", function() {});
+ensureExists(__dirname + "/plugins/");
 log("[INTERNAL]", "Searching for plugin in /plugins ...");
 
 findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function(list) {
