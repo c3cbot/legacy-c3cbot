@@ -1,5 +1,5 @@
 # C3C
-<img alt="vulnerabilities" src="https://img.shields.io/snyk/vulnerabilities/github/lequanglam/c3c.svg?style=flat-square"> <a href="https://discord.gg/2A4bYJu"><img alt="discord" src="https://img.shields.io/discord/591223706643070976.svg?style=flat-square"></a> <img alt="reposize" src="https://img.shields.io/github/repo-size/lequanglam/c3c.svg?style=flat-square"> <img alt="codesize" src="https://img.shields.io/github/languages/code-size/lequanglam/c3c.svg?style=flat-square"> <img alt="latest-version" src="https://img.shields.io/badge/dynamic/json?color=red&label=latest-version&prefix=v&query=%24.version&url=https%3A%2F%2Fraw.githubusercontent.com%2Flequanglam%2Fc3c%2Fmaster%2Fpackage.json&style=flat-square"> <a href="https://github.com/lequanglam/c3c/releases"><img alt="GitHub release (latest by date including pre-releases)" src="https://img.shields.io/github/v/release/lequanglam/c3c?include_prereleases&label=latest-github-version&style=flat-square"></a> <a href="https://github.com/lequanglam/c3c/commits"><img alt="commit count" src="https://img.shields.io/github/commit-activity/m/lequanglam/c3c.svg?label=commit&style=flat-square"></a>
+<img alt="vulnerabilities" src="https://img.shields.io/snyk/vulnerabilities/github/lequanglam/c3c.svg?style=flat-square"> <a href="https://discord.gg/2A4bYJu"><img alt="discord" src="https://img.shields.io/discord/591223706643070976.svg?style=flat-square"></a> <img alt="reposize" src="https://img.shields.io/github/repo-size/lequanglam/c3c.svg?style=flat-square"> <img alt="codesize" src="https://img.shields.io/github/languages/code-size/lequanglam/c3c.svg?style=flat-square"> <img alt="latest-version" src="https://img.shields.io/badge/dynamic/json?color=red&label=latest-version&prefix=v&query=%24.version&url=https%3A%2F%2Fraw.githubusercontent.com%2Flequanglam%2Fc3c%2Fmaster%2Fpackage.json&style=flat-square"> <a href="https://github.com/lequanglam/c3c/releases"><img alt="GitHub release (latest by date including pre-releases)" src="https://img.shields.io/github/v/release/lequanglam/c3c?include_prereleases&label=latest-github-version&style=flat-square"></a> <a href="https://github.com/lequanglam/c3c/commits"><img alt="commit count" src="https://img.shields.io/github/commit-activity/m/lequanglam/c3c.svg?label=commit&style=flat-square"></a> <a href="https://travis-ci.org/lequanglam/c3c"><img alt="code checking" src="https://img.shields.io/travis/lequanglam/c3c/master?label=code%20check&style=flat-square"></a>
 
 A bot that can be customized using plugins. Currently supports Facebook Messenger (using facebook-chat-api) and Discord (using discord.js)
 
@@ -16,7 +16,7 @@ and you are ready to go.
 
 ## Usage
 ```bash
-node index.js
+npm start
 ```
 
 If this is the first time you execute this command, it'll generate `config.json` file. Close that command and then configure `config.json` file.
@@ -24,19 +24,10 @@ If this is the first time you execute this command, it'll generate `config.json`
 After that, you can run that command again and bot will go live.
 
 ## Plugins
-Currently, there's 4 plugins writen by me: 
-- SimSimi (`/plugins/SimSimi.z3p`)
-
--- Main function: Allow users to chat with SimSimi.
-- Economy (`/plugins/Economy.z3p`)
-
--- Main function: Create an economy.
-- Economy-Income (`/plugin/Economy-Income.z3p`)
-
--- Main function: Add a way to earn money. Extends `Economy`
-- Economy-Gambling (`/plugins/Economy-Gambling.z3p`)
-
--- Main function: Add some gambling games to bot. Extends `Economy`
+- SimSimi (`/plugins/SimSimi.z3p`) => Allow users to chat with SimSimi.
+- Economy (`/plugins/Economy.z3p`) => Create an economy.
+- Economy-Income (`/plugin/Economy-Income.z3p`) => Add a way to earn money. Extends `Economy`
+- Economy-Gambling (`/plugins/Economy-Gambling.z3p`) => Add some gambling games to bot. Extends `Economy`
 
 ## Localize
 This bot currently supporting 2 language: `en_US` (English) and `vi_VN` (Tiếng Việt). You can change languages in `config.json`.
@@ -80,6 +71,7 @@ If you don't want the bot create a `config.json` file for you, then here is the 
     "allowUserUsePluginsCommand": false,
     "allowUserUseReloadCommand": false,
     "language": "en_US",
-    "enableThanosTimeGems": false
+    "enableThanosTimeGems": true,
+    "allowEveryoneTagEvenBlacklisted": true
 }
 ```
