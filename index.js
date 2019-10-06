@@ -985,7 +985,8 @@ function temp5() {
           global.data.thanosBlacklist[threadID] = false;
         }
         return {
-          data: "Successfully " + (global.data.thanosBlacklist[threadID] ? "enabled" : "disabled") + " Thanos Time Gem on this thread!"
+          data: "Successfully " + (global.data.thanosBlacklist[threadID] ? "enabled" : "disabled") + " Thanos Time Gem on this thread!",
+          handler: "core"
         }
       },
       compatibly: 1,
