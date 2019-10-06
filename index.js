@@ -529,6 +529,7 @@ global.loadedPlugins = {};
 global.chatHook = [];
 var left = 0;
 
+ensureExists(__dirname + "/deletedmsg/");
 ensureExists(__dirname + "/plugins/");
 log("[INTERNAL]", "Searching for plugin in /plugins ...");
 
@@ -967,6 +968,27 @@ function temp5() {
     global.commandMapping["reload"].args[global.config.language] = "";
     global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
 
+    global.commandMapping["togglethanos"] = {
+      args: {},
+      desc: {},
+      scope: function (type, data) {
+        if (type != "Facebook") {
+          return {
+            data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
+            handler: "core"
+          }
+        }
+        var threadID = data.msgdata.threadID;
+        if (!global.data.thanosBlacklist[threadID]) {
+          global.data.thanosBlacklist[threadID] = true;
+        } else {
+          global.data.thanosBlacklist[threadID] = false;
+        }
+      },
+      compatibly: 1,
+      handler: "INTERNAL"
+    }
+
     var facebook = {};
     facebookcb = function callback(err, api) {
       if (err) {
@@ -1200,22 +1222,27 @@ function temp5() {
                     imagesx.stop();
                     att.push(imagesx);
                   }
-                  api.sendMessage({
-                    body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body),
-                    mentions: [{
-                      tag: "@" + global.data.cacheName["FB-" + message.senderID],
-                      id: message.senderID,
-                      fromIndex: 0
-                    }],
-                    attachment: att
-                  }, message.threadID, function(err) {
-                    if (err) {
-                      console.log("[CONSOLE-ONLY]", "[Facebook]", err);
-                    } else {
-                      api.markAsRead(message.threadID);
-                    }
-                  });
-                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                  if (!global.data.thanosBlacklist[message.threadID]) {
+                    api.sendMessage({
+                      body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body),
+                      mentions: [{
+                        tag: "@" + global.data.cacheName["FB-" + message.senderID],
+                        id: message.senderID,
+                        fromIndex: 0
+                      }],
+                      attachment: att
+                    }, message.threadID, function(err) {
+                      if (err) {
+                        console.log("[CONSOLE-ONLY]", "[Facebook]", err);
+                      } else {
+                        api.markAsRead(message.threadID);
+                      }
+                    });
+                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                  } else {
+                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
+                  }
+                  fs.writeFileSync(__dirname + "/deletedmsg/" + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
                   for (var id in global.data.messageList) {
                     if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
                       delete global.data.messageList[id];
@@ -1291,6 +1318,7 @@ function temp5() {
     }
     consoles();
     !global.data.cacheName ? global.data.cacheName = {} : "";
+    !global.data.thanosBlacklist ? global.data.thanosBlacklist = {} : "";
 
     if (global.config.enablefb) {
       var temporaryAppState = {};
