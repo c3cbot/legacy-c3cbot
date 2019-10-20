@@ -827,6 +827,7 @@ function temp5() {
         pltemp2 = {}; //Plugin Executable
         global.fileMap = {};
         global.loadedPlugins = {};
+        global.chatHook = [];
         left = 0;
 
         ensureExists(__dirname + "/plugins/", function() {});
@@ -1068,14 +1069,18 @@ function temp5() {
               if (global.chatHook[n].chatHookPlatform & 1) {
                 var chhandling = global.chatHook[n];
                 if (chhandling.listentype == "everything") {
+                  var admin = false;
+                  for (var no in global.config.admins) {
+                    if (global.config.admins[no] == "FB-" + message.senderID) {
+                      admin = true;
+                    }
+                  }
                   chhandling("Facebook", {
-                    args: arg,
                     time: receivetime,
                     msgdata: message,
                     api: api,
                     prefix: prefix,
-                    admin: admin,
-                    mentions: mentions
+                    admin: admin
                   });
                 }
               }
