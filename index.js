@@ -1057,7 +1057,7 @@ function temp5() {
             }, i * 500, list[i].threadID);
           }
         });
-        api.markAsReadAll();
+        api[0].markAsReadAll();
       }, 60000, [api]);
       facebook.removePendingClock = removePendingClock;
 
