@@ -646,7 +646,7 @@ function temp5() {
             global.chatHook.push({
               resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
               listentype: cmdo["chatHookType"],
-              listenplatform: cmdo["chatHookPlatform"],
+              listenplatform: parseInt(cmdo["chatHookPlatform"]),
               handler: plname
             });
           }
@@ -916,6 +916,8 @@ function temp5() {
                     var cmdo = pltemp1[plname]["command_map"][cmd];
                     if (!cmdo["hdesc"] || !cmdo["fscope"] || isNaN(parseInt(cmdo["compatibly"]))) {
                       log("[INTERNAL]", plname, "has a command that isn't have enough information to define (/" + cmd + ")");
+                    } else if (!global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope]) {
+                      log("[INTERNAL]", plname, "is missing a function for /" + cmd);
                     } else {
                       var oldstr;
                       if (typeof cmdo.hdesc != "object") {
@@ -941,6 +943,14 @@ function temp5() {
                         handler: plname
                       }
                     }
+                  }
+                  if (cmdo["chatHook"] && cmdo["chatHookType"] && cmdo["chatHookPlatform"]) {
+                    global.chatHook.push({
+                      resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
+                      listentype: cmdo["chatHookType"],
+                      listenplatform: parseInt(cmdo["chatHookPlatform"]),
+                      handler: plname
+                    });
                   }
                   global.loadedPlugins[plname] = {
                     author: pltemp1[plname].author,
@@ -1033,7 +1043,7 @@ function temp5() {
         }
       }
       facebook.api.fetchName = fetchName;
-
+      
       var removePendingClock = setInterval(function(api) {
         api[0].getThreadList(10, null, ["PENDING"], function(err, list) {
           if (err) {
@@ -1046,6 +1056,7 @@ function temp5() {
             }, i * 500, list[i].threadID);
           }
         });
+        api.markAsReadAll();
       }, 60000, [api]);
       facebook.removePendingClock = removePendingClock;
 
@@ -1053,6 +1064,22 @@ function temp5() {
       facebook.listener = api.listen(function callback(err, message) {
         try {
           if (message != undefined) {
+            for (var n in global.chatHook) {
+              if (global.chatHook[n].chatHookPlatform & 1) {
+                var chhandling = global.chatHook[n];
+                if (chhandling.listentype == "everything") {
+                  chhandling("Facebook", {
+                    args: arg,
+                    time: receivetime,
+                    msgdata: message,
+                    api: api,
+                    prefix: prefix,
+                    admin: admin,
+                    mentions: mentions
+                  });
+                }
+              }
+            }
             switch (message.type) {
               case "message":
                 fetchName(message.senderID);
