@@ -470,9 +470,9 @@ function findFromDir(startPath, filter, arrayOutput, callback) {
 // });
 
 if (testmode) {
-  fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : log("[INTERNAL]", "OwO, data file not found.");
+  fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {}})();
 } else {
-  fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : log("[INTERNAL]", "OwO, data file not found.");
+  fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {}})();
 }
 global.dataBackup = JSON.parse(JSON.stringify(global.data));
 //Auto-save global data clock
