@@ -175,7 +175,8 @@ var defaultconfig = {
   allowUserUseReloadCommand: false,
   language: "en_US",
   enableThanosTimeGems: true, //Anti-Unsend
-  allowEveryoneTagEvenBlacklisted: true
+  allowEveryoneTagEvenBlacklisted: true,
+  DEBUG_FCA_LOGLEVEL: "silent"
 }
 
 //Load config
@@ -1368,7 +1369,7 @@ function temp5() {
         log("[Facebook]", "Logging in...");
         var instance = require("facebook-chat-api")(fbloginobj, {
           userAgent: global.config.fbuseragent,
-          logLevel: "silent",
+          logLevel: global.config.DEBUG_FCA_LOGLEVEL,
           selfListen: true,
           listenEvents: true
         }, facebookcb);
@@ -1388,7 +1389,7 @@ function temp5() {
             appState: temporaryAppState
           }, {
             userAgent: global.config.fbuseragent,
-            logLevel: "silent",
+            logLevel: global.config.DEBUG_FCA_LOGLEVEL,
             selfListen: true,
             listenEvents: true
           }, facebookcb);
