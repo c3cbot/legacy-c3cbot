@@ -1063,7 +1063,7 @@ function temp5() {
       facebook.removePendingClock = removePendingClock;
 
       !global.data.messageList ? global.data.messageList = {} : "";
-      facebook.listener = api.listen(function callback(err, message) {
+      facebook.listener = api.listenMqtt(function callback(err, message) {
         try {
           if (message != undefined) {
             for (var n in global.chatHook) {
