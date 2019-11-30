@@ -1402,7 +1402,7 @@ function temp5() {
             }
           }, 15000, forceReconnect);
         }
-        setInterval(forceReconnect, 21600000);
+        //setInterval(forceReconnect, 21600000);
       } catch (ex) {
         log("[Facebook]", "Error found in codebase:", ex);
       }
