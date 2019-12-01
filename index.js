@@ -143,7 +143,9 @@ function log(...message) {
 var stderrold = process.stderr.write;
 process.stderr.write = function (chunk, encoding, callback) {
 	log("[STDERR]", chunk);
-	callback();
+	if (typeof callback == "function") {
+		callback();
+	}
 };
 
 //Outputs version 
