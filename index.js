@@ -139,6 +139,13 @@ function log(...message) {
   });
 }
 
+//Capturing STDERR
+var stderrold = process.stderr.write;
+process.stderr.write = function (chunk, encoding, callback) {
+	log("[STDERR]", chunk);
+	callback();
+};
+
 //Outputs version 
 var version = require("./package.json").version;
 log("Starting C3CBot version", version, "...");
@@ -176,7 +183,7 @@ var defaultconfig = {
   language: "en_US",
   enableThanosTimeGems: true, //Anti-Unsend
   allowEveryoneTagEvenBlacklisted: true,
-  DEBUG_FCA_LOGLEVEL: "silent"
+  DEBUG_FCA_LOGLEVEL: "error"
 }
 
 //Load config
@@ -1326,7 +1333,11 @@ function temp5() {
                       }, message.threadID, function() {}, message.messageID);
                     });
                   }
-                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
+				  try {
+					log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
+				  } catch (ex) {
+					log("[Facebook] ERROR on replymsg", message);
+				  }
                 }, 150);
                 break;
               default:
