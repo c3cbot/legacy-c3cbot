@@ -142,10 +142,10 @@ function log(...message) {
 //Capturing STDERR
 var stderrold = process.stderr.write;
 process.stderr.write = function (chunk, encoding, callback) {
-	log("[STDERR]", chunk);
-	if (typeof callback == "function") {
-		callback();
-	}
+  log("[STDERR]", chunk);
+  if (typeof callback == "function") {
+    callback();
+  }
 };
 
 //Outputs version 
@@ -1335,11 +1335,12 @@ function temp5() {
                       }, message.threadID, function() {}, message.messageID);
                     });
                   }
-				  try {
-					log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
-				  } catch (ex) {
-					log("[Facebook] ERROR on replymsg", message);
-				  }
+                  
+                  try {
+                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
+                  } catch (ex) {
+                    log("[Facebook] ERROR on replymsg", message);
+                  }
                 }, 150);
                 break;
               default:
