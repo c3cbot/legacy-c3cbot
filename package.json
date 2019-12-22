@@ -1,6 +1,6 @@
 {
   "name": "c3cbot",
-  "version": "0.2.7B3",
+  "version": "0.2.7-beta.3",
   "description": "A customizable bot that runs on Facebook and Discord.",
   "main": "index.js",
   "scripts": {
@@ -46,6 +46,7 @@
     "stream-buffers": "^3.0.2",
     "striptags": "^3.1.1",
     "sync-request": "^6.1.0",
+    "ssh2": "^0.8.7",
     "text-encoding": "^0.7.0",
     "util": "^0.12.0",
     "wait-for-stuff": "^1.4.0"
