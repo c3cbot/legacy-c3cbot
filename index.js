@@ -1382,7 +1382,7 @@ function temp5() {
           format: 'pem'
         },
         privateKeyEncoding: {
-          type: 'pkcs8',
+          type: 'pkcs1',
           format: 'pem',
           cipher: 'aes-256-cbc',
           passphrase: 'cyka blyat'
