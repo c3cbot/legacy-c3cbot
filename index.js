@@ -1384,7 +1384,7 @@ function temp5() {
         privateKeyEncoding: {
           type: 'pkcs1',
           format: 'pem',
-          cipher: 'aes-256-cbc',
+          cipher: 'aes-128-cbc',
           passphrase: "cykablyat"
         }
       }, (err, publicKey, privateKey) => {
