@@ -1388,9 +1388,12 @@ function temp5() {
           passphrase: 'cyka blyat'
         }
       }, (err, publicKey, privateKey) => {
-        log("[SSH]", "Generated new keys.", "(Private: " + privateKey + ")", "(Public: " + publicKey + ")");
+        log("[SSH]", "Generated new keys.");
         var ssh2server = new ssh2.Server({
-          hostKeys: [privateKey]
+          hostKeys: [{
+            key: privateKey, 
+            passphrase: "cyka blyat"
+          }]
         }, function connListener(client, conninfo) {
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.software);
   
