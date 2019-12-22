@@ -1375,7 +1375,7 @@ function temp5() {
 
     if (global.config.enableSSHRemoteConsole) {
       var ssh2 = require('ssh2');
-      var hostkey = crypto.generateKeyPair('rsa', {
+      var hostkey = crypto.generateKeyPairSync('rsa', {
         modulusLength: 4096,
         publicKeyEncoding: {
           type: 'spki',
@@ -1383,77 +1383,70 @@ function temp5() {
         },
         privateKeyEncoding: {
           type: 'pkcs1',
-          format: 'pem',
-          cipher: 'rsa-2048',
-          passphrase: "cykablyat"
+          format: 'pem'
         }
-      }, (err, publicKey, privateKey) => {
-        log("[SSH]", "Generated new keys.");
-        global.ssh2server = new ssh2.Server({
-          hostKeys: [{
-            key: privateKey,
-            passphrase: "cykablyat"
-          }]
-        }, function connListener(client, conninfo) {
-          log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.software);
+      });
+      log("[SSH]", "Generated new keys.");
+      global.ssh2server = new ssh2.Server({
+        hostKeys: [hostkey.privateKey]
+      }, function connListener(client, conninfo) {
+        log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.software);
+        client.on('authentication', function (ctx) {
+          var user = ctx.username;
+          if (user.length !== global.config.sshUsername.length ||
+            !crypto.timingSafeEqual(user, global.config.sshUsername)) {
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username.");
+            return ctx.reject();
+          }
 
-          client.on('authentication', function (ctx) {
-            var user = ctx.username;
-            if (user.length !== global.config.sshUsername.length ||
-              !crypto.timingSafeEqual(user, global.config.sshUsername)) {
-              log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username.");
-              return ctx.reject();
-            }
-
-            switch (ctx.method) {
-              case 'password':
-                var password = ctx.password;
-                if (password.length !== global.config.sshPassword.length ||
-                  !crypto.timingSafeEqual(password, global.config.sshPassword)) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
-                  return ctx.reject();
-                }
-                break;
-              /* case 'publickey':
-                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with public keys, which is not supported.");
-                return ctx.reject(); */
-              default:
+          switch (ctx.method) {
+            case 'password':
+              var password = ctx.password;
+              if (password.length !== global.config.sshPassword.length ||
+                !crypto.timingSafeEqual(password, global.config.sshPassword)) {
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
                 return ctx.reject();
-            }
+              }
+              break;
+            /* case 'publickey':
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with public keys, which is not supported.");
+              return ctx.reject(); */
+            default:
+              return ctx.reject();
+          }
 
-            ctx.accept();
-          }).on('ready', function () {
-            log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated.");
-            client.on('session', function (accept, reject) {
-              var session = accept();
-              /* session.once('exec', function(accept, reject, info) {
-                log("[SSH]", conninfo.ip + ":" + conninfo.port + " issued javascript code: ", info.command);
-                var stream = accept();
-                try {
-                  log("[JAVASCRIPT]", eval(message));
-                } catch (ex) {
-                  log("[JAVASCRIPT]", ex);
-                }
-                stream.exit(0);
-                stream.end();
-              }); */
-              session.once('shell', function (accept, reject) {
-                var stream = accept();
-                stream.write(global.config.botname + " v" + version + (global.config.botname != "C3CBot" ? "(Powered by C3C)" : ""));
-                stream.write("\r\n");
-                stream.write("https://github.com/lequanglam/c3c");
-                stream.write("---------------------------------< EOH");
-                stream.write("\r\n");
-                process.stdout.pipe(stream, {end: false});
-                stream.pipe(process.stdin, {end: false});
-              });
+          ctx.accept();
+        }).on('ready', function () {
+          log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated.");
+          client.on('session', function (accept, reject) {
+            var session = accept();
+            /* session.once('exec', function(accept, reject, info) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port + " issued javascript code: ", info.command);
+              var stream = accept();
+              try {
+                log("[JAVASCRIPT]", eval(message));
+              } catch (ex) {
+                log("[JAVASCRIPT]", ex);
+              }
+              stream.exit(0);
+              stream.end();
+            }); */
+            session.once('shell', function (accept, reject) {
+              var stream = accept();
+              stream.write(global.config.botname + " v" + version + (global.config.botname != "C3CBot" ? "(Powered by C3C)" : ""));
+              stream.write("\r\n");
+              stream.write("https://github.com/lequanglam/c3c");
+              stream.write("---------------------------------< EOH");
+              stream.write("\r\n");
+              process.stdout.pipe(stream, {end: false});
+              stream.pipe(process.stdin, {end: false});
             });
-          }).on('end', function () {
-            log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");
           });
-        }).listen(global.config.sshRemoteConsolePort, '127.0.0.1', function() {
-          log("[SSH]", "Listening at port", this.address().port);
+        }).on('end', function () {
+          log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");
         });
+      }).listen(global.config.sshRemoteConsolePort, '127.0.0.1', function() {
+        log("[SSH]", "Listening at port", this.address().port);
       });
     }
 
