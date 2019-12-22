@@ -1384,12 +1384,12 @@ function temp5() {
         privateKeyEncoding: {
           type: 'pkcs1',
           format: 'pem',
-          cipher: 'aes-128-cbc',
+          cipher: 'rsa-2048',
           passphrase: "cykablyat"
         }
       }, (err, publicKey, privateKey) => {
         log("[SSH]", "Generated new keys.");
-        var ssh2server = new ssh2.Server({
+        global.ssh2server = new ssh2.Server({
           hostKeys: [{
             key: privateKey,
             passphrase: "cykablyat"
