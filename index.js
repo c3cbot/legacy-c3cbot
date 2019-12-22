@@ -1398,7 +1398,7 @@ function temp5() {
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.software);
 
           client.on('authentication', function (ctx) {
-            var user = Buffer.from(ctx.username);
+            var user = ctx.username;
             if (user.length !== global.config.sshUsername.length ||
               !crypto.timingSafeEqual(user, global.config.sshUsername)) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username.");
@@ -1407,16 +1407,16 @@ function temp5() {
 
             switch (ctx.method) {
               case 'password':
-                var password = Buffer.from(ctx.password);
+                var password = ctx.password;
                 if (password.length !== global.config.sshPassword.length ||
                   !crypto.timingSafeEqual(password, global.config.sshPassword)) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
                   return ctx.reject();
                 }
                 break;
-              case 'publickey':
+              /* case 'publickey':
                 log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with public keys, which is not supported.");
-                return ctx.reject();
+                return ctx.reject(); */
               default:
                 return ctx.reject();
             }
