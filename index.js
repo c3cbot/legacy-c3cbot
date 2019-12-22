@@ -5,24 +5,24 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
-Number.prototype.pad = function(width, z) {
+Number.prototype.pad = function (width, z) {
   z = z || '0';
   var n = this.valueOf() + '';
   return (n.length >= width ? n : (new Array(width - n.length + 1).join(z) + n));
 }
-Number.prototype.round = function(decimal) {
+Number.prototype.round = function (decimal) {
   var dec = decimal || 0;
   var dec2 = Math.pow(10, dec);
   var num = this.valueOf();
   return Math.round(num * dec2) / dec2;
 };
-Number.prototype.ceil = function(decimal) {
+Number.prototype.ceil = function (decimal) {
   var dec = decimal || 0;
   var dec2 = Math.pow(10, dec);
   var num = this.valueOf();
   return Math.ceil(num * dec2) / dec2;
 };
-Number.prototype.floor = function(decimal) {
+Number.prototype.floor = function (decimal) {
   var dec = decimal || 0;
   var dec2 = Math.pow(10, dec);
   var num = this.valueOf();
@@ -52,14 +52,14 @@ if (!Object.prototype.watch) {
     enumerable: false,
     configurable: true,
     writable: false,
-    value: function(prop, handler) {
+    value: function (prop, handler) {
       var
         oldval = this[prop],
         newval = oldval,
-        getter = function() {
+        getter = function () {
           return newval;
         },
-        setter = function(val) {
+        setter = function (val) {
           oldval = newval;
           return newval = handler.call(this, prop, oldval, val);
         };
@@ -81,14 +81,14 @@ if (!Object.prototype.unwatch) {
     enumerable: false,
     configurable: true,
     writable: false,
-    value: function(prop) {
+    value: function (prop) {
       var val = this[prop];
       delete this[prop]; // remove accessors
       this[prop] = val;
     }
   });
 }
-var sizeObject = function(object) {
+var sizeObject = function (object) {
   return Object.keys(object).length;
 };
 
@@ -193,7 +193,7 @@ var defaultconfig = {
 }
 
 //Load config
-global.config = fs.existsSync(__dirname + "/config.json") ? (function() {
+global.config = fs.existsSync(__dirname + "/config.json") ? (function () {
   var readedConfig = JSON.parse(fs.readFileSync(__dirname + "/config.json"));
   for (var configName in defaultconfig) {
     if (!Object.prototype.hasOwnProperty.call(readedConfig, configName)) {
@@ -203,7 +203,7 @@ global.config = fs.existsSync(__dirname + "/config.json") ? (function() {
   }
   fs.writeFileSync(__dirname + "/config.json", JSON.stringify(readedConfig, null, 4));
   return readedConfig;
-})() : (function() {
+})() : (function () {
   log("[INTERNAL]", "Config file not found. Creating a default one...");
   try {
     fs.writeFileSync(__dirname + "/config.json", JSON.stringify(defaultconfig, null, 4));
@@ -219,7 +219,7 @@ var botname = global.config.botname;
 
 global.lang = require('js-yaml').load(fs.existsSync(__dirname + "/lang/" + global.config.language + ".yml") ? fs.readFileSync(__dirname + "/lang/" + global.config.language + ".yml", {
   encoding: 'utf-8'
-}) : (function() {
+}) : (function () {
   log("[INTERNAL]", __dirname + "/lang/" + global.config.language + ".yml", ": not found | Defaulting to en_US.yml ...");
   return fs.readFileSync(__dirname + "/lang/en_US.yml", {
     encoding: 'utf-8'
@@ -265,7 +265,7 @@ function obf(data) {
     }
   }
 
-  Obfuscator.prototype.obfuscate = function(str) {
+  Obfuscator.prototype.obfuscate = function (str) {
     str = str + "";
     var rv = "";
     for (var i = 0; i < str.length; i++) {
@@ -281,7 +281,7 @@ function obf(data) {
     return rv;
   }
 
-  Obfuscator.prototype.deobfuscate = function(str) {
+  Obfuscator.prototype.deobfuscate = function (str) {
     str = str + "";
     var rv = "";
     for (var i = 0; i < str.length; i++) {
@@ -392,7 +392,7 @@ var prefixObf = setInterval(() => {
 }, 1000);
 
 //Randomizer
-var random = function(min, max) {
+var random = function (min, max) {
   if (min > max) {
     var temp = min;
     min = max;
@@ -402,7 +402,7 @@ var random = function(min, max) {
   if (bnum < 1) bnum = 1;
   return Math.round(parseInt(crypto.randomBytes(bnum).toString('hex'), 16) / Math.pow(16, bnum * 2) * (max - min)) + min;
 };
-var randomBytes = function(numbytes) {
+var randomBytes = function (numbytes) {
   numbytes = numbytes || 1;
   return crypto.randomBytes(numbytes).toString('hex');
 };
@@ -484,15 +484,15 @@ function findFromDir(startPath, filter, arrayOutput, callback) {
 // });
 
 if (testmode) {
-  fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {}})();
+  fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {} })();
 } else {
-  fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {}})();
+  fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {} })();
 }
 global.dataBackup = JSON.parse(JSON.stringify(global.data));
 //Auto-save global data clock
 global.isDataSaving = false;
 global.dataSavingTimes = 0;
-var autosave = setInterval(function(testmode, log) {
+var autosave = setInterval(function (testmode, log) {
   if ((!global.isDataSaving || global.dataSavingTimes > 3) && JSON.stringify(global.data) !== JSON.stringify(global.dataBackup)) {
     if (global.dataSavingTimes > 3) {
       log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
@@ -500,7 +500,7 @@ var autosave = setInterval(function(testmode, log) {
     }
     global.isDataSaving = true;
     if (testmode) {
-      fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function(err) {
+      fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function (err) {
         if (err) {
           log("[INTERNAL]", "Auto-save encounted an error:", err);
         }
@@ -509,7 +509,7 @@ var autosave = setInterval(function(testmode, log) {
         global.dataBackup = JSON.parse(JSON.stringify(global.data));
       });
     } else {
-      fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function(err) {
+      fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function (err) {
         if (err) {
           log("[INTERNAL]", "Auto-save encounted an error:", err);
         }
@@ -547,7 +547,7 @@ ensureExists(__dirname + "/deletedmsg/");
 ensureExists(__dirname + "/plugins/");
 log("[INTERNAL]", "Searching for plugin in /plugins ...");
 
-findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function(list) {
+findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function (list) {
   log("[INTERNAL]", "Found", list);
   left += 1;
   try {
@@ -677,7 +677,7 @@ function temp5() {
     global.commandMapping["version"] = {
       args: {},
       desc: {},
-      scope: function(type, data) {
+      scope: function (type, data) {
         var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
           headers: {
             "User-Agent": global.config.fbuseragent
@@ -705,7 +705,7 @@ function temp5() {
     global.commandMapping["help"] = {
       args: {},
       desc: [],
-      scope: function(type, data) {
+      scope: function (type, data) {
         var page = 1;
         page = parseInt(data.args[1]) || 1;
         if (page < 1) page = 1;
@@ -746,7 +746,7 @@ function temp5() {
     global.commandMapping["restart"] = {
       args: {},
       desc: {},
-      scope: function(type, data) {
+      scope: function (type, data) {
         if (data.admin && global.config.allowAdminUseRestartCommand) {
           shutdownHandler();
           return {
@@ -769,7 +769,7 @@ function temp5() {
     global.commandMapping["plugins"] = {
       args: {},
       desc: {},
-      scope: function(type, data) {
+      scope: function (type, data) {
         if (!data.admin && !global.config.allowUserUsePluginsCommand) {
           return {
             handler: "core",
@@ -817,7 +817,7 @@ function temp5() {
     global.commandMapping["reload"] = {
       args: {},
       desc: {},
-      scope: function(type, data) {
+      scope: function (type, data) {
         if (!data.admin && !global.config.allowUserUseReloadCommand) {
           return {
             handler: "core",
@@ -844,9 +844,9 @@ function temp5() {
         global.chatHook = [];
         left = 0;
 
-        ensureExists(__dirname + "/plugins/", function() {});
+        ensureExists(__dirname + "/plugins/", function () { });
         log("[INTERNAL]", "Searching for plugin in /plugins ...");
-        findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function(list) {
+        findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function (list) {
           log("[INTERNAL]", "Found", list);
           left += 1;
           try {
@@ -1040,7 +1040,7 @@ function temp5() {
 
       function fetchName(id, force, callingback) {
         if (!callingback) {
-          callingback = function() {}
+          callingback = function () { }
         }
         if (!global.data.cacheName["FB-" + id] || !!force) {
           api.getUserInfo(id, (err, ret) => {
@@ -1058,14 +1058,14 @@ function temp5() {
         }
       }
       facebook.api.fetchName = fetchName;
-      
-      var removePendingClock = setInterval(function(api) {
-        api[0].getThreadList(10, null, ["PENDING"], function(err, list) {
+
+      var removePendingClock = setInterval(function (api) {
+        api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
           if (err) {
             return console.error(err);
           }
           for (var i in list) {
-            setTimeout(function(id) {
+            setTimeout(function (id) {
               api[0].handleMessageRequest(id, true);
               api[0].sendMessage("Please send again!", id);
             }, i * 500, list[i].threadID);
@@ -1110,14 +1110,14 @@ function temp5() {
                     }
                   }
                 }
-                setTimeout(function() {
+                setTimeout(function () {
                   api.markAsRead(message.threadID);
-                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function(el) {
+                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                     return !(el == null || el == "" || el == " ");
                   });
                   arg.map(xy => xy.replace(/["]/g, ""));
                   if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
-                    api.getThreadInfo(message.threadID, function(err, data) {
+                    api.getThreadInfo(message.threadID, function (err, data) {
                       var participants = data.participantIDs;
                       var character = "ͥ";
                       var sendString = "";
@@ -1135,21 +1135,21 @@ function temp5() {
                       api.sendMessage({
                         body: sendString,
                         mentions: mentionObj
-                      }, message.threadID, function() {}, message.messageID);
+                      }, message.threadID, function () { }, message.messageID);
                     });
                   }
                   if (message.body.startsWith("/")) {
                     if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
                       log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
                       var receivetime = new Date();
-                      var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function(el) {
+                      var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                         return !(el == null || el == "" || el == " ");
                       });
                       arg.map(xy => xy.replace(/["]/g, ""));
                       var toarg = arg;
                       if (global.commandMapping[arg[0].substr(1)]) {
                         if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                          api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function() {}, message.messageID);
+                          api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
                         } else {
                           var admin = false;
                           for (var no in global.config.admins) {
@@ -1176,12 +1176,12 @@ function temp5() {
                               if (!message.isGroup) {
                                 var endTyping = api.sendTypingIndicator(message.threadID);
                               } else {
-                                var endTyping = function() {};
+                                var endTyping = function () { };
                               }
-                              setTimeout(function(api, returndata, endTyping, message) {
-                                api.sendMessage(prefix + " " + returndata.data, message.threadID, function() {}, message.messageID);
+                              setTimeout(function (api, returndata, endTyping, message) {
+                                api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
                                 endTyping();
-                                setTimeout(function(api, message) {
+                                setTimeout(function (api, message) {
                                   api.markAsRead(message.threadID);
                                 }, 200, api, message);
                               }, returndata.data.length * 34, api, returndata, endTyping, message);
@@ -1195,7 +1195,7 @@ function temp5() {
                           }
                         }
                       } else {
-                        api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function() {}, message.messageID);
+                        api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
                       }
                     } else {
                       log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
@@ -1281,7 +1281,7 @@ function temp5() {
                         fromIndex: 0
                       }],
                       attachment: att
-                    }, message.threadID, function(err) {
+                    }, message.threadID, function (err) {
                       if (err) {
                         console.log("[CONSOLE-ONLY]", "[Facebook]", err);
                       } else {
@@ -1311,14 +1311,14 @@ function temp5() {
                     }
                   }
                 }
-                setTimeout(function() {
+                setTimeout(function () {
                   api.markAsRead(message.threadID);
-                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function(el) {
+                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                     return !(el == null || el == "" || el == " ");
                   });
                   arg.map(xy => xy.replace(/["]/g, ""));
                   if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
-                    api.getThreadInfo(message.threadID, function(err, data) {
+                    api.getThreadInfo(message.threadID, function (err, data) {
                       var participants = data.participantIDs;
                       var character = "ͥ";
                       var sendString = "";
@@ -1336,10 +1336,10 @@ function temp5() {
                       api.sendMessage({
                         body: sendString,
                         mentions: mentionObj
-                      }, message.threadID, function() {}, message.messageID);
+                      }, message.threadID, function () { }, message.messageID);
                     });
                   }
-                  
+
                   try {
                     log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
                   } catch (ex) {
@@ -1385,33 +1385,33 @@ function temp5() {
           type: 'pkcs1',
           format: 'pem',
           cipher: 'aes-256-cbc',
-          passphrase: 'cyka blyat'
+          passphrase: "cykablyat"
         }
       }, (err, publicKey, privateKey) => {
         log("[SSH]", "Generated new keys.");
         var ssh2server = new ssh2.Server({
           hostKeys: [{
-            key: privateKey, 
-            passphrase: "cyka blyat"
+            key: privateKey,
+            passphrase: "cykablyat"
           }]
         }, function connListener(client, conninfo) {
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.software);
-  
-          client.on('authentication', function(ctx) {
+
+          client.on('authentication', function (ctx) {
             var user = Buffer.from(ctx.username);
-            if (user.length !== global.config.sshUsername.length || 
+            if (user.length !== global.config.sshUsername.length ||
               !crypto.timingSafeEqual(user, global.config.sshUsername)) {
-                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username.");
-                return ctx.reject();
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username.");
+              return ctx.reject();
             }
-        
+
             switch (ctx.method) {
               case 'password':
                 var password = Buffer.from(ctx.password);
-                if (password.length !== global.config.sshPassword.length || 
+                if (password.length !== global.config.sshPassword.length ||
                   !crypto.timingSafeEqual(password, global.config.sshPassword)) {
-                    log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
-                    return ctx.reject();
+                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
+                  return ctx.reject();
                 }
                 break;
               case 'publickey':
@@ -1420,11 +1420,11 @@ function temp5() {
               default:
                 return ctx.reject();
             }
-        
+
             ctx.accept();
-          }).on('ready', function() {
-            log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated.");      
-            client.on('session', function(accept, reject) {
+          }).on('ready', function () {
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated.");
+            client.on('session', function (accept, reject) {
               var session = accept();
               /* session.once('exec', function(accept, reject, info) {
                 log("[SSH]", conninfo.ip + ":" + conninfo.port + " issued javascript code: ", info.command);
@@ -1437,7 +1437,7 @@ function temp5() {
                 stream.exit(0);
                 stream.end();
               }); */
-              session.once('shell', function(accept, reject) {
+              session.once('shell', function (accept, reject) {
                 var stream = accept();
                 stream.write(global.config.botname + " v" + version + (global.config.botname != "C3CBot" ? "(Powered by C3C)" : ""));
                 stream.write("\r\n");
@@ -1448,9 +1448,11 @@ function temp5() {
                 stream.pipe(process.stdin, {end: false});
               });
             });
-          }).on('end', function() {
-            log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");     
+          }).on('end', function () {
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");
           });
+        }).listen(global.config.sshRemoteConsolePort, '127.0.0.1', function() {
+          log("[SSH]", "Listening at port", this.address().port);
         });
       });
     }
@@ -1484,7 +1486,7 @@ function temp5() {
           }
           try {
             clearInterval(facebook.removePendingClock);
-          } catch (ex) {}
+          } catch (ex) { }
           instance = undefined;
           instance = require("facebook-chat-api")({
             appState: temporaryAppState
@@ -1496,7 +1498,7 @@ function temp5() {
           }, facebookcb);
           log("[Facebook]", "New instance created.");
           log("[Facebook]", "Logging in...");
-          setTimeout(function(fr) {
+          setTimeout(function (fr) {
             if (facebook.error) {
               log("[Facebook]", "Detected error. Attempting to reconnect...");
               fr();
@@ -1520,12 +1522,12 @@ function temp5() {
         log("[Discord]", "Trying to reconnect... Some commands might not work correctly.");
       });
 
-      discordMessageHandler = function(message) {
+      discordMessageHandler = function (message) {
         if (message.content.startsWith("/")) {
           if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) || (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) && message.author.tag != client.user.tag && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, ("DC-" + message.author.id))) {
             log("[Discord]", message.author.id, "(" + message.author.tag + ")", "issued command in", message.channel.id + " (" + message.channel.name + "):", message.content, (message.attachments.size > 0 ? message.attachments : ""));
             var currenttime = new Date();
-            var arg = message.content.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function(el) {
+            var arg = message.content.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
               return !(el == null || el == "" || el == " ");
             });
             arg.map(xy => xy.replace(/[\"]/g, ""));
@@ -1541,7 +1543,7 @@ function temp5() {
                 }
                 global.data.cacheName["DC-" + message.author.id] = message.author.tag;
                 var mentions = {};
-                message.mentions.users.forEach(function(y, x) {
+                message.mentions.users.forEach(function (y, x) {
                   mentions["DC-" + x] = y;
                   global.data.cacheName["DC-" + x] = y.username + "#" + y.discrimator;
                 });
@@ -1578,7 +1580,7 @@ function temp5() {
     }
 
     //Handling Ctrl+C and SIGTERM (X button)
-    var shutdownHandler = function() {
+    var shutdownHandler = function () {
       log("[INTERNAL]", "Detected process is shutting down, handling...");
       //Stop Facebook listener
       if (facebook.listener) {
