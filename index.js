@@ -185,7 +185,9 @@ var defaultconfig = {
   language: "en_US",
   enableThanosTimeGems: true, //Anti-Unsend
   allowEveryoneTagEvenBlacklisted: true,
-  DEBUG_FCA_LOGLEVEL: "error"
+  DEBUG_FCA_LOGLEVEL: "error",
+  enableSSHRemoteConsole: false,
+  sshRemoteConsolePort: 2004
 }
 
 //Load config
