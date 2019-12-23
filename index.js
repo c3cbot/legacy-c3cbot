@@ -1394,7 +1394,7 @@ function temp5() {
         client.on('authentication', function (ctx) {
           var user = ctx.username;
           if (user.length !== global.config.sshUsername.length ||
-            !crypto.timingSafeEqual(user, global.config.sshUsername)) {
+            !(user == global.config.sshUsername)) {
             log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username.");
             return ctx.reject();
           }
@@ -1403,7 +1403,7 @@ function temp5() {
             case 'password':
               var password = ctx.password;
               if (password.length !== global.config.sshPassword.length ||
-                !crypto.timingSafeEqual(password, global.config.sshPassword)) {
+                !(password == global.config.sshPassword)) {
                 log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
                 return ctx.reject();
               }
