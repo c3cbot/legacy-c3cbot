@@ -1395,29 +1395,29 @@ function temp5() {
           var user = ctx.username;
           if (user.length !== global.config.sshUsername.length ||
             !(user == global.config.sshUsername)) {
-            log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username.");
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username.", user);
             return ctx.reject();
           }
-
+          log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated with username", user);
+          log("[SSH]", conninfo.ip + ":" + conninfo.port, "try to authenticate with", ctx.method);
           switch (ctx.method) {
             case 'password':
               var password = ctx.password;
-              if (password.length !== global.config.sshPassword.length ||
-                !(password == global.config.sshPassword)) {
-                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
+              if (password.length === global.config.sshPassword.length &&
+                password == global.config.sshPassword) {
+                  return ctx.accept();
+              } else {
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.", password);
                 return ctx.reject();
               }
-              break;
             /* case 'publickey':
             log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with public keys, which is not supported.");
               return ctx.reject(); */
             default:
               return ctx.reject();
           }
-
-          ctx.accept();
         }).on('ready', function () {
-          log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated.");
+          log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated successfully.");
           client.on('session', function (accept, reject) {
             var session = accept();
             /* session.once('exec', function(accept, reject, info) {
