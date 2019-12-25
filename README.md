@@ -79,7 +79,10 @@ If you don't want the bot create a `config.json` file for you, then here is the 
 ## Donation
 <tt>
 Bitcoin:  1TTCLqLHSNegudfS7Ub7dUEGxUurGs8uH<br>
+    
 Litecoin: LQLTTCLUG9g7EfnpanwPH5MFjr7jdQRzfs<br>
+
 Dogecoin: DTTCLQLeCGDmKmwyy2Nn2SYgbLAyE662ua<br>
+
 Ethereum: 0x11C1014fA416c585DE0BA41900056fB9407D57a2<br>
 </tt>
