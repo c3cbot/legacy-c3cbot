@@ -737,11 +737,15 @@ function temp5() {
         if (page < 1) page = 1;
         var mts = "";
         mts += global.lang["HELP_OUTPUT_PREFIX"];
-        var hl = [];
+        var helpobj = global.commandMapping[no];
+        helpobj.command = "help";
+        var hl = [helpobj];
         for (var no in global.commandMapping) {
-          var tempx = global.commandMapping[no];
-          tempx.command = no;
-          hl.push(tempx);
+          if (no !== "help") {
+            var tempx = global.commandMapping[no];
+            tempx.command = no;
+            hl.push(tempx);
+          }
         }
         if (type == "Discord") {
           mts += "\r\n```HTTP"
