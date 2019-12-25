@@ -739,6 +739,8 @@ function temp5() {
         mts += global.lang["HELP_OUTPUT_PREFIX"];
         var helpobj = global.commandMapping["help"];
         helpobj.command = "help";
+        helpobj.args[global.config.language] = global.lang["HELP_ARGS"];
+        helpobj.desc[global.config.language] = global.lang["HELP_DESC"];
         var hl = [helpobj];
         for (var no in global.commandMapping) {
           if (no !== "help") {
