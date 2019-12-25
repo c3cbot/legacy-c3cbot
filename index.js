@@ -30,7 +30,7 @@ Number.prototype.floor = function (decimal) {
 };
 
 //Check folder exists and create it 
-function ensureExists(path, mask, cb) {
+function ensureExists(path, mask) {
   if (typeof mask == 'function') { // allow the `mask` parameter to be optional
     cb = mask;
     mask = 0o777;
@@ -93,6 +93,7 @@ var sizeObject = function (object) {
 };
 
 global.nodemodule = {};
+var os = require("os");
 const fs = require('fs');
 var path = require("path");
 const util = require('util');
@@ -126,7 +127,7 @@ function log(...message) {
   var date = new Date();
   readline.cursorTo(process.stdout, 0);
   var x = ["\x1b[1;32m[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]"];
-  console.log.apply(console, x.concat(message))
+  console.log.apply(console, x.concat(message).concat(["\x1b[1;32m"]))
   rl.prompt(true);
   var tolog = "[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
   for (var n in message) {
@@ -157,7 +158,9 @@ function log(...message) {
     if (typeof global.sshcurrsession == "object") {
       for (var session in global.sshstream) {
         try {
-          global.sshstream[session].stdout.write(tssh.replace(/\\/g, "\\") + "\r\n");
+          global.sshcurrsession[session].cursorTo(global.sshstream[session].stdout, 0);
+          global.sshstream[session].stdout.write(tssh.replace(/\\/g, "\\") + "\r\n" + "\x1b[1;32m");
+          global.sshcurrsession[session].prompt(true);
         } catch (ex) { }
       }
     }
@@ -632,6 +635,56 @@ findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function (list) {
 });
 
 var client = {};
+
+function cpuAverage() {
+  var totalIdle = 0, 
+      totalTick = 0;
+  var cpus = os.cpus();
+  for(var i = 0, len = cpus.length; i < len; i++) {
+    var cpu = cpus[i];
+    for(type in cpu.times) {
+      totalTick += cpu.times[type];
+    }     
+    totalIdle += cpu.times.idle;
+  }
+
+  return {
+    idle: totalIdle / cpus.length, 
+    total: totalTick / cpus.length
+  };
+}
+
+function cpuLoad(avgTime) {
+  return new Promise((resolve) => {
+    this.samples = [];
+    this.samples[1] = cpuAverage();
+    this.refresh = setInterval(() => {
+      this.samples[0] = this.samples[1];
+      this.samples[1] = cpuAverage();
+      var totalDiff = this.samples[1].total - this.samples[0].total;
+      var idleDiff = this.samples[1].idle - this.samples[0].idle;
+      resolve(1 - idleDiff / totalDiff);
+    }, avgTime);
+  });
+}
+
+var titleClocking = setInterval(async () => {
+  var titleescape1 = "\e]0;"
+  var titleescape2 = "\u0007\n";
+  var cpupercent = await cpuLoad(1000);
+  var title = global.config.botname + " v" + version + " | " + (cpupercent * 100).toFixed(0) + "% CPU" + " | " + ((os.totalmem() - os.freemem()) / 1024 / 1024).toFixed(0) + " MB" + "/" + (os.totalmem() / 1024 / 1024).toFixed(0) + " MB RAM" + " | BOT: " + (process.memoryUsage().rss / 1024 / 1024).toFixed(0) + " MB USED";
+  process.title = title;
+  // eslint-disable-next-line no-extra-boolean-cast
+  if (!!global.sshcurrsession) {
+    if (typeof global.sshcurrsession == "object") {
+      for (var session in global.sshstream) {
+        try {
+          global.sshstream[session].stdout.write(titleescape1 + title + titleescape2);
+        } catch (ex) { }
+      }
+    }
+  }
+}, 5000);
 
 function temp5() {
   if (left == 0) {
@@ -1626,7 +1679,7 @@ function temp5() {
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");
         });
       }).listen(global.config.sshRemoteConsolePort, global.config.sshRemoteConsoleIP, function () {
-        log("[SSH]", "Listening at ", this.address().ip + ":" + this.address().port);
+        log("[SSH]", "Listening at", this.address().address + ":" + this.address().port);
       });
     }
 
