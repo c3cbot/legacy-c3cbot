@@ -75,3 +75,9 @@ If you don't want the bot create a `config.json` file for you, then here is the 
     "allowEveryoneTagEvenBlacklisted": true
 }
 ```
+
+## Donation
+<tt>Bitcoin:  1TTCLqLHSNegudfS7Ub7dUEGxUurGs8uH</tt><br>
+<tt>Litecoin: LQLTTCLUG9g7EfnpanwPH5MFjr7jdQRzfs</tt><br>
+<tt>Dogecoin: DTTCLQLeCGDmKmwyy2Nn2SYgbLAyE662ua</tt><br>
+<tt>Ethereum: 0x11C1014fA416c585DE0BA41900056fB9407D57a2</tt><br>
