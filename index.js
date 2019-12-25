@@ -1194,7 +1194,13 @@ function temp5() {
                               api: api,
                               prefix: prefix,
                               admin: admin,
-                              mentions: mentions
+                              mentions: mentions,
+                              log: function logPlugin(...message) {
+                                log.apply(global, [
+                                  "[PLUGIN]", 
+                                  "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                                ].concat(message));
+                              }
                             });
                             if (!returndata) return undefined;
                             if (returndata.handler == "core") {
