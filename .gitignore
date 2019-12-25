@@ -60,8 +60,7 @@ typings/
 # next.js build output
 .next
 
-# config file
+# bot file
 config.json
-
-# data file
 data.json
+logs/
