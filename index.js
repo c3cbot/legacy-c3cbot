@@ -118,6 +118,8 @@ var querystring = require('querystring');
 const request = require('request');
 var delay = require('delay');
 const StreamZip = require('node-stream-zip');
+global.sshcurrsession = {};
+global.sshstream = {};
 
 ensureExists(__dirname + "/logs/");
 function log(...message) {
@@ -137,6 +139,29 @@ function log(...message) {
   fs.appendFile(__dirname + '/logs/log-' + date.getUTCFullYear().pad(4) + '-' + (date.getUTCMonth() + 1).pad(2) + '-' + date.getUTCDate().pad(2) + '.log', tolog + "\r\n", (err) => {
     if (err) console.log(err);
   });
+
+  var tssh = "\x1b[1;32m[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
+  for (var n in message) {
+    if (typeof message[n] == "object") {
+      tssh += " " + util.formatWithOptions({
+        colors: true
+      }, "%O", message[n]);
+    } else {
+      tssh += " " + util.formatWithOptions({
+        colors: true
+      }, "%s", message[n]);
+    }
+  }
+  // eslint-disable-next-line no-extra-boolean-cast
+  if (!!global.sshcurrsession) {
+    if (typeof global.sshcurrsession == "object") {
+      for (var session in global.sshstream) {
+        try {
+          global.sshstream[session].stdout.write(tssh.replace(/\\/g, "\\") + "\r\n");
+        } catch (ex) {}
+      }
+    }
+  }
 }
 
 //Capturing STDERR
@@ -1390,16 +1415,14 @@ function temp5() {
       global.ssh2server = new ssh2.Server({
         hostKeys: [hostkey.privateKey]
       }, function connListener(client, conninfo) {
-        log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.software);
+        log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.header.versions.software);
         client.on('authentication', function (ctx) {
           var user = ctx.username;
           if (user.length !== global.config.sshUsername.length ||
             !(user == global.config.sshUsername)) {
-            log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username.", user);
-            return ctx.reject();
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username (", user, ")");
+            return ctx.reject([], false);
           }
-          log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated with username", user);
-          log("[SSH]", conninfo.ip + ":" + conninfo.port, "try to authenticate with", ctx.method);
           switch (ctx.method) {
             case 'password':
               var password = ctx.password;
@@ -1407,14 +1430,15 @@ function temp5() {
                 password == global.config.sshPassword) {
                   return ctx.accept();
               } else {
-                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.", password);
-                return ctx.reject();
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password (", password, ")");
+                return ctx.reject(["password"], false);
               }
             /* case 'publickey':
             log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with public keys, which is not supported.");
               return ctx.reject(); */
             default:
-              return ctx.reject();
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is authenticating with method:", ctx.method, ". Notifying client that a password is needed...");
+              return ctx.reject(["password"], true);
           }
         }).on('ready', function () {
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated successfully.");
@@ -1432,17 +1456,43 @@ function temp5() {
               stream.end();
             }); */
             session.once('shell', function (accept, reject) {
-              var stream = accept();
-              stream.write(global.config.botname + " v" + version + (global.config.botname != "C3CBot" ? "(Powered by C3C)" : ""));
-              stream.write("\r\n");
-              stream.write("https://github.com/lequanglam/c3c");
-              stream.write("---------------------------------< EOH");
-              stream.write("\r\n");
-              process.stdout.pipe(stream, {end: false});
-              stream.pipe(process.stdin, {end: false});
+              global.sshstream[conninfo.ip + ":" + conninfo.port] = accept();
+              global.sshstream[conninfo.ip + ":" + conninfo.port].write('\u001B[2J\u001B[0;0f');
+              global.sshstream[conninfo.ip + ":" + conninfo.port].write(global.config.botname + " v" + version + (global.config.botname != "C3CBot" ? "(Powered by C3C)" : ""));
+              global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
+              global.sshstream[conninfo.ip + ":" + conninfo.port].write("https://github.com/lequanglam/c3c");
+              global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
+              global.sshstream[conninfo.ip + ":" + conninfo.port].write("---------------------------------< EOH");
+              global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
+
+              var sshrl = readline.createInterface({
+                input: global.sshstream[conninfo.ip + ":" + conninfo.port].stdin,
+                output: global.sshstream[conninfo.ip + ":" + conninfo.port].stdout
+              });
+              global.sshcurrsession[conninfo.ip + ":" + conninfo.port] = sshrl;
+              var consolessh = function consolessh() {
+                // eslint-disable-next-line no-extra-boolean-cast
+                if (!!global.sshcurrsession[conninfo.ip + ":" + conninfo.port]) {
+                  sshrl.question('ssh@c3c:js# ', (message) => {
+                    log("[INTERNAL]", conninfo.ip + ":" + conninfo.port, "issued javascript code:", message);
+                    try {
+                      log("[SSH-JAVASCRIPT]", eval(message));
+                    } catch (ex) {
+                      log("[SSH-JAVASCRIPT]", ex);
+                    }
+                    consolessh();
+                  });
+                }
+              }
+              consolessh();
+
+              // process.stdout.pipe(stream, {end: false});
+              // stream.pipe(process.stdin, {end: false});
             });
           });
         }).on('end', function () {
+          delete global.sshcurrsession[conninfo.ip + ":" + conninfo.port];
+          delete global.sshstream[conninfo.ip + ":" + conninfo.port];
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");
         });
       }).listen(global.config.sshRemoteConsolePort, '127.0.0.1', function() {
@@ -1611,6 +1661,7 @@ function temp5() {
         log("[INTERNAL]", "Unloaded plugin ", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
         delete global.loadedPlugins[name];
       }
+
       //Save for the last time
       if (testmode) {
         fs.writeFileSync(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4));
@@ -1618,6 +1669,15 @@ function temp5() {
         fs.writeFileSync(__dirname + "/data.json", JSON.stringify(global.data, null, 4));
       }
       log("[INTERNAL]", "Saved data");
+
+      //Close SSH connections
+      for (var conn in global.sshstream) {
+        try {
+          global.sshstream[conn].close();
+        } catch (ex) {
+          log("[SSH]", conn, "is already closed. Skipping...");
+        }
+      }
 
       //All finished, kill the process!
       log("[INTERNAL]", "Killing process with SIGKILL...");
