@@ -729,15 +729,15 @@ function temp5() {
     global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
 
     global.commandMapping["help"] = {
-      args: {},
-      desc: [],
+      args: "",
+      desc: "",
       scope: function (type, data) {
         var page = 1;
         page = parseInt(data.args[1]) || 1;
         if (page < 1) page = 1;
         var mts = "";
         mts += global.lang["HELP_OUTPUT_PREFIX"];
-        var helpobj = global.commandMapping[no];
+        var helpobj = global.commandMapping["help"];
         helpobj.command = "help";
         var hl = [helpobj];
         for (var no in global.commandMapping) {
@@ -754,7 +754,7 @@ function temp5() {
           if (i < hl.length) {
             mts += "\r\n" + (i + 1).toString() + ". /" + hl[i].command;
             if (!!hl[i].args && hl[i].args != "") {
-              mts += " " + hl[i].args[global.config.language];
+              mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
             }
             mts += ": " + hl[i].desc[global.config.language];
           }
