@@ -729,8 +729,8 @@ function temp5() {
     global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
 
     global.commandMapping["help"] = {
-      args: "",
-      desc: "",
+      args: {},
+      desc: {},
       scope: function (type, data) {
         var page = 1;
         page = parseInt(data.args[1]) || 1;
