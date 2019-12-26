@@ -669,8 +669,8 @@ function cpuLoad(avgTime) {
 }
 
 var titleClocking = setInterval(async () => {
-  var titleescape1 = "\e]0;"
-  var titleescape2 = "\u0007\n";
+  var titleescape1 = String.fromCharCode(27) + ']0;';
+  var titleescape2 = String.fromCharCode(7);
   var cpupercent = await cpuLoad(1000);
   var title = global.config.botname + " v" + version + " | " + (cpupercent * 100).toFixed(0) + "% CPU" + " | " + ((os.totalmem() - os.freemem()) / 1024 / 1024).toFixed(0) + " MB" + "/" + (os.totalmem() / 1024 / 1024).toFixed(0) + " MB RAM" + " | BOT: " + (process.memoryUsage().rss / 1024 / 1024).toFixed(0) + " MB USED";
   process.title = title;
