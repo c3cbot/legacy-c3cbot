@@ -40,7 +40,7 @@
     "libsodium-wrappers": "^0.7.4",
     "node-opus": "^0.3.2",
     "node-stream-zip": "^1.8.0",
-    "nsfwjs": "github:lequanglam/nsfwjs",
+    "nsfwjs-node": "^2.1.10",
     "on-change": "^1.6.2",
     "path": "^0.12.7",
     "querystring": "^0.2.0",
