@@ -119,6 +119,8 @@ var querystring = require('querystring');
 const request = require('request');
 var delay = require('delay');
 const StreamZip = require('node-stream-zip');
+var tfnode = require("@tensorflow/tfjs-node");
+var tf = require("@tensorflow/tfjs");   
 global.sshcurrsession = {};
 global.sshstream = {};
 
@@ -169,12 +171,19 @@ function log(...message) {
 
 //Capturing STDERR
 var stderrold = process.stderr.write;
+global.stderrdata = "";
 process.stderr.write = function (chunk, encoding, callback) {
-  log("[STDERR]", chunk);
+  global.stderrdata += chunk;
   if (typeof callback == "function") {
     callback();
   }
 };
+setInterval(() => {
+  if (global.stderrdata != "") {
+    log("[STDERR]", global.stderrdata);
+    global.stderrdata = "";
+  }
+}, 499);
 
 //Outputs version 
 var version = require("./package.json").version;
@@ -554,6 +563,10 @@ var autosave = setInterval(function (testmode, log) {
   }
 }, 10000, testmode, log);
 
+//NSFW detection API load
+log("[INTERNAL]", "Fetching/Loading NSFWJS model from lequanglam.github.io ...");
+var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", {size: 299}));
+log("[INTERNAL]", "Loaded NSFWJS model");
 
 //"require" from code string
 function requireFromString(src, filename) {
@@ -1346,6 +1359,7 @@ function temp5() {
                     }
                   }
                   var att = [];
+                  var bannedatt = [];
                   for (var n in attachmentArray) {
                     var imagesx = new streamBuffers.ReadableStreamBuffer({
                       frequency: 10,
@@ -1354,11 +1368,34 @@ function temp5() {
                     imagesx.path = attachmentArray[n].name;
                     imagesx.put(attachmentArray[n].data);
                     imagesx.stop();
-                    att.push(imagesx);
+                    if (attachmentArray[n].type == "photo" || 
+                        attachmentArray[n].type == "animated_image" || 
+                        attachmentArray[n].type == "sticker") {
+                      var classify = wait.for.promise(NSFWJS.classify(tfnode.node.decodeImage(imagesx), 1))[0].className;
+                      switch (classify) {
+                        case "Hentai":
+                        case "Porn":
+                          bannedatt.push(classify);
+                          break;
+                        case "Neutral":
+                        case "Drawing":
+                        case "Sexy":
+                          att.push(imagesx);
+                          break;
+                        default:
+                          att.push(imagesx);
+                      }
+                    } else {
+                      att.push(imagesx);
+                    }
                   }
                   if (!global.data.thanosBlacklist[message.threadID]) {
+                    var btext = "";
+                    if (bannedatt.length != 0) {
+                      btext = "\r\nBanned material detected: " + JSON.stringify(bannedatt);
+                    }
                     api.sendMessage({
-                      body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body),
+                      body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
                       mentions: [{
                         tag: "@" + global.data.cacheName["FB-" + message.senderID],
                         id: message.senderID,
@@ -1698,13 +1735,13 @@ function temp5() {
       }
       try {
         log("[Facebook]", "Logging in...");
-        var instance = require("facebook-chat-api")(fbloginobj, {
+        var fbinstance = require("facebook-chat-api")(fbloginobj, {
           userAgent: global.config.fbuseragent,
           logLevel: global.config.DEBUG_FCA_LOGLEVEL,
           selfListen: true,
           listenEvents: true
         }, facebookcb);
-
+        fbloginobj = undefined;
         forceReconnect = function forceReconnect() {
           log("[Facebook]", "6 hours has passed. Destroying FCA instance and creating a new one...");
           if (facebook.listener) {
@@ -1715,8 +1752,8 @@ function temp5() {
           try {
             clearInterval(facebook.removePendingClock);
           } catch (ex) { }
-          instance = undefined;
-          instance = require("facebook-chat-api")({
+          fbinstance = undefined;
+          fbinstance = require("facebook-chat-api")({
             appState: temporaryAppState
           }, {
             userAgent: global.config.fbuseragent,
