@@ -565,7 +565,7 @@ var autosave = setInterval(function (testmode, log) {
 
 //NSFW detection API load
 log("[INTERNAL]", "Fetching/Loading NSFWJS model from lequanglam.github.io ...");
-var NSFWJS = wait.for.promise(require("nsfwjs-node").load("https://lequanglam.github.io/nsfwjs-model/", {size: 299}));
+var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", {size: 299}));
 log("[INTERNAL]", "Loaded NSFWJS model");
 
 //"require" from code string
