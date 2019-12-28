@@ -1678,8 +1678,10 @@ function temp5() {
           delete global.sshstream[conninfo.ip + ":" + conninfo.port];
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");
         });
+      }).on('error', function (err) {
+        log("[SSH]", "ERR!", err);
       }).listen(global.config.sshRemoteConsolePort, global.config.sshRemoteConsoleIP, function () {
-        log("[SSH]", "Listening at", this.address().address + ":" + this.address().port);
+        log("[SSH]", "Listening for SSH connection at", this.address().address + ":" + this.address().port);
       });
     }
 
