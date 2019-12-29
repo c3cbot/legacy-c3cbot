@@ -119,7 +119,7 @@ var querystring = require('querystring');
 const request = require('request');
 var delay = require('delay');
 const StreamZip = require('node-stream-zip');
-var tfnode = require("@tensorflow/tfjs-node");
+//var tfnode = require("@tensorflow/tfjs-node");
 var tf = require("@tensorflow/tfjs");   
 global.sshcurrsession = {};
 global.sshstream = {};
@@ -1371,7 +1371,7 @@ function temp5() {
                     if (attachmentArray[n].type == "photo" || 
                         attachmentArray[n].type == "animated_image" || 
                         attachmentArray[n].type == "sticker") {
-                      var classify = wait.for.promise(NSFWJS.classify(tfnode.node.decodeImage(imagesx), 1))[0].className;
+                      var classify = wait.for.promise(NSFWJS.classify(tf.node.decodeImage(imagesx), 1))[0].className;
                       switch (classify) {
                         case "Hentai":
                         case "Porn":
