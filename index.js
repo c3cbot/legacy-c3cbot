@@ -119,8 +119,8 @@ var querystring = require('querystring');
 const request = require('request');
 var delay = require('delay');
 const StreamZip = require('node-stream-zip');
-//var tfnode = require("@tensorflow/tfjs-node");
-var tf = require("@tensorflow/tfjs");   
+var tf = require("@tensorflow/tfjs");
+tf.node = require("tensorflow-node-image").node;
 global.sshcurrsession = {};
 global.sshstream = {};
 
