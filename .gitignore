@@ -65,3 +65,4 @@ config.json
 data.json
 logs/
 deletedmsg/
+fbstate.json
