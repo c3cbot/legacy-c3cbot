@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/lequanglam/c3c#readme",
   "dependencies": {
-    "@discordjs/uws": "^11.149.1",
     "@tensorflow/tfjs": "^1.5.1",
     "@tensorflow/tfjs-node": "^1.5.1",
     "crypto": "^1.0.1",
