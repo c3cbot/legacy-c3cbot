@@ -113,7 +113,9 @@ global.nodemodule["stream-buffers"] = require('stream-buffers');
 const readline = require('readline');
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
+  terminal: true,
+  prompt: ""
 });
 var querystring = require('querystring');
 const request = require('request');
@@ -1688,7 +1690,9 @@ function temp5() {
 
               var sshrl = readline.createInterface({
                 input: global.sshstream[conninfo.ip + ":" + conninfo.port].stdin,
-                output: global.sshstream[conninfo.ip + ":" + conninfo.port].stdout
+                output: global.sshstream[conninfo.ip + ":" + conninfo.port].stdout,
+                terminal: true,
+                prompt: ""
               });
               global.sshcurrsession[conninfo.ip + ":" + conninfo.port] = sshrl;
               var consolessh = function consolessh() {
