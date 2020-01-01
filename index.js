@@ -160,7 +160,7 @@ function log(...message) {
     if (typeof global.sshcurrsession == "object") {
       for (var session in global.sshstream) {
         try {
-          global.sshcurrsession[session].cursorTo(global.sshstream[session].stdout, 0);
+          //global.sshcurrsession[session].cursorTo(global.sshstream[session].stdout, 0);
           global.sshstream[session].stdout.write(tssh.replace(/\\/g, "\\") + "\r\n" + "\x1b[1;32m");
           global.sshcurrsession[session].prompt(true);
         } catch (ex) { }
