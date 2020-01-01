@@ -1117,7 +1117,7 @@ function temp5() {
         log("[Facebook]", "Error saved to 'facebook.error'.");
         return false;
       } else {
-        facebook.error = undefined;
+        facebook.error = false;
       }
       log("[Facebook]", "Logged in.");
       facebook.api = api;
@@ -1764,11 +1764,11 @@ function temp5() {
           log("[Facebook]", "New instance created.");
           log("[Facebook]", "Logging in...");
           setTimeout(function (fr) {
-            if (facebook.error) {
+            if (facebook.error && !facebook.listener) {
               log("[Facebook]", "Detected error. Attempting to reconnect...");
               fr();
             }
-          }, 15000, forceReconnect);
+          }, 30000, forceReconnect);
         }
         setInterval(forceReconnect, 21600000);
       } catch (ex) {
