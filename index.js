@@ -1717,6 +1717,8 @@ function temp5() {
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");
         }).on('error', function (err) {
           log("[SSH]", "ERR!", err);
+          delete global.sshcurrsession[conninfo.ip + ":" + conninfo.port];
+          delete global.sshstream[conninfo.ip + ":" + conninfo.port];
         });
       }).on('error', function (err) {
         log("[SSH]", "ERR!", err);
