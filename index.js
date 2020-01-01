@@ -163,6 +163,7 @@ function log(...message) {
           global.sshstream[session].stdout.write("\r");
           global.sshstream[session].stdout.write(tssh.replace(/\\/g, "\\") + "\r\n" + "\x1b[1;32m");
           global.sshcurrsession[session].prompt(true);
+          global.sshstream[session].stdout.write(global.sshcurrsession[session].line);
         } catch (ex) { }
       }
     }
