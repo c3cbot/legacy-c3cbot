@@ -541,18 +541,22 @@ var autosave = setInterval(function (testmode, log) {
     }
     global.isDataSaving = true;
     if (testmode) {
-      fs.writeFile(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4), function (err) {
+      fs.writeFile(__dirname + "/data-test-temp.json", JSON.stringify(global.data, null, 4), function (err) {
         if (err) {
           log("[INTERNAL]", "Auto-save encounted an error:", err);
+        } else {
+          fs.renameSync(__dirname + "/data-test-temp.json", __dirname + "/data-test.json");
         }
         global.isDataSaving = false;
         global.dataSavingTimes = 0;
         global.dataBackup = JSON.parse(JSON.stringify(global.data));
       });
     } else {
-      fs.writeFile(__dirname + "/data.json", JSON.stringify(global.data, null, 4), function (err) {
+      fs.writeFile(__dirname + "/data-temp.json", JSON.stringify(global.data, null, 4), function (err) {
         if (err) {
           log("[INTERNAL]", "Auto-save encounted an error:", err);
+        } else {
+          fs.renameSync(__dirname + "/data-temp.json", __dirname + "/data.json");
         }
         global.isDataSaving = false;
         global.dataSavingTimes = 0;

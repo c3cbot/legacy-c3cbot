@@ -63,6 +63,9 @@ typings/
 # bot file
 config.json
 data.json
+data-temp.json
+data-test.json
+data-test-temp.json
 logs/
 deletedmsg/
 fbstate.json
