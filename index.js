@@ -1533,7 +1533,7 @@ function temp5() {
                 password == global.config.sshPassword) {
                 return ctx.accept();
               } else {
-                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password (", password, ")");
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
                 return ctx.reject(["password"], false);
               }
             /* case 'publickey':
