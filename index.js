@@ -678,7 +678,7 @@ function cpuLoad(avgTime) {
   return new Promise((resolve) => {
     this.samples = [];
     this.samples[1] = cpuAverage();
-    this.refresh = setInterval(() => {
+    this.refresh = setTimeout(() => {
       this.samples[0] = this.samples[1];
       this.samples[1] = cpuAverage();
       var totalDiff = this.samples[1].total - this.samples[0].total;
