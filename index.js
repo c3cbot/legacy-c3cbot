@@ -536,33 +536,23 @@ global.dataSavingTimes = 0;
 var autosave = setInterval(function (testmode, log) {
   if ((!global.isDataSaving || global.dataSavingTimes > 3) && JSON.stringify(global.data) !== JSON.stringify(global.dataBackup)) {
     if (global.dataSavingTimes > 3) {
-      log("[INTERNAL]", "Auto-save clock is executing over 30 seconds. Attempting to restart the clock...");
-      global.dataSavingTimes = 0;
+      log("[INTERNAL]", "Auto-save clock is executing over 30 seconds! (", global.dataSavingTimes, ")");
     }
     global.isDataSaving = true;
-    if (testmode) {
-      fs.writeFile(__dirname + "/data-test-temp.json", JSON.stringify(global.data, null, 4), function (err) {
-        if (err) {
-          log("[INTERNAL]", "Auto-save encounted an error:", err);
-        } else {
-          fs.renameSync(__dirname + "/data-test-temp.json", __dirname + "/data-test.json");
-        }
-        global.isDataSaving = false;
-        global.dataSavingTimes = 0;
-        global.dataBackup = JSON.parse(JSON.stringify(global.data));
-      });
-    } else {
-      fs.writeFile(__dirname + "/data-temp.json", JSON.stringify(global.data, null, 4), function (err) {
-        if (err) {
-          log("[INTERNAL]", "Auto-save encounted an error:", err);
-        } else {
-          fs.renameSync(__dirname + "/data-temp.json", __dirname + "/data.json");
-        }
-        global.isDataSaving = false;
-        global.dataSavingTimes = 0;
-        global.dataBackup = JSON.parse(JSON.stringify(global.data));
-      });
-    }
+	try {
+		if (testmode) {
+		  fs.writeFileSync(__dirname + "/data-test-temp.json", JSON.stringify(global.data, null, 4));
+		  fs.renameSync(__dirname + "/data-test-temp.json", __dirname + "/data-test.json");
+		} else {
+		  fs.writeFileSync(__dirname + "/data-temp.json", JSON.stringify(global.data, null, 4));
+		  fs.renameSync(__dirname + "/data-temp.json", __dirname + "/data.json");
+		}
+	} catch (err) {
+		log("[INTERNAL]", "Auto-save encounted an error:", err);
+	}
+	global.isDataSaving = false;
+	global.dataSavingTimes = 0;
+	global.dataBackup = JSON.parse(JSON.stringify(global.data));
   } else {
     if (JSON.stringify(global.data) != JSON.stringify(global.dataBackup)) {
       global.dataSavingTimes++;
