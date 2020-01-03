@@ -25,6 +25,8 @@
   "dependencies": {
     "@discordjs/uws": "^11.149.1",
     "@tensorflow/tfjs": "^1.5.1",
+    "@tensorflow/tfjs-node": "^1.5.1",
+    "canvas": "^2.6.1",
     "crypto": "^1.0.1",
     "delay": "^4.2.0",
     "discord.js": "^11.5.1",
