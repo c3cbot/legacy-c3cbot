@@ -1402,26 +1402,33 @@ function temp5() {
                       var worker = new Worker(() => {
                         onmessage = function (event) {
                           var data = event.data;
-                          var cl = wait.for.promise(NSFWJS.classify({
-                            data: data.data,
-                            width: data.width,
-                            height: data.height
-                          }, 1));
-                          postMessage({
-                            class: cl,
-                            senderID: data.senderID,
-                            threadID: data.threadID,
-                            id: data.id
-                          });
+                          var NSFWJS = data.NSFWJS;
+                          try {
+                            var cl = wait.for.promise(NSFWJS.classify({
+                              data: data.data,
+                              width: data.width,
+                              height: data.height
+                            }, 1));
+                            postMessage({
+                              class: cl,
+                              id: data.id
+                            });
+                          } catch (ex) {
+                            postMessage({
+                              error: error
+                            });
+                          }
                         }
                       });
                       // eslint-disable-next-line no-loop-func
                       worker.onmessage = function (event) {
-                        console.log(event);
                         var data = event.data;
                         Object.assign(global.nsfwjsdata[data.id], data);
                         global.nsfwjsdata[data.id].complete = true;
                         worker.child.kill();
+                        if (data.error) {
+                          log("[Facebook]", data.error);
+                        }
                       }
 
                       var id = Date.now().toString() + "-" + random(0, 99);
@@ -1431,7 +1438,8 @@ function temp5() {
                         id: id,
                         data: new Uint8Array(imgdata1.data),
                         width: imgdata1.width,
-                        height: imgdata1.height
+                        height: imgdata1.height,
+                        NSFWJS: NSFWJS
                       });
                       
                       wait.for.value(global.nsfwjsdata[id], "complete", true);
