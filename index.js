@@ -1183,7 +1183,8 @@ function temp5() {
       facebook.removePendingClock = removePendingClock;
 
       !global.data.messageList ? global.data.messageList = {} : "";
-      facebook.listener = api.listenMqtt(function callback(err, message) {
+      // eslint-disable-next-line require-await
+      facebook.listener = api.listenMqtt(async function callback(err, message) {
         try {
           if (message != undefined) {
             for (var n in global.chatHook) {
