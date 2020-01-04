@@ -1414,7 +1414,8 @@ function temp5() {
                             });
                           } catch (ex) {
                             postMessage({
-                              error: ex
+                              error: ex,
+                              id: data.id
                             });
                           }
                         }
