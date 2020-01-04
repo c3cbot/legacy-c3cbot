@@ -101,7 +101,7 @@ var http = require("http");
 var canvas = require("canvas");
 var Canvas = canvas.Canvas;
 var Image = canvas.Image;
-var Threads = require('webworker-threads');
+var Worker = require('tiny-worker');
 const util = require('util');
 var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
@@ -1399,7 +1399,7 @@ function temp5() {
                       var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
 
                       // eslint-disable-next-line no-loop-func
-                      var worker = new Threads.Worker(function () {
+                      var worker = new Worker(() => {
                         this.onmessage = function (event) {
                           var data = event.data;
                           var cl = wait.for.promise(NSFWJS.classify({
