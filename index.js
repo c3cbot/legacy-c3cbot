@@ -1,3 +1,4 @@
+/* eslint-disable object-curly-spacing */
 /* eslint-disable no-undefined */
 /* eslint-disable no-return-assign */
 /* eslint-disable no-useless-escape */
@@ -42,7 +43,7 @@ function ensureExists(path, mask) {
     });
     return undefined;
   } catch (ex) {
-    return {err: ex};
+    return { err: ex };
   }
 }
 
@@ -538,20 +539,20 @@ var autosave = setInterval(function (testmode, log) {
       log("[INTERNAL]", "Auto-save clock is executing over 30 seconds! (", global.dataSavingTimes, ")");
     }
     global.isDataSaving = true;
-	try {
-		if (testmode) {
-		  fs.writeFileSync(__dirname + "/data-test-temp.json", JSON.stringify(global.data, null, 4));
-		  fs.renameSync(__dirname + "/data-test-temp.json", __dirname + "/data-test.json");
-		} else {
-		  fs.writeFileSync(__dirname + "/data-temp.json", JSON.stringify(global.data, null, 4));
-		  fs.renameSync(__dirname + "/data-temp.json", __dirname + "/data.json");
-		}
-	} catch (err) {
-		log("[INTERNAL]", "Auto-save encounted an error:", err);
-	}
-	global.isDataSaving = false;
-	global.dataSavingTimes = 0;
-	global.dataBackup = JSON.parse(JSON.stringify(global.data));
+    try {
+      if (testmode) {
+        fs.writeFileSync(__dirname + "/data-test-temp.json", JSON.stringify(global.data, null, 4));
+        fs.renameSync(__dirname + "/data-test-temp.json", __dirname + "/data-test.json");
+      } else {
+        fs.writeFileSync(__dirname + "/data-temp.json", JSON.stringify(global.data, null, 4));
+        fs.renameSync(__dirname + "/data-temp.json", __dirname + "/data.json");
+      }
+    } catch (err) {
+      log("[INTERNAL]", "Auto-save encounted an error:", err);
+    }
+    global.isDataSaving = false;
+    global.dataSavingTimes = 0;
+    global.dataBackup = JSON.parse(JSON.stringify(global.data));
   } else {
     if (JSON.stringify(global.data) != JSON.stringify(global.dataBackup)) {
       global.dataSavingTimes++;
@@ -561,7 +562,7 @@ var autosave = setInterval(function (testmode, log) {
 
 //NSFW detection API load
 log("[INTERNAL]", "Fetching/Loading NSFWJS model from lequanglam.github.io ...");
-var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", {size: 299}));
+var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
 log("[INTERNAL]", "Loaded NSFWJS model");
 
 //"require" from code string
@@ -646,19 +647,19 @@ findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function (list) {
 var client = {};
 
 function cpuAverage() {
-  var totalIdle = 0, 
-      totalTick = 0;
+  var totalIdle = 0,
+    totalTick = 0;
   var cpus = os.cpus();
-  for(var i = 0, len = cpus.length; i < len; i++) {
+  for (var i = 0, len = cpus.length; i < len; i++) {
     var cpu = cpus[i];
-    for(type in cpu.times) {
+    for (type in cpu.times) {
       totalTick += cpu.times[type];
-    }     
+    }
     totalIdle += cpu.times.idle;
   }
 
   return {
-    idle: totalIdle / cpus.length, 
+    idle: totalIdle / cpus.length,
     total: totalTick / cpus.length
   };
 }
@@ -1364,9 +1365,9 @@ function temp5() {
                     imagesx.path = attachmentArray[n].name;
                     imagesx.put(attachmentArray[n].data);
                     imagesx.stop();
-                    if (attachmentArray[n].type == "photo" || 
-                        attachmentArray[n].type == "animated_image" || 
-                        attachmentArray[n].type == "sticker") {
+                    if (attachmentArray[n].type == "photo" ||
+                      attachmentArray[n].type == "animated_image" ||
+                      attachmentArray[n].type == "sticker") {
                       var classify = wait.for.promise(NSFWJS.classify(tf.node.decodeImage(imagesx), 1))[0].className;
                       switch (classify) {
                         case "Hentai":
@@ -1536,15 +1537,15 @@ function temp5() {
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated successfully.");
           client.on('session', function (accept, reject) {
             var session = accept();
-            
+
             //SFTP Protocol
-            session.on('sftp', function(accept, reject) {
+            session.on('sftp', function (accept, reject) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "requested to establish SFTP connection (File Editor).");
               var sftpStream = accept();
               var openFiles = {};
               var fdmap = {};
               var handleCount = 0;
-              sftpStream.on('OPEN', function(reqid, filename, flags, attrs) {
+              sftpStream.on('OPEN', function (reqid, filename, flags, attrs) {
                 if (!fs.existsSync(__dirname + filename)) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename, ", which does not exist.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
@@ -1556,7 +1557,7 @@ function temp5() {
                   sftpStream.handle(reqid, handle);
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename, "( fd:", handle.readUInt32BE(0), ")");
                 }
-              }).on('STAT', function(reqid, path) {
+              }).on('STAT', function (reqid, path) {
                 if (!fs.existsSync(__dirname + path)) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path, ", which does not exist.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
@@ -1564,7 +1565,7 @@ function temp5() {
                   sftpStream.attrs(reqid, fs.statSync(__dirname + path))
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path);
                 }
-              }).on('LSTAT', function(reqid, path) {
+              }).on('LSTAT', function (reqid, path) {
                 if (!fs.existsSync(__dirname + path)) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path, ", which does not exist.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
@@ -1572,7 +1573,7 @@ function temp5() {
                   sftpStream.attrs(reqid, fs.lstatSync(__dirname + path))
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path);
                 }
-              }).on('MKDIR', function(reqid, path, attrs) {
+              }).on('MKDIR', function (reqid, path, attrs) {
                 if (fs.existsSync(__dirname + path)) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path, ", which exists.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
@@ -1586,7 +1587,7 @@ function temp5() {
                     log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path, ", which can't be created. Additional information:", ex.toString());
                   }
                 }
-              }).on('RENAME', function(reqid, oldpath, newpath) {
+              }).on('RENAME', function (reqid, oldpath, newpath) {
                 if (!fs.existsSync(__dirname + oldpath)) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming", path, ", which doesn't exists.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
@@ -1600,7 +1601,7 @@ function temp5() {
                     log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming path", path, ", which can't be renamed. Additional information:", ex.toString());
                   }
                 }
-              }).on('READ', function(reqid, handle, offset, length) {
+              }).on('READ', function (reqid, handle, offset, length) {
                 if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
@@ -1617,11 +1618,11 @@ function temp5() {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], ", which cannot be read. Additional information:", ex.toString());
                   sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
                 }
-              }).on('WRITE', function(reqid, handle, offset, data) {
+              }).on('WRITE', function (reqid, handle, offset, data) {
                 if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }                
+                }
 
                 try {
                   fs.writeSync(handle.readUInt32BE(0), data, offset);
@@ -1631,11 +1632,11 @@ function temp5() {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)], ", which cannot be writen. Additional information:", ex.toString());
                   sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
                 }
-              }).on('FSTAT', function(reqid, handle) {
+              }).on('FSTAT', function (reqid, handle) {
                 if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }                
+                }
 
                 try {
                   sftpStream.attrs(reqid, fs.fstatSync(handle.readUInt32BE(0)));
@@ -1644,14 +1645,14 @@ function temp5() {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which cannot be read. Additional information:", ex.toString());
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
                 }
-              }).on('FSETSTAT', function(reqid, handle, attrs) {
+              }).on('FSETSTAT', function (reqid, handle, attrs) {
                 if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }            
+                }
                 log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which cannot be writen (because no)");
                 return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-              }).on('CLOSE', function(reqid, handle) {
+              }).on('CLOSE', function (reqid, handle) {
                 if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
                   log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file descriptor", handle.readUInt32BE(0), ", which does not exist.");
                   return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
