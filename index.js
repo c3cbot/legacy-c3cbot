@@ -98,6 +98,9 @@ var os = require("os");
 const fs = require('fs');
 var path = require("path");
 var http = require("http");
+var canvas = require("canvas");
+var Canvas = canvas.Canvas;
+var Image = canvas.Image;
 const util = require('util');
 var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
@@ -1384,7 +1387,15 @@ function temp5() {
                     if (attachmentArray[n].type == "photo" ||
                       attachmentArray[n].type == "animated_image" ||
                       attachmentArray[n].type == "sticker") {
-                      var classify = wait.for.promise(NSFWJS.classify(tf.node.decodeImage(imagesx), 1))[0].className;
+                      
+                      var image = new Image();
+                      image.src = attachmentArray[n].data;
+                      var cvs = new Canvas(image.width, image.height);
+                      var ctx = cvs.getContext("2d");
+                      ctx.drawImage(image, 0, 0);
+                      var imgdata = ctx.getImageData(0, 0, image.width, image.height);
+
+                      var classify = wait.for.promise(NSFWJS.classify(imgdata, 1))[0].className;
                       switch (classify) {
                         case "Hentai":
                         case "Porn":
@@ -1405,7 +1416,7 @@ function temp5() {
                   if (!global.data.thanosBlacklist[message.threadID]) {
                     var btext = "";
                     if (bannedatt.length != 0) {
-                      btext = "\r\nBanned material detected: " + JSON.stringify(bannedatt);
+                      btext = "\r\n\r\nBanned material detected: " + JSON.stringify(bannedatt);
                     }
                     api.sendMessage({
                       body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
