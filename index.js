@@ -1413,20 +1413,19 @@ function temp5() {
                             });
                           }
                         }
-                      });
+                      }, [], { silent: true });
                       // eslint-disable-next-line no-loop-func
                       worker.onmessage = function (event) {
                         var data = event.data;
-                        log("[Facebook]", event);
                         Object.assign(global.nsfwjsdata[data.id], data);
                         global.nsfwjsdata[data.id].complete = true;
                         worker.child.kill();
                         if (data.error) {
-                          log("[Facebook]", data.error);
+                          log("[Facebook]", "Error in image classifier:", data.error);
                         }
                       }
 
-                      var id = Date.now().toString() + "-" + random(0, 99);
+                      var id = Date.now().toString() + "-" + random(0, 99).toString();
                       global.nsfwjsdata[id] = {};
                       global.nsfwjsdata[id].complete = false;
                       worker.postMessage({
@@ -1440,9 +1439,7 @@ function temp5() {
                       var classing = global.nsfwjsdata[id].class;
                       try {
                         var classify = classing[0].className;
-                      } catch (ex) {
-                        log("[Facebook]", "ANTI-UNSEND ERROR:", ex, cl);
-                      }
+                      } catch (ex) {}
                       switch (classify) {
                         case "Hentai":
                         case "Porn":
@@ -1456,7 +1453,7 @@ function temp5() {
                           log("[Facebook]", "Image classified as:", classify);
                           break;
                         default:
-                          log("[Facebook]", "Invalid image classification:", classify, cl);
+                          log("[Facebook]", "Invalid image classification:", classify, classing);
                           att.push(imagesx);
                       }
                     } else {
@@ -1921,6 +1918,7 @@ function temp5() {
         }
       }
       client.on('message', discordMessageHandler);
+      log("[Discord]", "Logging in...");
       client.login(global.config.discordtoken);
     }
 
