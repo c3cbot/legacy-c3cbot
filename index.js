@@ -1405,11 +1405,13 @@ function temp5() {
                         case "Hentai":
                         case "Porn":
                           bannedatt.push(classify);
+                          log("[Facebook]", "Image classified as:", classify);
                           break;
                         case "Neutral":
                         case "Drawing":
                         case "Sexy":
                           att.push(imagesx);
+                          log("[Facebook]", "Image classified as:", classify);
                           break;
                         default:
                           log("[Facebook]", "Invalid image classification:", classify, cl);
