@@ -101,7 +101,8 @@ var http = require("http");
 var canvas = require("canvas");
 var Canvas = canvas.Canvas;
 var Image = canvas.Image;
-var Worker = require('tiny-worker');
+const worker = require('worker_threads');
+var Worker = worker.Worker;
 const util = require('util');
 var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
@@ -127,7 +128,6 @@ var querystring = require('querystring');
 const request = require('request');
 var delay = require('delay');
 const StreamZip = require('node-stream-zip');
-var tf = require("@tensorflow/tfjs");
 global.sshcurrsession = {};
 global.sshstream = {};
 global.nsfwjsdata = {};
@@ -561,7 +561,15 @@ var autosave = setInterval(function (testmode, log) {
   }
 }, 10000, testmode, log);
 
-//NSFW detection API load
+//"require" from code string
+function requireFromString(src, filename) {
+  var Module = module.constructor;
+  var m = new Module();
+  m._compile(src, filename);
+  return m.exports;
+}
+
+//NSFW HTTP Server
 log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
 var NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
   if (fs.existsSync(__dirname + "/nsfwjs-models" + req.url)) {
@@ -573,26 +581,6 @@ var NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
     res.end();
   }
 }).listen(2812);
-try {
-  log("[INTERNAL]", "Fetching/Loading NSFWJS model from HTTP server at port 2812...");
-  var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: 299 }));
-  log("[INTERNAL]", "Loaded NSFWJS model");
-} catch (ex) {
-  log("[INTERNAL]", "Failed to get data from HTTP server at port 2812. Additional info:", ex)
-  log("[INTERNAL]", "Fetching/Loading NSFWJS model from lequanglam.github.io ...");
-  var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
-  log("[INTERNAL]", "Loaded NSFWJS model");
-}
-NSFWJS_MODEL_SERVER.close();
-log("[INTERNAL]", "Closed HTTP server at port 2812.");
-
-//"require" from code string
-function requireFromString(src, filename) {
-  var Module = module.constructor;
-  var m = new Module();
-  m._compile(src, filename);
-  return m.exports;
-}
 
 //Plugin Load
 global.plugins = {}; //Plugin Scope
@@ -1399,48 +1387,26 @@ function temp5() {
                       var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
 
                       // eslint-disable-next-line no-loop-func
-                      var worker = new Worker(() => {
-                        onmessage = function (event) {
-                          var data = event.data;
-                          var NSFWJS = data.NSFWJS;
-                          try {
-                            var cl = wait.for.promise(NSFWJS.classify({
-                              data: data.data,
-                              width: data.width,
-                              height: data.height
-                            }, 1));
-                            postMessage({
-                              class: cl,
-                              id: data.id
-                            });
-                          } catch (ex) {
-                            postMessage({
-                              error: error
-                            });
-                          }
-                        }
+                      var worker = new Worker(__dirname + "/nsfwresolver.js", {
+                        id: id,
+                        data: new Uint8Array(imgdata1.data),
+                        width: imgdata1.width,
+                        height: imgdata1.height
                       });
                       // eslint-disable-next-line no-loop-func
-                      worker.onmessage = function (event) {
+                      worker.on("message", function (event) {
                         var data = event.data;
                         Object.assign(global.nsfwjsdata[data.id], data);
                         global.nsfwjsdata[data.id].complete = true;
-                        worker.child.kill();
+                        worker.terminate();
                         if (data.error) {
                           log("[Facebook]", data.error);
                         }
-                      }
+                      });
 
                       var id = Date.now().toString() + "-" + random(0, 99);
                       global.nsfwjsdata[id] = {};
                       global.nsfwjsdata[id].complete = false;
-                      worker.postMessage({
-                        id: id,
-                        data: new Uint8Array(imgdata1.data),
-                        width: imgdata1.width,
-                        height: imgdata1.height,
-                        NSFWJS: NSFWJS
-                      });
                       
                       wait.for.value(global.nsfwjsdata[id], "complete", true);
                       var classing = global.nsfwjsdata[id].class;

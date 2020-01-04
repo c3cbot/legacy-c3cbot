@@ -1,11 +1,11 @@
 {
   "name": "c3cbot",
-  "version": "0.2.8-beta.6",
+  "version": "0.2.8-beta.7",
   "description": "A customizable bot that runs on Facebook and Discord.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
+    "start": "node index.js --experimental-worker",
     "lint": "./node_modules/.bin/eslint **.js"
   },
   "repository": {
