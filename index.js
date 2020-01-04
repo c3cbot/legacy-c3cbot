@@ -1417,6 +1417,7 @@ function temp5() {
                       });
                       // eslint-disable-next-line no-loop-func
                       worker.onmessage = function (event) {
+                        console.log(event);
                         var data = event.data;
                         Object.assign(global.nsfwjsdata[data.id], data);
                         global.nsfwjsdata[data.id].complete = true;
