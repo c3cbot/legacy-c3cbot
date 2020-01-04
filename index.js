@@ -1404,7 +1404,7 @@ function temp5() {
                           var data = event.data;
                           try {
                             var cl = wait.for.promise(NSFWJS.classify({
-                              data: data.data,
+                              data: new Uint8Array(data.data),
                               width: data.width,
                               height: data.height
                             }, 1));
