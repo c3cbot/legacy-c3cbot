@@ -1412,6 +1412,7 @@ function temp5() {
                           att.push(imagesx);
                           break;
                         default:
+                          log("[Facebook]", "Invalid image classification:", classify, cl);
                           att.push(imagesx);
                       }
                     } else {
