@@ -1402,7 +1402,6 @@ function temp5() {
                       var worker = new Worker(() => {
                         onmessage = function (event) {
                           var data = event.data;
-                          var NSFWJS = data.NSFWJS;
                           try {
                             var cl = wait.for.promise(NSFWJS.classify({
                               data: data.data,
@@ -1438,8 +1437,7 @@ function temp5() {
                         id: id,
                         data: new Uint8Array(imgdata1.data),
                         width: imgdata1.width,
-                        height: imgdata1.height,
-                        NSFWJS: NSFWJS
+                        height: imgdata1.height
                       });
                       
                       wait.for.value(global.nsfwjsdata[id], "complete", true);
