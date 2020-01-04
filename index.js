@@ -573,18 +573,6 @@ var NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
     res.end();
   }
 }).listen(2812);
-try {
-  log("[INTERNAL]", "Fetching/Loading NSFWJS model from HTTP server at port 2812...");
-  var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: 299 }));
-  log("[INTERNAL]", "Loaded NSFWJS model");
-} catch (ex) {
-  log("[INTERNAL]", "Failed to get data from HTTP server at port 2812. Additional info:", ex)
-  log("[INTERNAL]", "Fetching/Loading NSFWJS model from lequanglam.github.io ...");
-  var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
-  log("[INTERNAL]", "Loaded NSFWJS model");
-}
-NSFWJS_MODEL_SERVER.close();
-log("[INTERNAL]", "Closed HTTP server at port 2812.");
 
 //"require" from code string
 function requireFromString(src, filename) {
@@ -1401,6 +1389,12 @@ function temp5() {
                       // eslint-disable-next-line no-loop-func
                       var worker = new Worker(() => {
                         onmessage = function (event) {
+                          var wait = require("wait-for-stuff");
+                          try {
+                            var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: 299 }));
+                          } catch (ex) {
+                            var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
+                          }
                           var data = event.data;
                           try {
                             var cl = wait.for.promise(NSFWJS.classify({
