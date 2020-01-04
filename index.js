@@ -1506,7 +1506,8 @@ function temp5() {
       });
       log("[SSH]", "Generated new keys.");
       global.ssh2server = new ssh2.Server({
-        hostKeys: [hostkey.privateKey]
+        hostKeys: [hostkey.privateKey],
+        highWaterMark: 1
       }, function connListener(client, conninfo) {
         log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.header.versions.software);
         client.on('authentication', function (ctx) {
