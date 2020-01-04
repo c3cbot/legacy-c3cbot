@@ -1433,9 +1433,7 @@ function temp5() {
                         height: imgdata1.height
                       });
                       
-                      while (!global.nsfwjsdata[id].complete) {
-                        require("deasync").sleep(500);
-                      }
+                      wait.for.value(global.nsfwjsdata[id], "complete", true);
                       var classing = global.nsfwjsdata[id].class;
                       try {
                         var classify = classing[0].className;

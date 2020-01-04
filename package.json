@@ -55,6 +55,6 @@
     "text-encoding": "^0.7.0",
     "util": "^0.12.0",
     "wait-for-stuff": "^1.4.0",
-    "webworker-threads": "^0.7.17"
+    "webworker-threads": "github:audreyt/node-webworker-threads"
   }
 }
