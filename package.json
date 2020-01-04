@@ -54,6 +54,7 @@
     "tensorflow-node-image": "https://github.com/lequanglam/tensorflow-node-image",
     "text-encoding": "^0.7.0",
     "util": "^0.12.0",
-    "wait-for-stuff": "^1.4.0"
+    "wait-for-stuff": "^1.4.0",
+    "webworker-threads": "^0.7.17"
   }
 }
