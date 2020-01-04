@@ -1393,9 +1393,14 @@ function temp5() {
                       var cvs = new Canvas(image.width, image.height);
                       var ctx = cvs.getContext("2d");
                       ctx.drawImage(image, 0, 0);
-                      //var imgdata = ctx.getImageData(0, 0, image.width, image.height);
+                      var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
+                      var imgdata2 = {
+                        data: new Uint8Array(imgdata1.data),
+                        width: imgdata1.width,
+                        height: imgdata1.height
+                      };
                       
-                      var cl = wait.for.promise(NSFWJS.classify(ctx, 1));
+                      var cl = wait.for.promise(NSFWJS.classify(imgdata2, 1));
                       try {
                         var classify = cl[0].className;
                       } catch (ex) {
