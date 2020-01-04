@@ -101,6 +101,7 @@ var http = require("http");
 var canvas = require("canvas");
 var Canvas = canvas.Canvas;
 var Image = canvas.Image;
+var Threads = require('webworker-threads');
 const util = require('util');
 var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
@@ -129,6 +130,7 @@ const StreamZip = require('node-stream-zip');
 var tf = require("@tensorflow/tfjs");
 global.sshcurrsession = {};
 global.sshstream = {};
+global.nsfwjsdata = {};
 
 ensureExists(__dirname + "/logs/");
 function log(...message) {
@@ -1395,15 +1397,46 @@ function temp5() {
                       var ctx = cvs.getContext("2d");
                       ctx.drawImage(image, 0, 0);
                       var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
-                      var imgdata2 = {
+
+                      // eslint-disable-next-line no-loop-func
+                      var worker = new Threads.Worker(function () {
+                        this.onmessage = function (event) {
+                          var data = event.data;
+                          var cl = wait.for.promise(NSFWJS.classify({
+                            data: data.data,
+                            width: data.width,
+                            height: data.height
+                          }, 1));
+                          postMessage({
+                            class: cl,
+                            senderID: data.senderID,
+                            threadID: data.threadID,
+                            id: data.id
+                          });
+                          this.terminate();
+                        }
+                      });
+                      // eslint-disable-next-line no-loop-func
+                      worker.onmessage = function (event) {
+                        var data = event.data;
+                        Object.assign(global.nsfwjsdata[data.id], data);
+                        global.nsfwjsdata[data.id].complete = true;
+                      }
+
+                      var id = Date.now().toString() + "-" + random(0, 99);
+                      global.nsfwjsdata[id] = {};
+                      global.nsfwjsdata[id].complete = false;
+                      worker.postMessage({
+                        id: id,
                         data: new Uint8Array(imgdata1.data),
                         width: imgdata1.width,
                         height: imgdata1.height
-                      };
-
-                      var cl = wait.for.promise(NSFWJS.classify(imgdata2, 1));
+                      });
+                      
+                      wait.for.value(global.nsfwjsdata[id], "complete", true);
+                      var classing = global.nsfwjsdata[id].class;
                       try {
-                        var classify = cl[0].className;
+                        var classify = classing[0].className;
                       } catch (ex) {
                         log("[Facebook]", "ANTI-UNSEND ERROR:", ex, cl);
                       }
