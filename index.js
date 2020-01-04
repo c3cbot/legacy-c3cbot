@@ -97,6 +97,7 @@ global.nodemodule = {};
 var os = require("os");
 const fs = require('fs');
 var path = require("path");
+var http = require("http");
 const util = require('util');
 var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
@@ -449,12 +450,7 @@ var randomBytes = function (numbytes) {
 };
 
 //Cryptography
-let crypto;
-try {
-  crypto = require('crypto');
-} catch (err) {
-  log('[INTERNAL]', 'Crypto already built into Node.JS!');
-}
+var crypto = require('crypto');
 var texte = require("text-encoding");
 
 function HEXTEXT(string) {
@@ -561,9 +557,29 @@ var autosave = setInterval(function (testmode, log) {
 }, 10000, testmode, log);
 
 //NSFW detection API load
-log("[INTERNAL]", "Fetching/Loading NSFWJS model from lequanglam.github.io ...");
-var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
-log("[INTERNAL]", "Loaded NSFWJS model");
+log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
+var NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
+  if (fs.existsSync(__dirname + "/nsfwjs-models" + req.url)) {
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    fs.createReadStream(__dirname + "/nsfwjs-models" + req.url).pipe(res, {end: true});
+  } else {
+    res.writeHead(404, {'Content-Type': 'text/plain'});
+    res.write('404 FILE NOT FOUND');
+    res.end();
+  }
+}).listen(2812);
+try {
+  log("[INTERNAL]", "Fetching/Loading NSFWJS model from HTTP server at port 2812...");
+  var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: 299 }));
+  log("[INTERNAL]", "Loaded NSFWJS model");
+} catch (ex) {
+  log("[INTERNAL]", "Failed to get data from HTTP server at port 2812. Additional info:", ex)
+  log("[INTERNAL]", "Fetching/Loading NSFWJS model from lequanglam.github.io ...");
+  var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
+  log("[INTERNAL]", "Loaded NSFWJS model");
+}
+NSFWJS_MODEL_SERVER.close();
+log("[INTERNAL]", "Closed HTTP server at port 2812.");
 
 //"require" from code string
 function requireFromString(src, filename) {
