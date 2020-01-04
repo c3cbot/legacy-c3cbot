@@ -1400,7 +1400,7 @@ function temp5() {
 
                       // eslint-disable-next-line no-loop-func
                       var worker = new Worker(() => {
-                        self.onmessage = function (event) {
+                        onmessage = function (event) {
                           var data = event.data;
                           var cl = wait.for.promise(NSFWJS.classify({
                             data: data.data,
@@ -1420,7 +1420,7 @@ function temp5() {
                         var data = event.data;
                         Object.assign(global.nsfwjsdata[data.id], data);
                         global.nsfwjsdata[data.id].complete = true;
-                        worker.terminate();
+                        worker.child.kill();
                       }
 
                       var id = Date.now().toString() + "-" + random(0, 99);
