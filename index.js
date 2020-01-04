@@ -1400,7 +1400,7 @@ function temp5() {
 
                       // eslint-disable-next-line no-loop-func
                       var worker = new Worker(() => {
-                        this.onmessage = function (event) {
+                        self.onmessage = function (event) {
                           var data = event.data;
                           var cl = wait.for.promise(NSFWJS.classify({
                             data: data.data,
@@ -1413,7 +1413,6 @@ function temp5() {
                             threadID: data.threadID,
                             id: data.id
                           });
-                          this.terminate();
                         }
                       });
                       // eslint-disable-next-line no-loop-func
@@ -1421,6 +1420,7 @@ function temp5() {
                         var data = event.data;
                         Object.assign(global.nsfwjsdata[data.id], data);
                         global.nsfwjsdata[data.id].complete = true;
+                        worker.terminate();
                       }
 
                       var id = Date.now().toString() + "-" + random(0, 99);
