@@ -1394,8 +1394,13 @@ function temp5() {
                       var ctx = cvs.getContext("2d");
                       ctx.drawImage(image, 0, 0);
                       var imgdata = ctx.getImageData(0, 0, image.width, image.height);
-
-                      var classify = wait.for.promise(NSFWJS.classify(imgdata, 1))[0].className;
+                      
+                      var cl = wait.for.promise(NSFWJS.classify(imgdata, 1));
+                      try {
+                        var classify = cl[0].className;
+                      } catch (ex) {
+                        log("[Facebook]", "ANTI-UNSEND ERROR:", ex, cl);
+                      }
                       switch (classify) {
                         case "Hentai":
                         case "Porn":
