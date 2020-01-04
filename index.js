@@ -130,7 +130,7 @@ ensureExists(__dirname + "/logs/");
 function log(...message) {
   var date = new Date();
   readline.cursorTo(process.stdout, 0);
-  var x = ["\x1b[1;32m[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]"];
+  var x = ["\x1b[K" + "\x1b[1;32m[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]"];
   console.log.apply(console, x.concat(message).concat(["\x1b[1;32m"]))
   rl.prompt(true);
   var tolog = "[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
@@ -145,7 +145,7 @@ function log(...message) {
     if (err) console.log(err);
   });
 
-  var tssh = "\x1b[1;32m[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
+  var tssh = "\x1b[K" + "\x1b[1;32m[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
   for (var n in message) {
     if (typeof message[n] == "object") {
       tssh += " " + util.formatWithOptions({
@@ -1506,8 +1506,7 @@ function temp5() {
       });
       log("[SSH]", "Generated new keys.");
       global.ssh2server = new ssh2.Server({
-        hostKeys: [hostkey.privateKey],
-        highWaterMark: 1
+        hostKeys: [hostkey.privateKey]
       }, function connListener(client, conninfo) {
         log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.header.versions.software);
         client.on('authentication', function (ctx) {
