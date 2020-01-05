@@ -1249,6 +1249,7 @@ function temp5() {
                         if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
                           api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
                         } else {
+                          var argv = JSON.parse(JSON.stringify(arg));
                           var admin = false;
                           for (var no in global.config.admins) {
                             if (global.config.admins[no] == "FB-" + message.senderID) {
@@ -1260,11 +1261,15 @@ function temp5() {
                             mentions["FB-" + y] = message.mentions[y];
                           }
                           try {
+                            if (!client) {
+                              client = undefined
+                            }
                             var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                              args: arg,
+                              args: argv,
                               time: receivetime,
                               msgdata: message,
-                              api: api,
+                              facebookapi: api,
+                              discordapi: client,
                               prefix: prefix,
                               admin: admin,
                               mentions: mentions,
@@ -1276,19 +1281,28 @@ function temp5() {
                               }
                             });
                             if (!returndata) return undefined;
-                            if (returndata.handler == "core") {
-                              if (!message.isGroup) {
-                                var endTyping = api.sendTypingIndicator(message.threadID);
-                              } else {
-                                var endTyping = function () { };
-                              }
+                            if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                              var endTyping = api.sendTypingIndicator(message.threadID);
                               setTimeout(function (api, returndata, endTyping, message) {
                                 api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
                                 endTyping();
                                 setTimeout(function (api, message) {
                                   api.markAsRead(message.threadID);
-                                }, 200, api, message);
-                              }, returndata.data.length * 34, api, returndata, endTyping, message);
+                                }, 500, api, message);
+                              }, returndata.data.length * 30, api, returndata, endTyping, message);
+                            } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                              if (!returndata.data.body) {
+                                returndata.data.body = "";
+                              }
+                              returndata.data.body = prefix + " " + returndata.data.body;
+                              var endTyping = api.sendTypingIndicator(message.threadID);
+                              setTimeout(function (api, returndata, endTyping, message) {
+                                api.sendMessage(returndata.data, message.threadID, function () { }, message.messageID);
+                                endTyping();
+                                setTimeout(function (api, message) {
+                                  api.markAsRead(message.threadID);
+                                }, 500, api, message);
+                              }, returndata.data.length * 30, api, returndata, endTyping, message);
                             }
                           } catch (ex) {
                             try {
@@ -1310,10 +1324,10 @@ function temp5() {
                 }, 195);
                 break;
               case "event":
-                console.log(message);
+                log("[Facebook]", message);
                 break;
               case "message_reaction":
-                console.log(message);
+                log("[Facebook]", message);
                 break;
               case "message_unsend":
                 if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
@@ -1890,6 +1904,14 @@ function temp5() {
                   global.data.cacheName["DC-" + x] = y.username + "#" + y.discrimator;
                 });
                 try {
+                  if (facebook) {
+                    if (!facebook.api) {
+                      facebook.api = {}
+                    }
+                  } else {
+                    facebook = {};
+                    facebook.api = {};
+                  }
                   var returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
                     args: arg,
                     time: currenttime,
@@ -1897,12 +1919,14 @@ function temp5() {
                     prefix: prefix,
                     admin: admin,
                     mentions: mentions,
-                    client: client
+                    discordapi: client,
+                    facebookapi: facebook.api
                   });
                   if (!returndata) return undefined;
-                  if (returndata.handler == "core") {
+                  if (returndata.handler == "internal" && typeof returndata.data == "string") {
                     message.reply("\r\n" + prefix + " " + returndata.data);
-                  }
+                  } 
+                  //else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
                 } catch (ex) {
                   log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
                 }
