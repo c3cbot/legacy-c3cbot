@@ -1925,8 +1925,11 @@ function temp5() {
                   if (!returndata) return undefined;
                   if (returndata.handler == "internal" && typeof returndata.data == "string") {
                     message.reply("\r\n" + prefix + " " + returndata.data);
-                  } 
-                  //else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                  } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                    var body = returndata.data.body;
+                    delete returndata.data.body;
+                    message.reply("\r\n" + prefix + " " + body, returndata.data);
+                  }
                 } catch (ex) {
                   log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
                 }
