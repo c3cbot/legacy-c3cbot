@@ -1542,7 +1542,11 @@ function temp5() {
                       api.sendMessage({
                         body: sendString,
                         mentions: mentionObj
-                      }, message.threadID, function () { }, message.messageID);
+                      }, message.threadID, function (err) {
+                        if (err) {
+                          log("[Facebook]", err);
+                        }
+                      }, message.messageID);
                     });
                   }
 
