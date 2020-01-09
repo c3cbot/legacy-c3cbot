@@ -1156,21 +1156,25 @@ function temp5() {
       }
       facebook.api.fetchName = fetchName;
 
-      var removePendingClock = setInterval(function (api) {
+      facebook.removePendingClock = setInterval(function (api, log, botname, connectedmsg) {
         api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
           if (err) {
-            return console.error(err);
+            return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
           }
           for (var i in list) {
             setTimeout(function (id) {
               api[0].handleMessageRequest(id, true);
-              api[0].sendMessage("Please send again!", id);
+              api[0].sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+                if (err) {
+                  return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+                }
+              });
+              log("[Facebook]", "Bot added to", id);
             }, i * 500, list[i].threadID);
           }
         });
         api[0].markAsReadAll();
-      }, 60000, [api]);
-      facebook.removePendingClock = removePendingClock;
+      }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
 
       !global.data.messageList ? global.data.messageList = {} : "";
       // eslint-disable-next-line require-await
@@ -1325,6 +1329,22 @@ function temp5() {
                 break;
               case "event":
                 log("[Facebook]", message);
+                try {
+                  if (message.logMessageType == "log:subscribe") {
+                    var containBot = false;
+                    var botID = api.getCurrentUserID();
+                    for (var n in message.logMessageData.addedParticipants) {
+                      message.logMessageData.addedParticipants[n] == botID && (containBot = true);
+                    }
+                    containBot && (function (id, botname, connectedmsg, log, addedby) {
+                      api.handleMessageRequest(id, true);
+                      api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id);
+                      log("[Facebook]", addedby, "added Bot to", id);
+                    })(message.threadID, global.config.botname, global.lang.CONNECTED_MESSAGE, log, message.author);
+                  }
+                } catch (ex) {
+                  log("[Facebook]", ex);
+                }
                 break;
               case "message_reaction":
                 log("[Facebook]", message);

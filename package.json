@@ -1,6 +1,6 @@
 {
   "name": "c3cbot",
-  "version": "0.3.0-alpha.1",
+  "version": "0.3.0-alpha.2",
   "description": "A customizable bot that runs on Facebook and Discord.",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "C3C"
   ],
   "author": "lequanglam",
-  "license": "GPL",
+  "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/lequanglam/c3c/issues"
   },
@@ -55,7 +55,6 @@
     "text-encoding": "^0.7.0",
     "tiny-worker": "^2.3.0",
     "util": "^0.12.0",
-    "wait-for-stuff": "^1.4.0",
-    "webworker-threads": "github:audreyt/node-webworker-threads"
+    "wait-for-stuff": "^1.4.0"
   }
 }
