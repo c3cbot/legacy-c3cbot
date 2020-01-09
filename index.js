@@ -1390,8 +1390,7 @@ function temp5() {
                     imagesx.put(attachmentArray[n].data);
                     imagesx.stop();
                     if (attachmentArray[n].type == "photo" ||
-                      attachmentArray[n].type == "animated_image" ||
-                      attachmentArray[n].type == "sticker") {
+                      attachmentArray[n].type == "animated_image") {
 
                       var image = new Image();
                       image.src = attachmentArray[n].data;
@@ -1422,7 +1421,7 @@ function temp5() {
                             });
                           } catch (ex) {
                             postMessage({
-                              error: ex,
+                              error: ex.toString(),
                               id: data.id
                             });
                           }
@@ -1542,7 +1541,11 @@ function temp5() {
                       api.sendMessage({
                         body: sendString,
                         mentions: mentionObj
-                      }, message.threadID, function () { }, message.messageID);
+                      }, message.threadID, function (err) {
+                        if (err) {
+                          log("[Facebook]", err);
+                        }
+                      }, message.messageID);
                     });
                   }
 
