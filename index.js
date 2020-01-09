@@ -790,7 +790,7 @@ function temp5() {
         }).body.toString());
         var latestcodeversion = codedata.version;
         return {
-          handler: "core",
+          handler: "internal",
           data: "Currently running on version " + version + "\r\nLatest GitHub version: " + latestgithubversion + "\r\nLatest code version: " + latestcodeversion
         }
       },
@@ -838,7 +838,7 @@ function temp5() {
         }
         mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 5).ceil() + ')';
         return {
-          handler: "core",
+          handler: "internal",
           data: mts
         }
       },
@@ -854,12 +854,12 @@ function temp5() {
         if (data.admin && global.config.allowAdminUseRestartCommand) {
           shutdownHandler();
           return {
-            handler: "core",
+            handler: "internal",
             data: "OK"
           }
         } else {
           return {
-            handler: "core",
+            handler: "internal",
             data: global.lang["INSUFFICIENT_PERM"]
           }
         }
@@ -876,7 +876,7 @@ function temp5() {
       scope: function (type, data) {
         if (!data.admin && !global.config.allowUserUsePluginsCommand) {
           return {
-            handler: "core",
+            handler: "internal",
             data: global.lang["INSUFFICIENT_PERM"]
           }
         }
@@ -908,7 +908,7 @@ function temp5() {
         }
         mts += '\r\n(Page ' + page + '/' + (hl.length / 5).ceil() + ')';
         return {
-          handler: "core",
+          handler: "internal",
           data: mts
         }
       },
@@ -924,7 +924,7 @@ function temp5() {
       scope: function (type, data) {
         if (!data.admin && !global.config.allowUserUseReloadCommand) {
           return {
-            handler: "core",
+            handler: "internal",
             data: global.lang["INSUFFICIENT_PERM"]
           }
         }
@@ -1080,7 +1080,7 @@ function temp5() {
         }
         temp6();
         return {
-          handler: "core",
+          handler: "internal",
           data: "Reloaded"
         }
       },
@@ -1097,7 +1097,7 @@ function temp5() {
         if (type != "Facebook") {
           return {
             data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
-            handler: "core"
+            handler: "internal"
           }
         }
         var threadID = data.msgdata.threadID;
@@ -1108,7 +1108,7 @@ function temp5() {
         }
         return {
           data: "Successfully " + (!global.data.thanosBlacklist[threadID] ? "enabled" : "disabled") + " Thanos Time Gem on this thread!",
-          handler: "core"
+          handler: "internal"
         }
       },
       compatibly: 1,
