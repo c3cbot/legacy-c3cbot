@@ -1306,7 +1306,7 @@ function temp5() {
                                 setTimeout(function (api, message) {
                                   api.markAsRead(message.threadID);
                                 }, 500, api, message);
-                              }, returndata.data.length * 30, api, returndata, endTyping, message);
+                              }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message);
                             }
                           } catch (ex) {
                             try {
