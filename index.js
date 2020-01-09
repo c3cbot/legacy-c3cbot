@@ -1300,13 +1300,17 @@ function temp5() {
                               }
                               returndata.data.body = prefix + " " + returndata.data.body;
                               var endTyping = api.sendTypingIndicator(message.threadID);
-                              setTimeout(function (api, returndata, endTyping, message) {
-                                api.sendMessage(returndata.data, message.threadID, function () { }, message.messageID);
+                              setTimeout(function (api, returndata, endTyping, message, log) {
+                                api.sendMessage(returndata.data, message.threadID, function (err) {
+                                  if (err) {
+                                    log("[Facebook]", err);
+                                  }
+                                }, message.messageID);
                                 endTyping();
                                 setTimeout(function (api, message) {
                                   api.markAsRead(message.threadID);
                                 }, 500, api, message);
-                              }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message);
+                              }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                             }
                           } catch (ex) {
                             try {
