@@ -2142,8 +2142,8 @@ function temp5() {
     process.on('SIGTERM', signalHandler); //Ctrl+C but not on Windows?
     process.on('SIGINT', signalHandler); //Ctrl+C?
     process.on('SIGHUP', signalHandler); //Windows Command Prompt close button?
-    rl.on('SIGTERM', process.emit('SIGTERM'));
-    rl.on('SIGINT', process.emit('SIGINT'));
+    rl.on('SIGTERM', function () { process.emit('SIGTERM'); });
+    rl.on('SIGINT', function () { process.emit('SIGINT'); });
     process.on('exit', shutdownHandler);
   } else {
     setTimeout(temp5, 1000);
