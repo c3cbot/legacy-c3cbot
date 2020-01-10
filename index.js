@@ -1595,7 +1595,7 @@ function temp5() {
                   if (!global.data.thanosBlacklist[message.threadID]) {
                     var btext = "";
                     if (bannedatt.length != 0) {
-                      btext = "\r\n\r\nImage classifition: " + JSON.stringify(bannedatt, null, 0).substr(1, JSON.stringify(bannedatt, null, 0).length - 1).replace(/"/g, "");
+                      btext = "\r\n\r\nImage classifition: " + JSON.stringify(bannedatt, null, 0).substr(1, JSON.stringify(bannedatt, null, 0).length - 2).replace(/"/g, "");
                     }
                     api.sendMessage({
                       body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
