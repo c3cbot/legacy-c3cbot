@@ -12,3 +12,7 @@ PLUGINS_OUTPUT_PREFIX: "Danh sách plugin:"
 RELOAD_DESC: "Tải lại tất cả plugin."
 VERSION_DESC: "Xem phiên bản của bot đang chạy."
 CONENCTED_MESSAGE: "Sử dụng lệnh `/help [trang số]` để xem các lệnh có sẵn."
+TOGGLETHANOS_DESC: "Bật/tắt Thanos Time Gem."
+TOGGLETHANOS_MSG: "{0} Thanos Time Gem tại thread này."
+ENABLED: Đã bật
+DISABLED: Đã tắt

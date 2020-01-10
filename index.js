@@ -133,6 +133,14 @@ global.sshstream = {};
 global.nsfwjsdata = {};
 
 ensureExists(__dirname + "/logs/");
+
+/**
+ * Log to console and also write to logs file, print to every ssh console session
+ *
+ * @param   {any}  ...message  Anything
+ *
+ * @return  {undefined}              Function will not return anything
+ */
 function log(...message) {
   var date = new Date();
   readline.cursorTo(process.stdout, 0);
@@ -189,7 +197,10 @@ process.stderr.write = function (chunk, encoding, callback) {
 };
 setInterval(() => {
   if (global.stderrdata != "" && global.stderrdata.indexOf("Hi there 👋. Looks like you are running TensorFlow.js in Node.js. To speed things up dramatically, install our node backend, which binds to TensorFlow C++, by running npm i @tensorflow/tfjs-node, or npm i @tensorflow/tfjs-node-gpu if you have CUDA. Then call require('@tensorflow/tfjs-node'); (-gpu suffix for CUDA) at the start of your program. Visit https://github.com/tensorflow/tfjs-node for more details.") == -1) {
-    log("[STDERR]", global.stderrdata);
+    var arr = global.stderrdata.split(/[\r\n]|\r|\n/g).filter((val) => val != "");
+    for (var n in arr) {
+      log("[STDERR]", arr[n]);
+    }
   }
   global.stderrdata = "";
 }, 499);
@@ -273,7 +284,13 @@ global.lang = require('js-yaml').load(fs.existsSync(__dirname + "/lang/" + globa
   })
 })());
 
-//OBFUSCATOR PART
+/**
+ * Obfuscate a string.
+ *
+ * @param   {string}  data  A string that you want to obfuscate.
+ *
+ * @return  {string}        An obfuscated string.
+ */
 function obf(data) {
   function Obfuscator(repl) {
     this.nrepl = 0;
@@ -282,13 +299,8 @@ function obf(data) {
 
     function removeDupes(str) {
       var rv = "";
-      //var p = {};
       for (var i = 0; i < str.length; i++) {
         var ch = str.charAt(i);
-        /*    if (!p[ch]) {
-            p[ch] = 1;
-            rv += ch;
-            }*/
         if (rv.indexOf(ch) == -1) {
           rv += ch;
         }
@@ -432,13 +444,20 @@ function obf(data) {
     "эǝɘəӭэӭ"
   ]);
 
-  return strongObfuscator.obfuscate(data);
+  return strongObfuscator.obfuscate(data) || "";
 }
 var prefixObf = setInterval(() => {
   prefix = obf(global.config.baseprefix);
 }, 1000);
 
-//Randomizer
+/**
+ * Get a randomized number
+ *
+ * @param  {number} min Minimum
+ * @param  {number} max Maximum
+ * 
+ * @returns {number} A randomized number.
+ */
 var random = function (min, max) {
   if (min > max) {
     var temp = min;
@@ -449,6 +468,13 @@ var random = function (min, max) {
   if (bnum < 1) bnum = 1;
   return Math.round(parseInt(crypto.randomBytes(bnum).toString('hex'), 16) / Math.pow(16, bnum * 2) * (max - min)) + min;
 };
+
+/**
+ * Get some random bytes
+ *
+ * @param  {number} numbytes Number of bytes.
+ * @returns {string} Random bytes.
+ */
 var randomBytes = function (numbytes) {
   numbytes = numbytes || 1;
   return crypto.randomBytes(numbytes).toString('hex');
@@ -458,6 +484,13 @@ var randomBytes = function (numbytes) {
 var crypto = require('crypto');
 var texte = require("text-encoding");
 
+/**
+ * Convert a hex string to UTF-8 string
+ *
+ * @param   {string}  string  A hex string.
+ *
+ * @return  {string}          An UTF-8 string.
+ */
 function HEXTEXT(string) {
   var alphabet = '0123456789abcdef'.split('');
   var decodeLookup = [];
@@ -481,29 +514,56 @@ function HEXTEXT(string) {
   return new texte.TextDecoder("utf-8").decode(array);
 }
 
-function HMAC(publick, privatek) {
-  var hmac = crypto.createHmac('sha512', privatek);
+/**
+ * Get a HMAC hash.
+ *
+ * @param   {string}  publick            Public key
+ * @param   {string}  privatek           Private key
+ * @param   {string}  [algo=sha512]      Algrorithim
+ * @param   {string}  [output=hex]       Output type
+ *
+ * @return  {string}                     HMAC hash
+ */
+function HMAC(publick, privatek, algo, output) {
+  algo = algo || "sha512";
+  output = output || "hex";
+  var hmac = crypto.createHmac(algo, privatek);
   hmac.update(publick);
-  var value = hmac.digest('hex');
-  console.log(value);
-  var dec = parseInt(value.substr(0, 10), 16);
-  console.log(dec);
-  return dec;
+  var value = hmac.digest(output);
+  return value;
 }
 
-//Search function
-function findFromDir(startPath, filter, arrayOutput, callback) {
+/**
+ * Find every file in a directory
+ *
+ * @param   {string}    startPath        A path specify where to start.
+ * @param   {RegExp}    filter           Regex to filter results.
+ * @param   {boolean}   arrayOutput      Options: Output array or send to callback?
+ * @param   {boolean}   recursive        Options: Recursive or not?
+ * @param   {function}  [callback]       Callback function.
+ *
+ * @return  {(Array<String>|undefined)}  An array contains path of every files match regex.
+ */
+function findFromDir(startPath, filter, arrayOutput, recursive, callback) {
+  callback = callback || function () { };
   if (!fs.existsSync(startPath)) {
-    console.error("No such directory: ", startPath);
-    return;
+    callback("No such directory: " + startPath);
+    return "No such directory: " + startPath;
   }
   var files = fs.readdirSync(startPath);
   var arrayFile = [];
   for (var i = 0; i < files.length; i++) {
     var filename = path.join(startPath, files[i]);
     var stat = fs.lstatSync(filename);
-    if (stat.isDirectory() && !arrayOutput) {
-      fromDir(filename, filter, arrayOutput, callback); //recurse
+    if (stat.isDirectory() && recursive) {
+      var arrdata = findFromDir(filename, filter, true, true);
+      if (callback != function () { }) {
+        for (var n in arrdata) {
+          callback(path.join(filename, arrdata[n]));
+        }
+      } else {
+        arrayFile = arrayFile.concat(arrdata);
+      }
     } else {
       if (!arrayOutput) {
         if (filter.test(filename)) callback(filename);
@@ -512,26 +572,30 @@ function findFromDir(startPath, filter, arrayOutput, callback) {
       }
     }
   }
-  if (arrayOutput) {
+  if (arrayOutput && callback != function () { }) {
     callback(arrayFile);
+  } else if (arrayOutput) {
+    return arrayFile;
   }
 }
 
-//Global data load
+//! This part is an old code, do not use!
+////Global data load
+//// global.dataSave = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
+//// global.data = onChange(global.dataSave.data, function(){});
+//// global.watch('data', function (id, oldval, newval) {
+//// global.dataSave.data = global.data;
+//// });
 
-// global.dataSave = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
-// global.data = onChange(global.dataSave.data, function(){});
-// global.watch('data', function (id, oldval, newval) {
-// global.dataSave.data = global.data;
-// });
-
+//* Load data
 if (testmode) {
   fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {} })();
 } else {
   fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {} })();
 }
 global.dataBackup = JSON.parse(JSON.stringify(global.data));
-//Auto-save global data clock
+
+//*Auto-save global data clock
 global.isDataSaving = false;
 global.dataSavingTimes = 0;
 var autosave = setInterval(function (testmode, log) {
@@ -561,18 +625,27 @@ var autosave = setInterval(function (testmode, log) {
   }
 }, 10000, testmode, log);
 
-//NSFW detection API load
+//* NSFW detection API load
 log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
-var NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
-  if (fs.existsSync(__dirname + "/nsfwjs-models" + req.url)) {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    fs.createReadStream(__dirname + "/nsfwjs-models" + req.url).pipe(res, { end: true });
-  } else {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.write('404 FILE NOT FOUND');
-    res.end();
+var NSFWJS_MODEL_PROCESSES = new Worker(() => {
+  var NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
+    if (fs.existsSync(__dirname + "/nsfwjs-models" + req.url)) {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      fs.createReadStream(__dirname + "/nsfwjs-models" + req.url).pipe(res, { end: true });
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.write('404 FILE NOT FOUND');
+      res.end();
+    }
+  }).listen(2812);
+  onmessage = function() {
+    NSFWJS_MODEL_SERVER.close();
+    this.child.kill();
   }
-}).listen(2812);
+});
+NSFWJS_MODEL_PROCESSES.stop = function() {
+  this.postMessage();
+}
 
 //"require" from code string
 function requireFromString(src, filename) {
@@ -593,9 +666,9 @@ var left = 0;
 
 ensureExists(__dirname + "/deletedmsg/");
 ensureExists(__dirname + "/plugins/");
-log("[INTERNAL]", "Searching for plugin in /plugins ...");
 
-findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function (list) {
+log("[INTERNAL]", "Searching for plugins in ./plugins/ ...");
+findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, false, function (list) {
   log("[INTERNAL]", "Found", list);
   left += 1;
   try {
@@ -1107,13 +1180,15 @@ function temp5() {
           global.data.thanosBlacklist[threadID] = false;
         }
         return {
-          data: "Successfully " + (!global.data.thanosBlacklist[threadID] ? "enabled" : "disabled") + " Thanos Time Gem on this thread!",
+          data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.thanosBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
           handler: "internal"
         }
       },
       compatibly: 1,
       handler: "INTERNAL"
     }
+    global.commandMapping["togglethanos"].args[global.config.language] = "";
+    global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
 
     var facebook = {};
     facebookcb = function callback(err, api) {
@@ -1237,7 +1312,11 @@ function temp5() {
                       api.sendMessage({
                         body: sendString,
                         mentions: mentionObj
-                      }, message.threadID, function () { }, message.messageID);
+                      }, message.threadID, function (err) { 
+                        if (err) {
+                          log("[Facebook]", "@everyone errored:", err);
+                        }
+                      }, message.messageID);
                     });
                   }
                   if (message.body.startsWith("/")) {
@@ -1471,23 +1550,23 @@ function temp5() {
                         width: imgdata1.width,
                         height: imgdata1.height
                       });
-                      
+
                       wait.for.value(global.nsfwjsdata[id], "complete", true);
                       var classing = global.nsfwjsdata[id].class;
                       try {
                         var classify = classing[0].className;
-                      } catch (ex) {}
+                        var percentage = classing[0].probability * 100;
+                      } catch (ex) { }
                       switch (classify) {
-                        case "Hentai":
-                        case "Porn":
-                          bannedatt.push(classify);
-                          log("[Facebook]", "Image classified as:", classify);
-                          break;
                         case "Neutral":
                         case "Drawing":
                         case "Sexy":
                           att.push(imagesx);
-                          log("[Facebook]", "Image classified as:", classify);
+                        // eslint-disable-next-line no-fallthrough
+                        case "Hentai":
+                        case "Porn":
+                          bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
+                          log("[Facebook]", "Removed image classified as:", classify);
                           break;
                         default:
                           log("[Facebook]", "Invalid image classification:", classify, classing);
@@ -1500,7 +1579,7 @@ function temp5() {
                   if (!global.data.thanosBlacklist[message.threadID]) {
                     var btext = "";
                     if (bannedatt.length != 0) {
-                      btext = "\r\n\r\nBanned material detected: " + JSON.stringify(bannedatt);
+                      btext = "\r\n\r\nImage classifition: " + JSON.stringify(bannedatt, null, 0).substr(1, JSON.stringify(bannedatt, null, 0).length);
                     }
                     api.sendMessage({
                       body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
@@ -2012,7 +2091,7 @@ function temp5() {
           }
         }
         delete global.plugins[pltemp1[name]["plugin_scope"]];
-        log("[INTERNAL]", "Unloaded plugin ", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
+        log("[INTERNAL]", "Unloaded plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
         delete global.loadedPlugins[name];
       }
 
@@ -2032,6 +2111,10 @@ function temp5() {
           log("[SSH]", conn, "is already closed. Skipping...");
         }
       }
+
+      //Stop model server
+      NSFWJS_MODEL_PROCESSES.stop();
+      log("[INTERNAL]", "Closed HTTP Model Server.");
 
       //All finished, kill the process!
       log("[INTERNAL]", "Killing process with SIGKILL...");
