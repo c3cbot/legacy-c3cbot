@@ -1038,7 +1038,7 @@ function temp5() {
 
         ensureExists(__dirname + "/plugins/", function () { });
         log("[INTERNAL]", "Searching for plugin in /plugins ...");
-        findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, function (list) {
+        findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, false, function (list) {
           log("[INTERNAL]", "Found", list);
           left += 1;
           try {
