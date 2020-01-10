@@ -247,7 +247,8 @@ var defaultconfig = {
   sshRemoteConsoleIP: "0.0.0.0",
   sshRemoteConsolePort: 2004,
   sshUsername: "admin",
-  sshPassword: "c3cbot@ADMIN"
+  sshPassword: "c3cbot@ADMIN",
+  nsfwjsSmallModel: true //! DO NOT SET THIS TO FALSE UNLESS YOU HAVE A BEEFY SERVER!
 }
 
 //Load config
@@ -634,12 +635,13 @@ var NSFWJS_MODEL_PROCESSES = new Worker(() => {
       self.terminate();
     } else if (evn.data.type == "dirname") {
       var dirname = evn.data.data;
+      var small = evn.data.small;
       var http = require("http");
       var fs = require("fs");
       self.NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
-        if (fs.existsSync(dirname + "/nsfwjs-models" + req.url)) {
+        if (fs.existsSync(dirname + "/nsfwjs-models" + (small ? "-small" : "") + req.url)) {
           res.writeHead(200, { 'Content-Type': 'text/plain' });
-          fs.createReadStream(dirname + "/nsfwjs-models" + req.url).pipe(res, { end: true });
+          fs.createReadStream(dirname + "/nsfwjs-models" + (small ? "-small" : "") + req.url).pipe(res, { end: true });
         } else {
           res.writeHead(404, { 'Content-Type': 'text/plain' });
           res.write('404 FILE NOT FOUND');
@@ -656,7 +658,8 @@ NSFWJS_MODEL_PROCESSES.stop = function() {
 }
 NSFWJS_MODEL_PROCESSES.postMessage({
   type: "dirname",
-  data: __dirname
+  data: __dirname,
+  small: global.config.nsfwjsSmallModel
 });
 
 //"require" from code string
@@ -1591,7 +1594,7 @@ function temp5() {
                   if (!global.data.thanosBlacklist[message.threadID]) {
                     var btext = "";
                     if (bannedatt.length != 0) {
-                      btext = "\r\n\r\nImage classifition: " + JSON.stringify(bannedatt, null, 0).substr(1, JSON.stringify(bannedatt, null, 0).length);
+                      btext = "\r\n\r\nImage classifition: " + JSON.stringify(bannedatt, null, 0).substr(1, JSON.stringify(bannedatt, null, 0).length - 1).replace(/"/g, "");
                     }
                     api.sendMessage({
                       body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
