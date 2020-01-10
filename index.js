@@ -2133,8 +2133,10 @@ function temp5() {
     }
     //Handle SIGINT and SIGTERM
     var signalHandler = function (signal) {
-      log("[INTERNAL]", signal + " detected, triggering exit function...");
-      process.exit();
+      if (!signal) {
+        log("[INTERNAL]", signal + " detected, triggering exit function...");
+        process.exit();
+      }
     }
 
     process.on('SIGTERM', signalHandler); //Ctrl+C but not on Windows?
