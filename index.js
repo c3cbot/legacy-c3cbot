@@ -628,26 +628,36 @@ var autosave = setInterval(function (testmode, log) {
 //* NSFW detection API load
 log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
 var NSFWJS_MODEL_PROCESSES = new Worker(() => {
-  var http = require("http");
-  var fs = require("fs");
-  var NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
-    if (fs.existsSync(__dirname + "/nsfwjs-models" + req.url)) {
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      fs.createReadStream(__dirname + "/nsfwjs-models" + req.url).pipe(res, { end: true });
-    } else {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.write('404 FILE NOT FOUND');
-      res.end();
+  onmessage = function(evn) {
+    if (evn.data.type == "close") {
+      self.NSFWJS_MODEL_SERVER.close();
+      self.terminate();
+    } else if (evn.data.type == "dirname") {
+      var dirname = evn.data.data;
+      var http = require("http");
+      var fs = require("fs");
+      self.NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
+        if (fs.existsSync(dirname + "/nsfwjs-models" + req.url)) {
+          res.writeHead(200, { 'Content-Type': 'text/plain' });
+          fs.createReadStream(dirname + "/nsfwjs-models" + req.url).pipe(res, { end: true });
+        } else {
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          res.write('404 FILE NOT FOUND');
+          res.end();
+        }
+      }).listen(2812);
     }
-  }).listen(2812);
-  onmessage = function() {
-    NSFWJS_MODEL_SERVER.close();
-    this.child.kill();
   }
 });
 NSFWJS_MODEL_PROCESSES.stop = function() {
-  this.postMessage();
+  this.postMessage({
+    type: "close"
+  });
 }
+NSFWJS_MODEL_PROCESSES.postMessage({
+  type: "dirname",
+  data: __dirname
+});
 
 //"require" from code string
 function requireFromString(src, filename) {
