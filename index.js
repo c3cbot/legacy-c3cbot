@@ -1432,16 +1432,14 @@ function temp5() {
                     var containBot = false;
                     var botID = api.getCurrentUserID();
                     for (var n in message.logMessageData.addedParticipants) {
+                      console.log(message.logMessageData.addedParticipants[n], n);
                       if (message.logMessageData.addedParticipants[n] == botID || n == botID) {
                         containBot = true;
                       }
                     }
                     if (containBot) { 
-                      (function (id, botname, connectedmsg, log, addedby) {
-                        api.handleMessageRequest(id, true);
-                        api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id);
-                        log("[Facebook]", addedby, "added Bot to", id);
-                      })(message.threadID, global.config.botname, global.lang.CONNECTED_MESSAGE, log, message.author);
+                      api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
+                      log("[Facebook]", message.author, "added Bot to", message.threadID);
                     }
                   }
                 } catch (ex) {
