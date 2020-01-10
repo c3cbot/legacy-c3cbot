@@ -2139,9 +2139,9 @@ function temp5() {
       }
     }
 
-    process.on('SIGTERM', signalHandler); //Ctrl+C but not on Windows?
-    process.on('SIGINT', signalHandler); //Ctrl+C?
-    process.on('SIGHUP', signalHandler); //Windows Command Prompt close button?
+    process.on('SIGTERM', function () { signalHandler("SIGTERM"); }); //Ctrl+C but not on Windows?
+    process.on('SIGINT', function () { signalHandler("SIGINT"); }); //Ctrl+C?
+    process.on('SIGHUP', function () { signalHandler("SIGHUP"); }); //Windows Command Prompt close button?
     rl.on('SIGTERM', function () { process.emit('SIGTERM'); });
     rl.on('SIGINT', function () { process.emit('SIGINT'); });
     process.on('exit', shutdownHandler);
