@@ -2067,8 +2067,8 @@ function temp5() {
       client.login(global.config.discordtoken);
     }
 
-    //Handling Ctrl+C and SIGTERM (X button)
-    var shutdownHandler = function () {
+    //Handling exit
+    var shutdownHandler = function (errorlevel) {
       log("[INTERNAL]", "Detected process is shutting down, handling...");
       //Stop Facebook listener
       if (facebook.listener) {
@@ -2129,13 +2129,20 @@ function temp5() {
       log("[INTERNAL]", "Closed HTTP Model Server.");
 
       //All finished, kill the process!
-      log("[INTERNAL]", "Killing process with SIGKILL...");
+      log("[INTERNAL]", "Closing bot with code " + errorlevel + "...");
+    }
+    //Handle SIGINT and SIGTERM
+    var signalHandler = function (signal) {
+      log("[INTERNAL]", signal + " detected, triggering exit function...");
       process.exit();
     }
-    process.on('SIGTERM', shutdownHandler);
-    process.on('SIGINT', shutdownHandler);
-    rl.on('SIGTERM', shutdownHandler);
-    rl.on('SIGINT', shutdownHandler);
+
+    process.on('SIGTERM', signalHandler); //Ctrl+C but not on Windows?
+    process.on('SIGINT', signalHandler); //Ctrl+C?
+    process.on('SIGHUP', signalHandler); //Windows Command Prompt close button?
+    rl.on('SIGTERM', process.emit('SIGTERM'));
+    rl.on('SIGINT', process.emit('SIGINT'));
+    process.on('exit', shutdownHandler);
   } else {
     setTimeout(temp5, 1000);
   }
