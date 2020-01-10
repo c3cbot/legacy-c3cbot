@@ -628,6 +628,8 @@ var autosave = setInterval(function (testmode, log) {
 //* NSFW detection API load
 log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
 var NSFWJS_MODEL_PROCESSES = new Worker(() => {
+  var http = require("http");
+  var fs = require("fs");
   var NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
     if (fs.existsSync(__dirname + "/nsfwjs-models" + req.url)) {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
