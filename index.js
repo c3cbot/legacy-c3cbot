@@ -1432,7 +1432,7 @@ function temp5() {
                     var containBot = false;
                     var botID = api.getCurrentUserID();
                     for (var n in message.logMessageData.addedParticipants) {
-                      if (message.logMessageData.addedParticipants[n] == botID) {
+                      if (message.logMessageData.addedParticipants[n] == botID || n == botID) {
                         containBot = true;
                       }
                     }
