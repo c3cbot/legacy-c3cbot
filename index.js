@@ -1686,7 +1686,7 @@ function temp5() {
 
     consoles = function consoles() {
       rl.question('console@c3c:js# ', (message) => {
-        log("[INTERNAL]", "CONSOLE issued javascript code: ", message);
+        log("[INTERNAL]", "CONSOLE issued javascript code:", message);
         try {
           log("[JAVASCRIPT]", eval(message));
         } catch (ex) {
