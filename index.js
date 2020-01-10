@@ -1522,7 +1522,7 @@ function temp5() {
                         onmessage = function (event) {
                           var wait = require("wait-for-stuff");
                           try {
-                            var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: 299 }));
+                            var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: (event.data.small ? 224 : 299) }));
                           } catch (ex) {
                             var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
                           }
@@ -1563,7 +1563,8 @@ function temp5() {
                         id: id,
                         data: new Uint8Array(imgdata1.data),
                         width: imgdata1.width,
-                        height: imgdata1.height
+                        height: imgdata1.height,
+                        small: global.config.nsfwjsSmallModel
                       });
 
                       wait.for.value(global.nsfwjsdata[id], "complete", true);
