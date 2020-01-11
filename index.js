@@ -1508,8 +1508,8 @@ function temp5() {
                     imagesx.path = attachmentArray[n].name;
                     imagesx.put(attachmentArray[n].data);
                     imagesx.stop();
-                    if (attachmentArray[n].type == "photo" ||
-                      attachmentArray[n].type == "animated_image") {
+                    if ((attachmentArray[n].type == "photo" ||
+                      attachmentArray[n].type == "animated_image") && !global.data.thanosBlacklist[message.threadID]) {
 
                       var image = new Image();
                       image.src = attachmentArray[n].data;
@@ -1551,7 +1551,7 @@ function temp5() {
                         var data = event.data;
                         Object.assign(global.nsfwjsdata[data.id], data);
                         global.nsfwjsdata[data.id].complete = true;
-                        worker.child.kill();
+                        worker.terminate();
                         if (data.error) {
                           log("[Facebook]", "Error in image classifier:", data.error);
                         }
