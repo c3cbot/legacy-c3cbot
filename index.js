@@ -1222,6 +1222,7 @@ function temp5() {
         facebook.error = false;
       }
       log("[Facebook]", "Logged in.");
+      delete facebook.api;
       facebook.api = api;
       if (global.config.usefbappstate) {
         try {
