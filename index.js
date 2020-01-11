@@ -139,7 +139,7 @@ ensureExists(__dirname + "/logs/");
  *
  * @param   {any}  ...message  Anything
  *
- * @return  {undefined}              Function will not return anything
+ * @return  {undefined}        Function will not return anything
  */
 function log(...message) {
   var date = new Date();
@@ -716,7 +716,10 @@ findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, false, function (list) {
                 try {
                   global.nodemodule[nid] = require(nid);
                 } catch (ex) {
-                  global.nodemodule["child_process"].execSync("npm i " + nid + "@" + plinfo["node_depends"][nid]);
+                  log("[INTERNAL]", list, "is requiring node modules named", nid, "but it isn't installed. Attempting to install from npm...");
+                  global.nodemodule["child_process"].execSync("npm i " + nid + "@" + plinfo["node_depends"][nid], {
+                    stdio: "ignore"
+                  });
                   try {
                     global.nodemodule[nid] = require(nid);
                   } catch (ex) {
@@ -1071,7 +1074,10 @@ function temp5() {
                         try {
                           global.nodemodule[nid] = require(nid);
                         } catch (ex) {
-                          global.nodemodule["child_process"].execSync("npm i " + nid + "@" + plinfo["node_depends"][nid]);
+                          log("[INTERNAL]", list, "is requiring node modules named", nid, "but it isn't installed. Attempting to install from npm...");
+                          global.nodemodule["child_process"].execSync("npm i " + nid + "@" + plinfo["node_depends"][nid], {
+                            stdio: "ignore"
+                          });
                           try {
                             global.nodemodule[nid] = require(nid);
                           } catch (ex) {
@@ -1533,7 +1539,7 @@ function temp5() {
                               data: new Uint8Array(data.data),
                               width: data.width,
                               height: data.height
-                            }, 1));
+                            }, 5));
                             postMessage({
                               class: cl,
                               id: data.id
@@ -1552,6 +1558,8 @@ function temp5() {
                         Object.assign(global.nsfwjsdata[data.id], data);
                         global.nsfwjsdata[data.id].complete = true;
                         worker.terminate();
+                        // eslint-disable-next-line no-delete-var
+                        delete worker;
                         if (data.error) {
                           log("[Facebook]", "Error in image classifier:", data.error);
                         }
@@ -1562,7 +1570,7 @@ function temp5() {
                       global.nsfwjsdata[id].complete = false;
                       worker.postMessage({
                         id: id,
-                        data: new Uint8Array(imgdata1.data),
+                        data: Array.from(imgdata1.data),
                         width: imgdata1.width,
                         height: imgdata1.height,
                         small: global.config.nsfwjsSmallModel
@@ -1596,7 +1604,7 @@ function temp5() {
                   if (!global.data.thanosBlacklist[message.threadID]) {
                     var btext = "";
                     if (bannedatt.length != 0) {
-                      btext = "\r\n\r\nImage classifition: " + JSON.stringify(bannedatt, null, 0).substr(1, JSON.stringify(bannedatt, null, 0).length - 2).replace(/"/g, "");
+                      btext = "\r\n\r\nImage classifition: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
                     }
                     api.sendMessage({
                       body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
