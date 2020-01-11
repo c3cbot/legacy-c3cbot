@@ -28,6 +28,7 @@ After that, you can run that command again and bot will go live.
 - Economy (`/plugins/Economy.z3p`) => Create an economy.
 - Economy-Income (`/plugin/Economy-Income.z3p`) => Add a way to earn money. Extends `Economy`
 - Economy-Gambling (`/plugins/Economy-Gambling.z3p`) => Add some gambling games to bot. Extends `Economy`
+- YT2MP3 (`/plugins/YT2MP3.z3p`) => Convert youtube links to MP3
 
 ## Localize
 This bot currently supporting 2 language: `en_US` (English) and `vi_VN` (Tiếng Việt). You can change languages in `config.json`.
@@ -48,7 +49,7 @@ If you don't want the bot create a `config.json` file for you, then here is the 
     "usefbappstate": true,
     "fbemail": "",
     "fbpassword": "",
-    "fbuseragent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
+    "fbuseragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36",
     "fblistenwhitelist": false,
     "fblisten": [
         "0"
@@ -72,7 +73,14 @@ If you don't want the bot create a `config.json` file for you, then here is the 
     "allowUserUseReloadCommand": false,
     "language": "en_US",
     "enableThanosTimeGems": true,
-    "allowEveryoneTagEvenBlacklisted": true
+    "allowEveryoneTagEvenBlacklisted": true,
+    "DEBUG_FCA_LOGLEVEL": "error",
+    "enableSSHRemoteConsole": false,
+    "sshRemoteConsoleIP": "0.0.0.0",
+    "sshRemoteConsolePort": 2004,
+    "sshUsername": "admin",
+    "sshPassword": "c3cbot@ADMIN",
+    "nsfwjsSmallModel": true
 }
 ```
 
