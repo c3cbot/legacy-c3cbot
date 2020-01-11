@@ -629,7 +629,7 @@ var autosave = setInterval(function (testmode, log) {
 //* NSFW detection API load
 log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
 var NSFWJS_MODEL_PROCESSES = new Worker(() => {
-  onmessage = function(evn) {
+  onmessage = function (evn) {
     if (evn.data.type == "close") {
       self.NSFWJS_MODEL_SERVER.close();
       self.terminate();
@@ -651,7 +651,7 @@ var NSFWJS_MODEL_PROCESSES = new Worker(() => {
     }
   }
 });
-NSFWJS_MODEL_PROCESSES.stop = function() {
+NSFWJS_MODEL_PROCESSES.stop = function () {
   this.postMessage({
     type: "close"
   });
@@ -1268,423 +1268,425 @@ function temp5() {
 
       !global.data.messageList ? global.data.messageList = {} : "";
       // eslint-disable-next-line require-await
-      facebook.listener = api.listenMqtt(async function callback(err, message) {
-        try {
-          if (message != undefined) {
-            for (var n in global.chatHook) {
-              if (global.chatHook[n].chatHookPlatform & 1) {
-                var chhandling = global.chatHook[n];
-                if (chhandling.listentype == "everything") {
-                  var admin = false;
-                  for (var no in global.config.admins) {
-                    if (global.config.admins[no] == "FB-" + message.senderID) {
-                      admin = true;
-                    }
-                  }
-                  chhandling("Facebook", {
-                    time: receivetime,
-                    msgdata: message,
-                    api: api,
-                    prefix: prefix,
-                    admin: admin
-                  });
-                }
-              }
-            }
-            switch (message.type) {
-              case "message":
-                fetchName(message.senderID);
-                if (global.config.enableThanosTimeGems) {
-                  global.data.messageList[message.messageID] = message;
-                  for (var id in global.data.messageList) {
-                    if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
-                      delete global.data.messageList[id];
-                    }
-                  }
-                }
-                setTimeout(function () {
-                  api.markAsRead(message.threadID);
-                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                    return !(el == null || el == "" || el == " ");
-                  });
-                  arg.map(xy => xy.replace(/["]/g, ""));
-                  if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
-                    api.getThreadInfo(message.threadID, function (err, data) {
-                      var participants = data.participantIDs;
-                      var character = "ͥ";
-                      var sendString = "";
-                      var mentionObj = [];
-                      var i = 0;
-                      for (var n in participants) {
-                        sendString += character;
-                        mentionObj.push({
-                          tag: character,
-                          id: participants[n],
-                          fromIndex: i
-                        });
-                        i++;
+      facebook.listener = api.listenMqtt(function callback(err, message) {
+        setTimeout(() => {
+          try {
+            if (message != undefined) {
+              for (var n in global.chatHook) {
+                if (global.chatHook[n].chatHookPlatform & 1) {
+                  var chhandling = global.chatHook[n];
+                  if (chhandling.listentype == "everything") {
+                    var admin = false;
+                    for (var no in global.config.admins) {
+                      if (global.config.admins[no] == "FB-" + message.senderID) {
+                        admin = true;
                       }
-                      api.sendMessage({
-                        body: sendString,
-                        mentions: mentionObj
-                      }, message.threadID, function (err) { 
-                        if (err) {
-                          log("[Facebook]", "@everyone errored:", err);
-                        }
-                      }, message.messageID);
+                    }
+                    chhandling("Facebook", {
+                      time: receivetime,
+                      msgdata: message,
+                      api: api,
+                      prefix: prefix,
+                      admin: admin
                     });
                   }
-                  if (message.body.startsWith("/")) {
-                    if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
-                      log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
-                      var receivetime = new Date();
-                      var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                        return !(el == null || el == "" || el == " ");
+                }
+              }
+              switch (message.type) {
+                case "message":
+                  fetchName(message.senderID);
+                  if (global.config.enableThanosTimeGems) {
+                    global.data.messageList[message.messageID] = message;
+                    for (var id in global.data.messageList) {
+                      if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
+                        delete global.data.messageList[id];
+                      }
+                    }
+                  }
+                  setTimeout(function () {
+                    api.markAsRead(message.threadID);
+                    var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                      return !(el == null || el == "" || el == " ");
+                    });
+                    arg.map(xy => xy.replace(/["]/g, ""));
+                    if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
+                      api.getThreadInfo(message.threadID, function (err, data) {
+                        var participants = data.participantIDs;
+                        var character = "ͥ";
+                        var sendString = "";
+                        var mentionObj = [];
+                        var i = 0;
+                        for (var n in participants) {
+                          sendString += character;
+                          mentionObj.push({
+                            tag: character,
+                            id: participants[n],
+                            fromIndex: i
+                          });
+                          i++;
+                        }
+                        api.sendMessage({
+                          body: sendString,
+                          mentions: mentionObj
+                        }, message.threadID, function (err) {
+                          if (err) {
+                            log("[Facebook]", "@everyone errored:", err);
+                          }
+                        }, message.messageID);
                       });
-                      arg.map(xy => xy.replace(/["]/g, ""));
-                      var toarg = arg;
-                      if (global.commandMapping[arg[0].substr(1)]) {
-                        if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                          api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
-                        } else {
-                          var argv = JSON.parse(JSON.stringify(arg));
-                          var admin = false;
-                          for (var no in global.config.admins) {
-                            if (global.config.admins[no] == "FB-" + message.senderID) {
-                              admin = true;
-                            }
-                          }
-                          var mentions = {};
-                          for (var y in message.mentions) {
-                            mentions["FB-" + y] = message.mentions[y];
-                          }
-                          try {
-                            if (!client) {
-                              client = undefined
-                            }
-                            var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                              args: argv,
-                              time: receivetime,
-                              msgdata: message,
-                              facebookapi: api,
-                              discordapi: client,
-                              prefix: prefix,
-                              admin: admin,
-                              mentions: mentions,
-                              log: function logPlugin(...message) {
-                                log.apply(global, [
-                                  "[PLUGIN]",
-                                  "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
-                                ].concat(message));
+                    }
+                    if (message.body.startsWith("/")) {
+                      if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
+                        log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
+                        var receivetime = new Date();
+                        var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                          return !(el == null || el == "" || el == " ");
+                        });
+                        arg.map(xy => xy.replace(/["]/g, ""));
+                        var toarg = arg;
+                        if (global.commandMapping[arg[0].substr(1)]) {
+                          if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
+                            api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
+                          } else {
+                            var argv = JSON.parse(JSON.stringify(arg));
+                            var admin = false;
+                            for (var no in global.config.admins) {
+                              if (global.config.admins[no] == "FB-" + message.senderID) {
+                                admin = true;
                               }
-                            });
-                            if (!returndata) return undefined;
-                            if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                              var endTyping = api.sendTypingIndicator(message.threadID);
-                              setTimeout(function (api, returndata, endTyping, message) {
-                                api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
-                                endTyping();
-                                setTimeout(function (api, message) {
-                                  api.markAsRead(message.threadID);
-                                }, 500, api, message);
-                              }, returndata.data.length * 30, api, returndata, endTyping, message);
-                            } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                              if (!returndata.data.body) {
-                                returndata.data.body = "";
-                              }
-                              returndata.data.body = prefix + " " + returndata.data.body;
-                              var endTyping = api.sendTypingIndicator(message.threadID);
-                              setTimeout(function (api, returndata, endTyping, message, log) {
-                                api.sendMessage(returndata.data, message.threadID, function (err) {
-                                  if (err) {
-                                    log("[Facebook]", err);
-                                  }
-                                }, message.messageID);
-                                endTyping();
-                                setTimeout(function (api, message) {
-                                  api.markAsRead(message.threadID);
-                                }, 500, api, message);
-                              }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                             }
-                          } catch (ex) {
+                            var mentions = {};
+                            for (var y in message.mentions) {
+                              mentions["FB-" + y] = message.mentions[y];
+                            }
                             try {
-                              log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
-                            } catch (exp) {
-                              log("[INTERNAL]", toarg[0], "contain an error:", ex);
+                              if (!client) {
+                                client = undefined
+                              }
+                              var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                                args: argv,
+                                time: receivetime,
+                                msgdata: message,
+                                facebookapi: api,
+                                discordapi: client,
+                                prefix: prefix,
+                                admin: admin,
+                                mentions: mentions,
+                                log: function logPlugin(...message) {
+                                  log.apply(global, [
+                                    "[PLUGIN]",
+                                    "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                                  ].concat(message));
+                                }
+                              });
+                              if (!returndata) return undefined;
+                              if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                                var endTyping = api.sendTypingIndicator(message.threadID);
+                                setTimeout(function (api, returndata, endTyping, message) {
+                                  api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
+                                  endTyping();
+                                  setTimeout(function (api, message) {
+                                    api.markAsRead(message.threadID);
+                                  }, 500, api, message);
+                                }, returndata.data.length * 30, api, returndata, endTyping, message);
+                              } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                                if (!returndata.data.body) {
+                                  returndata.data.body = "";
+                                }
+                                returndata.data.body = prefix + " " + returndata.data.body;
+                                var endTyping = api.sendTypingIndicator(message.threadID);
+                                setTimeout(function (api, returndata, endTyping, message, log) {
+                                  api.sendMessage(returndata.data, message.threadID, function (err) {
+                                    if (err) {
+                                      log("[Facebook]", err);
+                                    }
+                                  }, message.messageID);
+                                  endTyping();
+                                  setTimeout(function (api, message) {
+                                    api.markAsRead(message.threadID);
+                                  }, 500, api, message);
+                                }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                              }
+                            } catch (ex) {
+                              try {
+                                log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
+                              } catch (exp) {
+                                log("[INTERNAL]", toarg[0], "contain an error:", ex);
+                              }
                             }
                           }
+                        } else {
+                          api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
                         }
                       } else {
-                        api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
+                        log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
                       }
                     } else {
                       log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
                     }
-                  } else {
-                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
-                  }
-                }, 195);
-                break;
-              case "event":
-                log("[Facebook]", message);
-                try {
-                  if (message.logMessageType == "log:subscribe") {
-                    var containBot = false;
-                    var botID = api.getCurrentUserID();
-                    for (var n in message.logMessageData.addedParticipants) {
-                      if (message.logMessageData.addedParticipants[n].userFbId == botID) {
-                        containBot = true;
-                      }
-                    }
-                    if (containBot) { 
-                      api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
-                      log("[Facebook]", message.author, "added Bot to", message.threadID);
-                    }
-                  }
-                } catch (ex) {
-                  log("[Facebook]", ex);
-                }
-                break;
-              case "message_reaction":
-                log("[Facebook]", message);
-                break;
-              case "message_unsend":
-                if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
-                  var removedMessage = global.data.messageList[message.messageID];
-                  var attachmentArray = [];
-                  for (var n in removedMessage.attachments) {
-                    switch (removedMessage.attachments[n].type) {
-                      case "file":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename
-                        });
-                        break;
-                      case "photo":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".png"
-                        });
-                        break;
-                      case "audio":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".mp3"
-                        });
-                        break;
-                      case "video":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".mp4"
-                        });
-                        break;
-                      case "animated_image":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".gif"
-                        });
-                        break;
-                      case "sticker":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].ID + ".png"
-                        });
-                        break;
-                    }
-                  }
-                  var att = [];
-                  var bannedatt = [];
-                  for (var n in attachmentArray) {
-                    var imagesx = new streamBuffers.ReadableStreamBuffer({
-                      frequency: 10,
-                      chunkSize: 2048
-                    });
-                    imagesx.path = attachmentArray[n].name;
-                    imagesx.put(attachmentArray[n].data);
-                    imagesx.stop();
-                    if (attachmentArray[n].type == "photo" ||
-                      attachmentArray[n].type == "animated_image") {
-
-                      var image = new Image();
-                      image.src = attachmentArray[n].data;
-                      var cvs = new Canvas(image.width, image.height);
-                      var ctx = cvs.getContext("2d");
-                      ctx.drawImage(image, 0, 0);
-                      var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
-
-                      // eslint-disable-next-line no-loop-func
-                      var worker = new Worker(() => {
-                        onmessage = function (event) {
-                          var wait = require("wait-for-stuff");
-                          try {
-                            var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: (event.data.small ? 224 : 299) }));
-                          } catch (ex) {
-                            var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
-                          }
-                          var data = event.data;
-                          try {
-                            var cl = wait.for.promise(NSFWJS.classify({
-                              data: new Uint8Array(data.data),
-                              width: data.width,
-                              height: data.height
-                            }, 1));
-                            postMessage({
-                              class: cl,
-                              id: data.id
-                            });
-                          } catch (ex) {
-                            postMessage({
-                              error: ex.toString(),
-                              id: data.id
-                            });
-                          }
-                        }
-                      }, [], { silent: true });
-                      // eslint-disable-next-line no-loop-func
-                      worker.onmessage = function (event) {
-                        var data = event.data;
-                        Object.assign(global.nsfwjsdata[data.id], data);
-                        global.nsfwjsdata[data.id].complete = true;
-                        worker.child.kill();
-                        if (data.error) {
-                          log("[Facebook]", "Error in image classifier:", data.error);
+                  }, 195);
+                  break;
+                case "event":
+                  log("[Facebook]", message);
+                  try {
+                    if (message.logMessageType == "log:subscribe") {
+                      var containBot = false;
+                      var botID = api.getCurrentUserID();
+                      for (var n in message.logMessageData.addedParticipants) {
+                        if (message.logMessageData.addedParticipants[n].userFbId == botID) {
+                          containBot = true;
                         }
                       }
-
-                      var id = Date.now().toString() + "-" + random(0, 99).toString();
-                      global.nsfwjsdata[id] = {};
-                      global.nsfwjsdata[id].complete = false;
-                      worker.postMessage({
-                        id: id,
-                        data: new Uint8Array(imgdata1.data),
-                        width: imgdata1.width,
-                        height: imgdata1.height,
-                        small: global.config.nsfwjsSmallModel
-                      });
-
-                      wait.for.value(global.nsfwjsdata[id], "complete", true);
-                      var classing = global.nsfwjsdata[id].class;
-                      try {
-                        var classify = classing[0].className;
-                        var percentage = classing[0].probability * 100;
-                      } catch (ex) { }
-                      switch (classify) {
-                        case "Neutral":
-                        case "Drawing":
-                        case "Sexy":
-                          att.push(imagesx);
-                        // eslint-disable-next-line no-fallthrough
-                        case "Hentai":
-                        case "Porn":
-                          bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
-                          log("[Facebook]", "Removed image classified as:", classify);
+                      if (containBot) {
+                        api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
+                        log("[Facebook]", message.author, "added Bot to", message.threadID);
+                      }
+                    }
+                  } catch (ex) {
+                    log("[Facebook]", ex);
+                  }
+                  break;
+                case "message_reaction":
+                  log("[Facebook]", message);
+                  break;
+                case "message_unsend":
+                  if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
+                    var removedMessage = global.data.messageList[message.messageID];
+                    var attachmentArray = [];
+                    for (var n in removedMessage.attachments) {
+                      switch (removedMessage.attachments[n].type) {
+                        case "file":
+                          attachmentArray.push({
+                            type: removedMessage.attachments[n].type,
+                            data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                            name: removedMessage.attachments[n].filename
+                          });
                           break;
-                        default:
-                          log("[Facebook]", "Invalid image classification:", classify, classing);
-                          att.push(imagesx);
+                        case "photo":
+                          attachmentArray.push({
+                            type: removedMessage.attachments[n].type,
+                            data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                            name: removedMessage.attachments[n].filename + ".png"
+                          });
+                          break;
+                        case "audio":
+                          attachmentArray.push({
+                            type: removedMessage.attachments[n].type,
+                            data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                            name: removedMessage.attachments[n].filename + ".mp3"
+                          });
+                          break;
+                        case "video":
+                          attachmentArray.push({
+                            type: removedMessage.attachments[n].type,
+                            data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                            name: removedMessage.attachments[n].filename + ".mp4"
+                          });
+                          break;
+                        case "animated_image":
+                          attachmentArray.push({
+                            type: removedMessage.attachments[n].type,
+                            data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                            name: removedMessage.attachments[n].filename + ".gif"
+                          });
+                          break;
+                        case "sticker":
+                          attachmentArray.push({
+                            type: removedMessage.attachments[n].type,
+                            data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                            name: removedMessage.attachments[n].ID + ".png"
+                          });
+                          break;
                       }
-                    } else {
-                      att.push(imagesx);
                     }
-                  }
-                  if (!global.data.thanosBlacklist[message.threadID]) {
-                    var btext = "";
-                    if (bannedatt.length != 0) {
-                      btext = "\r\n\r\nImage classifition: " + JSON.stringify(bannedatt, null, 0).substr(1, JSON.stringify(bannedatt, null, 0).length - 2).replace(/"/g, "");
-                    }
-                    api.sendMessage({
-                      body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
-                      mentions: [{
-                        tag: "@" + global.data.cacheName["FB-" + message.senderID],
-                        id: message.senderID,
-                        fromIndex: 0
-                      }],
-                      attachment: att
-                    }, message.threadID, function (err) {
-                      if (err) {
-                        log("[Facebook]", err);
-                      } else {
-                        api.markAsRead(message.threadID);
-                      }
-                    });
-                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
-                  } else {
-                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
-                  }
-                  fs.writeFileSync(__dirname + "/deletedmsg/" + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
-                  for (var id in global.data.messageList) {
-                    if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
-                      delete global.data.messageList[id];
-                    }
-                  }
-                } else {
-                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + ". (" + message.messageID + ")");
-                }
-                break;
-              case "message_reply":
-                if (global.config.enableThanosTimeGems) {
-                  global.data.messageList[message.messageID] = message;
-                  for (var id in global.data.messageList) {
-                    if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
-                      delete global.data.messageList[id];
-                    }
-                  }
-                }
-                setTimeout(function () {
-                  api.markAsRead(message.threadID);
-                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                    return !(el == null || el == "" || el == " ");
-                  });
-                  arg.map(xy => xy.replace(/["]/g, ""));
-                  if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
-                    api.getThreadInfo(message.threadID, function (err, data) {
-                      var participants = data.participantIDs;
-                      var character = "ͥ";
-                      var sendString = "";
-                      var mentionObj = [];
-                      var i = 0;
-                      for (var n in participants) {
-                        sendString += character;
-                        mentionObj.push({
-                          tag: character,
-                          id: participants[n],
-                          fromIndex: i
+                    var att = [];
+                    var bannedatt = [];
+                    for (var n in attachmentArray) {
+                      var imagesx = new streamBuffers.ReadableStreamBuffer({
+                        frequency: 10,
+                        chunkSize: 2048
+                      });
+                      imagesx.path = attachmentArray[n].name;
+                      imagesx.put(attachmentArray[n].data);
+                      imagesx.stop();
+                      if (attachmentArray[n].type == "photo" ||
+                        attachmentArray[n].type == "animated_image") {
+
+                        var image = new Image();
+                        image.src = attachmentArray[n].data;
+                        var cvs = new Canvas(image.width, image.height);
+                        var ctx = cvs.getContext("2d");
+                        ctx.drawImage(image, 0, 0);
+                        var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
+
+                        // eslint-disable-next-line no-loop-func
+                        var worker = new Worker(() => {
+                          onmessage = function (event) {
+                            var wait = require("wait-for-stuff");
+                            try {
+                              var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: (event.data.small ? 224 : 299) }));
+                            } catch (ex) {
+                              var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
+                            }
+                            var data = event.data;
+                            try {
+                              var cl = wait.for.promise(NSFWJS.classify({
+                                data: new Uint8Array(data.data),
+                                width: data.width,
+                                height: data.height
+                              }, 1));
+                              postMessage({
+                                class: cl,
+                                id: data.id
+                              });
+                            } catch (ex) {
+                              postMessage({
+                                error: ex.toString(),
+                                id: data.id
+                              });
+                            }
+                          }
+                        }, [], { silent: true });
+                        // eslint-disable-next-line no-loop-func
+                        worker.onmessage = function (event) {
+                          var data = event.data;
+                          Object.assign(global.nsfwjsdata[data.id], data);
+                          global.nsfwjsdata[data.id].complete = true;
+                          worker.child.kill();
+                          if (data.error) {
+                            log("[Facebook]", "Error in image classifier:", data.error);
+                          }
+                        }
+
+                        var id = Date.now().toString() + "-" + random(0, 99).toString();
+                        global.nsfwjsdata[id] = {};
+                        global.nsfwjsdata[id].complete = false;
+                        worker.postMessage({
+                          id: id,
+                          data: new Uint8Array(imgdata1.data),
+                          width: imgdata1.width,
+                          height: imgdata1.height,
+                          small: global.config.nsfwjsSmallModel
                         });
-                        i++;
+
+                        wait.for.value(global.nsfwjsdata[id], "complete", true);
+                        var classing = global.nsfwjsdata[id].class;
+                        try {
+                          var classify = classing[0].className;
+                          var percentage = classing[0].probability * 100;
+                        } catch (ex) { }
+                        switch (classify) {
+                          case "Neutral":
+                          case "Drawing":
+                          case "Sexy":
+                            att.push(imagesx);
+                          // eslint-disable-next-line no-fallthrough
+                          case "Hentai":
+                          case "Porn":
+                            bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
+                            log("[Facebook]", "Removed image classified as:", classify);
+                            break;
+                          default:
+                            log("[Facebook]", "Invalid image classification:", classify, classing);
+                            att.push(imagesx);
+                        }
+                      } else {
+                        att.push(imagesx);
+                      }
+                    }
+                    if (!global.data.thanosBlacklist[message.threadID]) {
+                      var btext = "";
+                      if (bannedatt.length != 0) {
+                        btext = "\r\n\r\nImage classifition: " + JSON.stringify(bannedatt, null, 0).substr(1, JSON.stringify(bannedatt, null, 0).length - 2).replace(/"/g, "");
                       }
                       api.sendMessage({
-                        body: sendString,
-                        mentions: mentionObj
+                        body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
+                        mentions: [{
+                          tag: "@" + global.data.cacheName["FB-" + message.senderID],
+                          id: message.senderID,
+                          fromIndex: 0
+                        }],
+                        attachment: att
                       }, message.threadID, function (err) {
                         if (err) {
                           log("[Facebook]", err);
+                        } else {
+                          api.markAsRead(message.threadID);
                         }
-                      }, message.messageID);
+                      });
+                      log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                    } else {
+                      log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
+                    }
+                    fs.writeFileSync(__dirname + "/deletedmsg/" + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
+                    for (var id in global.data.messageList) {
+                      if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
+                        delete global.data.messageList[id];
+                      }
+                    }
+                  } else {
+                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + ". (" + message.messageID + ")");
+                  }
+                  break;
+                case "message_reply":
+                  if (global.config.enableThanosTimeGems) {
+                    global.data.messageList[message.messageID] = message;
+                    for (var id in global.data.messageList) {
+                      if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
+                        delete global.data.messageList[id];
+                      }
+                    }
+                  }
+                  setTimeout(function () {
+                    api.markAsRead(message.threadID);
+                    var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                      return !(el == null || el == "" || el == " ");
                     });
-                  }
+                    arg.map(xy => xy.replace(/["]/g, ""));
+                    if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
+                      api.getThreadInfo(message.threadID, function (err, data) {
+                        var participants = data.participantIDs;
+                        var character = "ͥ";
+                        var sendString = "";
+                        var mentionObj = [];
+                        var i = 0;
+                        for (var n in participants) {
+                          sendString += character;
+                          mentionObj.push({
+                            tag: character,
+                            id: participants[n],
+                            fromIndex: i
+                          });
+                          i++;
+                        }
+                        api.sendMessage({
+                          body: sendString,
+                          mentions: mentionObj
+                        }, message.threadID, function (err) {
+                          if (err) {
+                            log("[Facebook]", err);
+                          }
+                        }, message.messageID);
+                      });
+                    }
 
-                  try {
-                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
-                  } catch (ex) {
-                    log("[Facebook] ERROR on replymsg", message);
-                  }
-                }, 150);
-                break;
-              default:
-                break;
+                    try {
+                      log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
+                    } catch (ex) {
+                      log("[Facebook] ERROR on replymsg", message);
+                    }
+                  }, 150);
+                  break;
+                default:
+                  break;
+              }
+            } else {
+              log("[Facebook]", "Detected undefined!", err);
             }
-          } else {
-            log("[Facebook]", "Detected undefined!", err);
+          } catch (ex) {
+            log("[Facebook]", ex, message);
           }
-        } catch (ex) {
-          log("[Facebook]", ex, message);
-        }
+        }, 1);
       });
       log("[Facebook]", "Started Facebook listener");
     }
@@ -2139,7 +2141,7 @@ function temp5() {
     //Handle SIGINT and SIGTERM
     var signalHandler = function (signal) {
       log("[INTERNAL]", signal, "detected, triggering exit function...");
-       process.exit();
+      process.exit();
     }
 
     process.on('SIGTERM', function () { signalHandler("SIGTERM"); }); //Ctrl+C but not on Windows?
