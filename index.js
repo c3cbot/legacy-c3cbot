@@ -1958,7 +1958,7 @@ function temp5() {
       }
       try {
         log("[Facebook]", "Logging in...");
-        var fbinstance = require("facebook-chat-api")(fbloginobj, {
+        var fbinstance = require("fca-unofficial")(fbloginobj, {
           userAgent: global.config.fbuseragent,
           logLevel: global.config.DEBUG_FCA_LOGLEVEL,
           selfListen: true,
@@ -1976,7 +1976,7 @@ function temp5() {
             clearInterval(facebook.removePendingClock);
           } catch (ex) { }
           fbinstance = undefined;
-          fbinstance = require("facebook-chat-api")({
+          fbinstance = require("fca-unofficial")({
             appState: temporaryAppState
           }, {
             userAgent: global.config.fbuseragent,
