@@ -1645,6 +1645,11 @@ function temp5() {
                     }
                   }
                 }
+                for (var xzxz in message.messageReply.attachments) {
+                  if (message.messageReply.attachments[xzxz].error) {
+                    fs.writeFileSync(__dirname + '/logs/message-error-' + message.messageID + ".json", JSON.stringify(message, null, 4));
+                  }
+                }
                 setTimeout(function () {
                   api.markAsRead(message.threadID);
                   var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
