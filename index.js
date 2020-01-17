@@ -1250,50 +1250,55 @@ facebookcb = function callback(err, api) {
                         if (!client) {
                           client = undefined
                         }
-                        var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                          args: argv,
-                          time: receivetime,
-                          msgdata: message,
-                          facebookapi: api,
-                          discordapi: client,
-                          prefix: prefix,
-                          admin: admin,
-                          mentions: mentions,
-                          log: function logPlugin(...message) {
-                            log.apply(global, [
-                              "[PLUGIN]",
-                              "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
-                            ].concat(message));
+                        var pm = new Promise(function (resolve, reject) {
+                          setTimeout(function () {
+                            resolve(global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                              args: argv,
+                              time: receivetime,
+                              msgdata: message,
+                              facebookapi: api,
+                              discordapi: client,
+                              prefix: prefix,
+                              admin: admin,
+                              mentions: mentions,
+                              log: function logPlugin(...message) {
+                                log.apply(global, [
+                                  "[PLUGIN]",
+                                  "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                                ].concat(message));
+                              }
+                            }))
+                          }, 50);
+                        }).then(function (returndata) {
+                          if (!returndata) return undefined;
+                          if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                            var endTyping = api.sendTypingIndicator(message.threadID);
+                            setTimeout(function (api, returndata, endTyping, message) {
+                              api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
+                              endTyping();
+                              setTimeout(function (api, message) {
+                                api.markAsRead(message.threadID);
+                              }, 500, api, message);
+                            }, returndata.data.length * 30, api, returndata, endTyping, message);
+                          } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                            if (!returndata.data.body) {
+                              returndata.data.body = "";
+                            }
+                            returndata.data.body = prefix + " " + returndata.data.body;
+                            var endTyping = api.sendTypingIndicator(message.threadID);
+                            setTimeout(function (api, returndata, endTyping, message, log) {
+                              api.sendMessage(returndata.data, message.threadID, function (err) {
+                                if (err) {
+                                  log("[Facebook]", err);
+                                }
+                              }, message.messageID);
+                              endTyping();
+                              setTimeout(function (api, message) {
+                                api.markAsRead(message.threadID);
+                              }, 500, api, message);
+                            }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                           }
                         });
-                        if (!returndata) return undefined;
-                        if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                          var endTyping = api.sendTypingIndicator(message.threadID);
-                          setTimeout(function (api, returndata, endTyping, message) {
-                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
-                            endTyping();
-                            setTimeout(function (api, message) {
-                              api.markAsRead(message.threadID);
-                            }, 500, api, message);
-                          }, returndata.data.length * 30, api, returndata, endTyping, message);
-                        } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                          if (!returndata.data.body) {
-                            returndata.data.body = "";
-                          }
-                          returndata.data.body = prefix + " " + returndata.data.body;
-                          var endTyping = api.sendTypingIndicator(message.threadID);
-                          setTimeout(function (api, returndata, endTyping, message, log) {
-                            api.sendMessage(returndata.data, message.threadID, function (err) {
-                              if (err) {
-                                log("[Facebook]", err);
-                              }
-                            }, message.messageID);
-                            endTyping();
-                            setTimeout(function (api, message) {
-                              api.markAsRead(message.threadID);
-                            }, 500, api, message);
-                          }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
-                        }
                       } catch (ex) {
                         try {
                           log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
