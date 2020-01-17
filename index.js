@@ -1153,6 +1153,7 @@ facebookcb = function callback(err, api) {
     try {
       if (message != undefined) {
         for (var n in global.chatHook) {
+          console.log(n);
           if (global.chatHook[n].chatHookPlatform & 1) {
             console.log("pass 1");
             var chhandling = global.chatHook[n];
