@@ -1152,6 +1152,14 @@ facebookcb = function callback(err, api) {
   facebook.listener = api.listenMqtt(function callback(err, message) {
     try {
       if (message != undefined) {
+        switch (message.type) {
+          case "read":
+          case "read_receipt":
+          case "presence":
+          case "typ":
+            return;
+        }
+        var receivetime = new Date();
         for (var n in global.chatHook) {
           if (global.chatHook[n].listenplatform & 1) {
             var chhandling = global.chatHook[n];
@@ -1218,7 +1226,6 @@ facebookcb = function callback(err, api) {
               if (message.body.startsWith("/")) {
                 if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
                   log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
-                  var receivetime = new Date();
                   var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                     return !(el == null || el == "" || el == " ");
                   });
@@ -1862,7 +1869,8 @@ if (global.config.enablefb) {
         userAgent: global.config.fbuseragent,
         logLevel: global.config.DEBUG_FCA_LOGLEVEL,
         selfListen: true,
-        listenEvents: true
+        listenEvents: true,
+        updatePresence: false
       }, facebookcb);
       log("[Facebook]", "New instance created.");
       log("[Facebook]", "Logging in...");
