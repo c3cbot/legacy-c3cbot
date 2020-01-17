@@ -1153,11 +1153,11 @@ facebookcb = function callback(err, api) {
             if (chhandling.listentype == "everything") {
               var admin = false;
               for (var no in global.config.admins) {
-                if (global.config.admins[no] == "FB-" + message.senderID) {
+                if (global.config.admins[no] == "FB-" + (message.senderID || message.author)) {
                   admin = true;
                 }
               }
-              chhandling("Facebook", {
+              chhandling.resolverFunc("Facebook", {
                 time: receivetime,
                 msgdata: message,
                 api: api,
