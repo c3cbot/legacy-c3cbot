@@ -1160,7 +1160,6 @@ facebookcb = function callback(err, api) {
               for (var no in global.config.admins) {
                 if (global.config.admins[no] == "FB-" + (message.senderID || message.author)) {
                   admin = true;
-                  console.log("admin");
                 }
               }
               chhandling.resolverFunc("Facebook", {
