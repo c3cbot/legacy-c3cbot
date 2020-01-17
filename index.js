@@ -848,6 +848,7 @@ function loadPlugin() {
             }
           }
         }
+        console.log(typeof cmdo["chatHook"] == "string", typeof cmdo["chatHookType"] == "string", !isNaN(parseInt(cmdo["chatHookPlatform"])))
         if (typeof cmdo["chatHook"] == "string" && typeof cmdo["chatHookType"] == "string" && !isNaN(parseInt(cmdo["chatHookPlatform"]))) {
           global.chatHook.push({
             resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
@@ -872,6 +873,11 @@ function unloadPlugin() {
     for (var cmd in global.commandMapping) {
       if (global.commandMapping[cmd].handler == name) {
         delete global.commandMapping[cmd];
+      }
+    }
+    for (var cmd in global.chatHook) {
+      if (global.chatHook[cmd].handler == name) {
+        delete global.chatHook[cmd];
       }
     }
     delete global.plugins[pltemp1[name]["plugin_scope"]];
