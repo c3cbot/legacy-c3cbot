@@ -850,9 +850,9 @@ function loadPlugin() {
         }
         if (typeof pltemp1[plname]["chatHook"] == "string" && typeof pltemp1[plname]["chatHookType"] == "string" && !isNaN(parseInt(pltemp1[plname]["chatHookPlatform"]))) {
           global.chatHook.push({
-            resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
-            listentype: cmdo["chatHookType"],
-            listenplatform: parseInt(cmdo["chatHookPlatform"]),
+            resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][pltemp1[plname]["chatHook"]],
+            listentype: pltemp1[plname]["chatHookType"],
+            listenplatform: parseInt(pltemp1[plname]["chatHookPlatform"]),
             handler: plname
           });
         }
