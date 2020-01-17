@@ -1154,12 +1154,16 @@ facebookcb = function callback(err, api) {
       if (message != undefined) {
         for (var n in global.chatHook) {
           if (global.chatHook[n].chatHookPlatform & 1) {
+            console.log("pass 1");
             var chhandling = global.chatHook[n];
+            console.log(chhandling);
             if (chhandling.listentype == "everything") {
+              console.log("pass 2");
               var admin = false;
               for (var no in global.config.admins) {
                 if (global.config.admins[no] == "FB-" + (message.senderID || message.author)) {
                   admin = true;
+                  console.log("admin");
                 }
               }
               chhandling.resolverFunc("Facebook", {
