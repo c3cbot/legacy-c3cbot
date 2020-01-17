@@ -848,7 +848,7 @@ function loadPlugin() {
             }
           }
         }
-        console.log(typeof cmdo["chatHook"] == "string", typeof cmdo["chatHookType"] == "string", !isNaN(parseInt(cmdo["chatHookPlatform"])))
+        console.log(typeof cmdo["chatHook"], typeof cmdo["chatHookType"], cmdo["chatHookPlatform"]);
         if (typeof cmdo["chatHook"] == "string" && typeof cmdo["chatHookType"] == "string" && !isNaN(parseInt(cmdo["chatHookPlatform"]))) {
           global.chatHook.push({
             resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
