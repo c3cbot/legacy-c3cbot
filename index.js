@@ -848,8 +848,7 @@ function loadPlugin() {
             }
           }
         }
-        console.log(typeof cmdo["chatHook"], typeof cmdo["chatHookType"], cmdo["chatHookPlatform"]);
-        if (typeof cmdo["chatHook"] == "string" && typeof cmdo["chatHookType"] == "string" && !isNaN(parseInt(cmdo["chatHookPlatform"]))) {
+        if (typeof pltemp1[plname]["chatHook"] == "string" && typeof pltemp1[plname]["chatHookType"] == "string" && !isNaN(parseInt(pltemp1[plname]["chatHookPlatform"]))) {
           global.chatHook.push({
             resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
             listentype: cmdo["chatHookType"],
