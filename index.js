@@ -1,7 +1,8 @@
+/* eslint-disable no-warning-comments */
+/* eslint-disable no-throw-literal */
 /* eslint-disable object-curly-spacing */
 /* eslint-disable no-undefined */
 /* eslint-disable no-return-assign */
-/* eslint-disable no-useless-escape */
 /* eslint-disable no-redeclare */
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
@@ -105,10 +106,8 @@ var Worker = require('tiny-worker');
 const util = require('util');
 var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
-var autosave = require('json-autosave');
 var wait = require('wait-for-stuff');
 const onChange = require('on-change');
-global.nodemodule["json-autosave"] = autosave;
 global.nodemodule.fs = require('fs');
 global.nodemodule.http = require('http');
 global.nodemodule.https = require('https');
@@ -132,7 +131,7 @@ global.sshcurrsession = {};
 global.sshstream = {};
 global.nsfwjsdata = {};
 
-ensureExists(__dirname + "/logs/");
+ensureExists(path.join(__dirname, "/logs/"));
 
 /**
  * Log to console and also write to logs file, print to every ssh console session
@@ -144,7 +143,7 @@ ensureExists(__dirname + "/logs/");
 function log(...message) {
   var date = new Date();
   readline.cursorTo(process.stdout, 0);
-  var x = ["\x1b[K" + "\x1b[1;32m[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]"];
+  var x = ["\x1b[K" + "\x1b[1;32m" + "\x1b[1;92m" + "\x1b[38;2;0;255;0m" + "[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]"];
   console.log.apply(console, x.concat(message).concat(["\x1b[1;32m"]))
   rl.prompt(true);
   var tolog = "[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
@@ -155,11 +154,9 @@ function log(...message) {
       tolog += " " + util.format("%s", message[n]);
     }
   }
-  fs.appendFile(__dirname + '/logs/log-' + date.getUTCFullYear().pad(4) + '-' + (date.getUTCMonth() + 1).pad(2) + '-' + date.getUTCDate().pad(2) + '.log', tolog + "\r\n", (err) => {
-    if (err) console.log(err);
-  });
+  fs.appendFileSync(path.join(__dirname, '/logs/log-' + date.getUTCFullYear().pad(4) + '-' + (date.getUTCMonth() + 1).pad(2) + '-' + date.getUTCDate().pad(2) + '.log'), tolog + "\r\n");
 
-  var tssh = "\x1b[K" + "\x1b[1;32m[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
+  var tssh = "\x1b[K" + "\x1b[1;32m" + "\x1b[1;92m" + "\x1b[38;2;0;255;0m" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
   for (var n in message) {
     if (typeof message[n] == "object") {
       tssh += " " + util.formatWithOptions({
@@ -252,20 +249,20 @@ var defaultconfig = {
 }
 
 //Load config
-global.config = fs.existsSync(__dirname + "/config.json") ? (function () {
-  var readedConfig = JSON.parse(fs.readFileSync(__dirname + "/config.json"));
+global.config = fs.existsSync(path.join(__dirname, "/config.json")) ? (function () {
+  var readedConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "/config.json")));
   for (var configName in defaultconfig) {
     if (!Object.prototype.hasOwnProperty.call(readedConfig, configName)) {
       readedConfig[configName] = defaultconfig[configName];
       log("[INTERNAL]", "Missing", configName, "in config file. Adding with default value (", defaultconfig[configName], ")...");
     }
   }
-  fs.writeFileSync(__dirname + "/config.json", JSON.stringify(readedConfig, null, 4));
+  fs.writeFileSync(path.join(__dirname, "/config.json"), JSON.stringify(readedConfig, null, 4));
   return readedConfig;
 })() : (function () {
   log("[INTERNAL]", "Config file not found. Creating a default one...");
   try {
-    fs.writeFileSync(__dirname + "/config.json", JSON.stringify(defaultconfig, null, 4));
+    fs.writeFileSync(path.join(__dirname, "/config.json"), JSON.stringify(defaultconfig, null, 4));
   } catch (ex) {
     log("[INTERNAL]", "Cannot write default config, returned an error: ", ex);
   }
@@ -276,13 +273,13 @@ var testmode = global.config.testmode;
 var prefix = global.config.baseprefix;
 var botname = global.config.botname;
 
-global.lang = require('js-yaml').load(fs.existsSync(__dirname + "/lang/" + global.config.language + ".yml") ? fs.readFileSync(__dirname + "/lang/" + global.config.language + ".yml", {
+global.lang = require('js-yaml').load(fs.existsSync(path.join(__dirname, "lang", global.config.language + ".yml")) ? fs.readFileSync(path.join(__dirname, "lang", global.config.language + ".yml"), {
   encoding: 'utf-8'
 }) : (function () {
-  log("[INTERNAL]", __dirname + "/lang/" + global.config.language + ".yml", ": not found | Defaulting to en_US.yml ...");
-  return fs.readFileSync(__dirname + "/lang/en_US.yml", {
+  log("[INTERNAL]", path.join(__dirname, "lang", global.config.language + ".yml"), ": not found | Defaulting to en_US.yml ...");
+  return fs.readFileSync(path.join(__dirname, "lang", "en_US.yml"), {
     encoding: 'utf-8'
-  })
+  });
 })());
 
 /**
@@ -546,10 +543,13 @@ function HMAC(publick, privatek, algo, output) {
  * @return  {(Array<String>|undefined)}  An array contains path of every files match regex.
  */
 function findFromDir(startPath, filter, arrayOutput, recursive, callback) {
-  callback = callback || function () { };
+  var nocallback = false;
+  if (!callback) {
+    callback = function () { };
+    nocallback = true;
+  }
   if (!fs.existsSync(startPath)) {
-    callback("No such directory: " + startPath);
-    return "No such directory: " + startPath;
+    throw "No such directory: " + startPath;
   }
   var files = fs.readdirSync(startPath);
   var arrayFile = [];
@@ -558,7 +558,7 @@ function findFromDir(startPath, filter, arrayOutput, recursive, callback) {
     var stat = fs.lstatSync(filename);
     if (stat.isDirectory() && recursive) {
       var arrdata = findFromDir(filename, filter, true, true);
-      if (callback != function () { }) {
+      if (!nocallback && !arrayOutput) {
         for (var n in arrdata) {
           callback(path.join(filename, arrdata[n]));
         }
@@ -566,14 +566,14 @@ function findFromDir(startPath, filter, arrayOutput, recursive, callback) {
         arrayFile = arrayFile.concat(arrdata);
       }
     } else {
-      if (!arrayOutput) {
+      if (!arrayOutput && !nocallback) {
         if (filter.test(filename)) callback(filename);
       } else {
         if (filter.test(filename)) arrayFile[arrayFile.length] = filename;
       }
     }
   }
-  if (arrayOutput && callback != function () { }) {
+  if (arrayOutput && !nocallback) {
     callback(arrayFile);
   } else if (arrayOutput) {
     return arrayFile;
@@ -590,9 +590,15 @@ function findFromDir(startPath, filter, arrayOutput, recursive, callback) {
 
 //* Load data
 if (testmode) {
-  fs.existsSync(__dirname + "/data-test.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data-test.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {} })();
+  fs.existsSync(path.join(__dirname, "data-test.json")) ? global.data = JSON.parse(fs.readFileSync(path.join(__dirname, "data-test.json"))) : (function () {
+    log("[INTERNAL]", "OwO, data file not found.");
+    global.data = {}
+  })();
 } else {
-  fs.existsSync(__dirname + "/data.json") ? global.data = JSON.parse(fs.readFileSync(__dirname + "/data.json")) : (function () { log("[INTERNAL]", "OwO, data file not found."); global.data = {} })();
+  fs.existsSync(path.join(__dirname, "data.json")) ? global.data = JSON.parse(fs.readFileSync(path.join(__dirname, "data.json"))) : (function () {
+    log("[INTERNAL]", "OwO, data file not found.");
+    global.data = {};
+  })();
 }
 global.dataBackup = JSON.parse(JSON.stringify(global.data));
 
@@ -607,11 +613,11 @@ var autosave = setInterval(function (testmode, log) {
     global.isDataSaving = true;
     try {
       if (testmode) {
-        fs.writeFileSync(__dirname + "/data-test-temp.json", JSON.stringify(global.data, null, 4));
-        fs.renameSync(__dirname + "/data-test-temp.json", __dirname + "/data-test.json");
+        fs.writeFileSync(path.join(__dirname, "/data-test-temp.json"), JSON.stringify(global.data, null, 4));
+        fs.renameSync(path.join(__dirname, "/data-test-temp.json", __dirname + "/data-test.json"));
       } else {
-        fs.writeFileSync(__dirname + "/data-temp.json", JSON.stringify(global.data, null, 4));
-        fs.renameSync(__dirname + "/data-temp.json", __dirname + "/data.json");
+        fs.writeFileSync(path.join(__dirname, "/data-temp.json"), JSON.stringify(global.data, null, 4));
+        fs.renameSync(path.join(__dirname, "/data-temp.json", __dirname + "/data.json"));
       }
     } catch (err) {
       log("[INTERNAL]", "Auto-save encounted an error:", err);
@@ -662,90 +668,6 @@ NSFWJS_MODEL_PROCESSES.postMessage({
   small: global.config.nsfwjsSmallModel
 });
 
-//"require" from code string
-function requireFromString(src, filename) {
-  var Module = module.constructor;
-  var m = new Module();
-  m._compile(src, filename);
-  return m.exports;
-}
-
-//Plugin Load
-global.plugins = {}; //Plugin Scope
-pltemp1 = {}; //Plugin Info
-pltemp2 = {}; //Plugin Executable
-global.fileMap = {};
-global.loadedPlugins = {};
-global.chatHook = [];
-var left = 0;
-
-ensureExists(__dirname + "/deletedmsg/");
-ensureExists(__dirname + "/plugins/");
-
-log("[INTERNAL]", "Searching for plugins in ./plugins/ ...");
-findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, false, function (list) {
-  log("[INTERNAL]", "Found", list);
-  left += 1;
-  try {
-    var zip = new StreamZip({
-      file: list,
-      storeEntries: true
-    });
-    zip.on('ready', () => {
-      try {
-        let plinfo = JSON.parse(zip.entryDataSync('plugins.json').toString('utf8'));
-        if (!plinfo["plugin_name"] || !plinfo["plugin_scope"] || !plinfo["plugin_exec"]) {
-          log("[INTERNAL]", list, "has \"plugins.json\" file, but contains not enough info. This plugin can't be loaded. Skipping...");
-        } else {
-          try {
-            let plexec = zip.entryDataSync(plinfo["plugin_exec"]).toString('utf8');
-            pltemp1[plinfo["plugin_name"]] = plinfo;
-            pltemp2[plinfo["plugin_name"]] = plexec;
-            if (plinfo["file_map"]) {
-              for (var fd in plinfo["file_map"]) {
-                try {
-                  let fmb = zip.entryDataSync(fd);
-                  global.fileMap[plinfo["file_map"][fd]] = fmb;
-                } catch (ex) {
-                  log("[INTERNAL]", list, "is not containing a file to be mapped writen in \"plugins.json\" file (\"" + fd + "\"). It can't be mapped. Skipping...");
-                }
-              }
-            }
-            if (plinfo["node_depends"]) {
-              for (var nid in plinfo["node_depends"]) {
-                try {
-                  global.nodemodule[nid] = require(nid);
-                } catch (ex) {
-                  log("[INTERNAL]", list, "is requiring node modules named", nid, "but it isn't installed. Attempting to install from npm...");
-                  global.nodemodule["child_process"].execSync("npm i " + nid + "@" + plinfo["node_depends"][nid], {
-                    stdio: "ignore"
-                  });
-                  try {
-                    global.nodemodule[nid] = require(nid);
-                  } catch (ex) {
-                    log("[INTERNAL]", list, "is requiring node modules named", nid, "but it can't be loaded. Additional information:", ex);
-                  }
-                }
-              }
-            }
-            log("[INTERNAL]", "Unpacked", list);
-          } catch (ex) {
-            log("[INTERNAL]", list, "is not containing executable javascript writen in \"plugins.json\" file (\"" + plinfo["plugin_exec"] + "\") or it's malformed. This plugin can't be loaded. Additional information:", ex);
-          }
-        }
-      } catch (ex) {
-        log("[INTERNAL]", list, "is not containing \"plugins.json\" file or it's malformed. This plugin cannot be loaded. Additional information: ", ex);
-      }
-      zip.close();
-      left -= 1;
-    });
-  } catch (ex) {
-    log("[INTERNAL] ", ex);
-  }
-});
-
-var client = {};
-
 function cpuAverage() {
   var totalIdle = 0,
     totalTick = 0;
@@ -764,6 +686,13 @@ function cpuAverage() {
   };
 }
 
+/**
+ * Get CPU percentage in avgTime ms.
+ *
+ * @param   {number}  avgTime  Time in milliseconds.
+ *
+ * @return  {number}           Percentage of CPU load.
+ */
 function cpuLoad(avgTime) {
   return new Promise((resolve) => {
     this.samples = [];
@@ -796,1374 +725,1300 @@ var titleClocking = setInterval(async () => {
   }
 }, 5000);
 
-function temp5() {
-  if (left == 0) {
-    global.commandMapping = {};
-    for (var plname in pltemp2) {
-      log("[INTERNAL]", "Attempting to load plugin", plname, pltemp1[plname].version, "by", pltemp1[plname].author);
-      var passed = true;
-      if (pltemp1[plname]["dependents"]) {
-        for (var no in pltemp1[plname]["dependents"]) {
-          if (!pltemp1[pltemp1[plname]["dependents"][no]]) {
-            passed = false;
-            log("[INTERNAL]", plname, "depend on plugin named", pltemp1[plname]["dependents"][no] + ", but that plugin is not installed.");
-          }
-        }
+//"require" from code string
+function requireFromString(src, filename) {
+  var Module = module.constructor;
+  var m = new Module();
+  m._compile(src, filename);
+  return m.exports;
+}
+
+//Plugin Load
+
+ensureExists(path.join(__dirname, "/deletedmsg/"));
+ensureExists(path.join(__dirname, "/plugins/"));
+
+function loadPlugin() {
+  global.plugins = {}; //Plugin Scope
+  pltemp1 = {}; //Plugin Info
+  pltemp2 = {}; //Plugin Executable
+  global.fileMap = {};
+  global.loadedPlugins = {};
+  global.chatHook = [];
+  !global.commandMapping ? global.commandMapping = {} : "";
+
+  log("[INTERNAL]", "Searching for plugins in ./plugins/ ...");
+  var pluginFileList = findFromDir(path.join(__dirname, "/plugins/"), /.*\.z3p$/, true, false);
+  for (var n in pluginFileList) {
+    try {
+      var zip = new StreamZip({
+        file: pluginFileList[n],
+        storeEntries: true
+      });
+      wait.for.event(zip, "ready");
+      try {
+        var plinfo = JSON.parse(zip.entryDataSync('plugins.json').toString('utf8'));
+      } catch (ex) {
+        throw "Invalid plugins.json file (Broken JSON)!";
       }
-      if (passed) {
-        try {
-          global.plugins[pltemp1[plname]["plugin_scope"]] = requireFromString(pltemp2[plname], pltemp1[plname]["plugin_exec"]);
-          for (var cmd in pltemp1[plname]["command_map"]) {
-            var cmdo = pltemp1[plname]["command_map"][cmd];
-            if (!cmdo["hdesc"] || !cmdo["fscope"] || isNaN(parseInt(cmdo["compatibly"]))) {
-              log("[INTERNAL]", plname, "has a command that isn't have enough information to define (/" + cmd + ")");
-            } else if (!global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope]) {
-              log("[INTERNAL]", plname, "is missing a function for /" + cmd);
-            } else {
-              var oldstr;
-              if (typeof cmdo.hdesc != "object") {
-                oldstr = cmdo.hdesc;
-                cmdo.hdesc = {};
-                cmdo.hdesc[global.config.language] = oldstr;
-              }
-              if (cmdo.hargs) {
-                if (typeof cmdo.hargs != "object") {
-                  oldstr = cmdo.hargs;
-                  cmdo.hargs = {};
-                  cmdo.hargs[global.config.language] = oldstr;
-                }
-              } else {
-                cmdo.hargs = {};
-                cmdo.hargs[global.config.language] = "";
-              }
-              global.commandMapping[cmd] = {
-                args: cmdo.hargs,
-                desc: cmdo.hdesc,
-                scope: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope],
-                compatibly: parseInt(cmdo.compatibly),
-                handler: plname
-              }
-            }
-          }
-          if (cmdo["chatHook"] && cmdo["chatHookType"] && cmdo["chatHookPlatform"]) {
-            global.chatHook.push({
-              resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
-              listentype: cmdo["chatHookType"],
-              listenplatform: parseInt(cmdo["chatHookPlatform"]),
-              handler: plname
-            });
-          }
-          global.loadedPlugins[plname] = {
-            author: pltemp1[plname].author,
-            version: pltemp1[plname].version
-          }
-          log("[INTERNAL]", plname, pltemp1[plname].version, "by", pltemp1[plname].author, "loaded.");
-        } catch (ex) {
-          log("[INTERNAL]", plname, "contains an malformed executable code and cannot be loaded. Plugin depend on this code may not work correctly. Additional information:", ex);
-        }
+      if (!plinfo["plugin_name"] || !plinfo["plugin_scope"] || !plinfo["plugin_exec"]) {
+        throw "Invalid plugins.json file (Not enough data)!";
       }
-    }
-    global.commandMapping["version"] = {
-      args: {},
-      desc: {},
-      scope: function (type, data) {
-        var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
-          headers: {
-            "User-Agent": global.config.fbuseragent
-          }
-        }).body.toString());
-        var latestrelease = githubdata[githubdata.length - 1];
-        var latestgithubversion = latestrelease.ref.replace("refs/tags/", "");
-        var codedata = JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
-          headers: {
-            "User-Agent": global.config.fbuseragent
-          }
-        }).body.toString());
-        var latestcodeversion = codedata.version;
-        return {
-          handler: "internal",
-          data: "Currently running on version " + version + "\r\nLatest GitHub version: " + latestgithubversion + "\r\nLatest code version: " + latestcodeversion
-        }
-      },
-      compatibly: 0,
-      handler: "INTERNAL"
-    }
-    global.commandMapping["version"].args[global.config.language] = "";
-    global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
-
-    global.commandMapping["help"] = {
-      args: {},
-      desc: {},
-      scope: function (type, data) {
-        var page = 1;
-        page = parseInt(data.args[1]) || 1;
-        if (page < 1) page = 1;
-        var mts = "";
-        mts += global.lang["HELP_OUTPUT_PREFIX"];
-        var helpobj = global.commandMapping["help"];
-        helpobj.command = "help";
-        helpobj.args[global.config.language] = global.lang["HELP_ARGS"];
-        helpobj.desc[global.config.language] = global.lang["HELP_DESC"];
-        var hl = [helpobj];
-        for (var no in global.commandMapping) {
-          if (no !== "help") {
-            var tempx = global.commandMapping[no];
-            tempx.command = no;
-            hl.push(tempx);
-          }
-        }
-        if (type == "Discord") {
-          mts += "\r\n```HTTP"
-        }
-        for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
-          if (i < hl.length) {
-            mts += "\r\n" + (i + 1).toString() + ". /" + hl[i].command;
-            if (!!hl[i].args && hl[i].args != "") {
-              mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
-            }
-            mts += ": " + hl[i].desc[global.config.language];
-          }
-        }
-        if (type == "Discord") {
-          mts += "\r\n```"
-        }
-        mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 5).ceil() + ')';
-        return {
-          handler: "internal",
-          data: mts
-        }
-      },
-      compatibly: 0,
-      handler: "INTERNAL"
-    }
-    global.commandMapping["help"].args[global.config.language] = global.lang["HELP_ARGS"];
-    global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
-    global.commandMapping["restart"] = {
-      args: {},
-      desc: {},
-      scope: function (type, data) {
-        if (data.admin && global.config.allowAdminUseRestartCommand) {
-          shutdownHandler();
-          return {
-            handler: "internal",
-            data: "OK"
-          }
-        } else {
-          return {
-            handler: "internal",
-            data: global.lang["INSUFFICIENT_PERM"]
-          }
-        }
-      },
-      compatibly: 0,
-      handler: "INTERNAL"
-    }
-    global.commandMapping["restart"].args[global.config.language] = "";
-    global.commandMapping["restart"].desc[global.config.language] = global.lang["RESTART_DESC"];
-
-    global.commandMapping["plugins"] = {
-      args: {},
-      desc: {},
-      scope: function (type, data) {
-        if (!data.admin && !global.config.allowUserUsePluginsCommand) {
-          return {
-            handler: "internal",
-            data: global.lang["INSUFFICIENT_PERM"]
-          }
-        }
-        var page = 1;
-        page = parseInt(data.args[1]) || 1;
-        if (page < 1) page = 1;
-        var mts = "";
-        mts += global.lang["PLUGINS_OUTPUT_PREFIX"];
-        var hl = [];
-        for (var no in global.loadedPlugins) {
-          var tempx = global.loadedPlugins[no];
-          tempx.name = no;
-          hl.push(tempx);
-        }
-        if (type == "Discord") {
-          mts += "\r\n```HTTP"
-        }
-        for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
-          if (i < hl.length) {
-            mts += "\r\n" + (i + 1).toString() + ". " + hl[i].name;
-            if (!!hl[i].version && hl[i].version != "") {
-              mts += " " + hl[i].version;
-            }
-            mts += " by " + hl[i].author;
-          }
-        }
-        if (type == "Discord") {
-          mts += "\r\n```"
-        }
-        mts += '\r\n(Page ' + page + '/' + (hl.length / 5).ceil() + ')';
-        return {
-          handler: "internal",
-          data: mts
-        }
-      },
-      compatibly: 0,
-      handler: "INTERNAL"
-    }
-    global.commandMapping["plugins"].args[global.config.language] = "";
-    global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
-
-    global.commandMapping["reload"] = {
-      args: {},
-      desc: {},
-      scope: function (type, data) {
-        if (!data.admin && !global.config.allowUserUseReloadCommand) {
-          return {
-            handler: "internal",
-            data: global.lang["INSUFFICIENT_PERM"]
-          }
-        }
-        for (var name in global.loadedPlugins) {
-          log("[INTERNAL]", "Attempting to unload plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
-          for (var cmd in global.commandMapping) {
-            if (global.commandMapping[cmd].handler == name) {
-              delete global.commandMapping[cmd];
-            }
-          }
-          delete global.plugins[pltemp1[name]["plugin_scope"]];
-          log("[INTERNAL]", "Unloaded plugin ", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
-          delete global.loadedPlugins[name];
-        }
-
-        global.plugins = {}; //Plugin Scope
-        pltemp1 = {}; //Plugin Info
-        pltemp2 = {}; //Plugin Executable
-        global.fileMap = {};
-        global.loadedPlugins = {};
-        global.chatHook = [];
-        left = 0;
-
-        ensureExists(__dirname + "/plugins/", function () { });
-        log("[INTERNAL]", "Searching for plugin in /plugins ...");
-        findFromDir(__dirname + "/plugins/", /.*\.z3p$/, false, false, function (list) {
-          log("[INTERNAL]", "Found", list);
-          left += 1;
+      try {
+        var plexec = zip.entryDataSync(plinfo["plugin_exec"]).toString('utf8');
+      } catch (ex) {
+        throw "Executable file " + plinfo["plugin_exec"] + " not found.";
+      }
+      if (typeof plinfo["file_map"] == "object" && !plinfo["file_map"].map) {
+        for (var fd in plinfo["file_map"]) {
           try {
-            var zip = new StreamZip({
-              file: list,
-              storeEntries: true
-            });
-            zip.on('ready', () => {
-              try {
-                let plinfo = JSON.parse(zip.entryDataSync('plugins.json').toString('utf8'));
-                if (!plinfo["plugin_name"] || !plinfo["plugin_scope"] || !plinfo["plugin_exec"]) {
-                  log("[INTERNAL]", list, "has \"plugins.json\" file, but contains not enough info. This plugin can't be loaded. Skipping...");
-                } else {
-                  try {
-                    let plexec = zip.entryDataSync(plinfo["plugin_exec"]).toString('utf8');
-                    pltemp1[plinfo["plugin_name"]] = plinfo;
-                    pltemp2[plinfo["plugin_name"]] = plexec;
-                    if (plinfo["file_map"]) {
-                      for (var fd in plinfo["file_map"]) {
-                        try {
-                          let fmb = zip.entryDataSync(fd);
-                          global.fileMap[plinfo["file_map"][fd]] = fmb;
-                        } catch (ex) {
-                          log("[INTERNAL]", list, "is not containing a file to be mapped writen in \"plugins.json\" file (\"" + fd + "\"). It can't be mapped. Skipping...");
-                        }
-                      }
-                    }
-                    if (plinfo["node_depends"]) {
-                      for (var nid in plinfo["node_depends"]) {
-                        try {
-                          global.nodemodule[nid] = require(nid);
-                        } catch (ex) {
-                          log("[INTERNAL]", list, "is requiring node modules named", nid, "but it isn't installed. Attempting to install from npm...");
-                          global.nodemodule["child_process"].execSync("npm i " + nid + "@" + plinfo["node_depends"][nid], {
-                            stdio: "ignore"
-                          });
-                          try {
-                            global.nodemodule[nid] = require(nid);
-                          } catch (ex) {
-                            log("[INTERNAL]", list, "is requiring node modules named", nid, "but it can't be loaded. Additional information:", ex);
-                          }
-                        }
-                      }
-                    }
-                    log("[INTERNAL]", "Unpacked", list);
-                  } catch (ex) {
-                    log("[INTERNAL]", list, "is not containing executable javascript writen in \"plugins.json\" file (\"" + plinfo["plugin_exec"] + "\") or it's malformed. This plugin can't be loaded. Additional information:", ex);
-                  }
-                }
-              } catch (ex) {
-                log("[INTERNAL]", list, "is not containing \"plugins.json\" file or it's malformed. This plugin cannot be loaded. Additional information: ", ex);
-              }
-              zip.close();
-              left -= 1;
-            });
+            global.fileMap[plinfo["file_map"][fd]] = zip.entryDataSync(fd);
           } catch (ex) {
-            log("[INTERNAL] ", ex);
-          }
-        });
-
-        function temp6() {
-          if (left == 0) {
-            for (var plname in pltemp2) {
-              log("[INTERNAL]", "Attempting to load plugin", plname, pltemp1[plname].version, "by", pltemp1[plname].author);
-              var passed = true;
-              if (pltemp1[plname]["dependents"]) {
-                for (var no in pltemp1[plname]["dependents"]) {
-                  if (!pltemp1[pltemp1[plname]["dependents"][no]]) {
-                    passed = false;
-                    log("[INTERNAL]", plname, "depend on plugin named", pltemp1[plname]["dependents"][no] + ", but that plugin is not installed.");
-                  }
-                }
-              }
-              if (passed) {
-                try {
-                  global.plugins[pltemp1[plname]["plugin_scope"]] = requireFromString(pltemp2[plname], pltemp1[plname]["plugin_exec"]);
-                  for (var cmd in pltemp1[plname]["command_map"]) {
-                    var cmdo = pltemp1[plname]["command_map"][cmd];
-                    if (!cmdo["hdesc"] || !cmdo["fscope"] || isNaN(parseInt(cmdo["compatibly"]))) {
-                      log("[INTERNAL]", plname, "has a command that isn't have enough information to define (/" + cmd + ")");
-                    } else if (!global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope]) {
-                      log("[INTERNAL]", plname, "is missing a function for /" + cmd);
-                    } else {
-                      var oldstr;
-                      if (typeof cmdo.hdesc != "object") {
-                        oldstr = cmdo.hdesc;
-                        cmdo.hdesc = {};
-                        cmdo.hdesc[global.config.language] = oldstr;
-                      }
-                      if (cmdo.hargs) {
-                        if (typeof cmdo.hargs != "object") {
-                          oldstr = cmdo.hargs;
-                          cmdo.hargs = {};
-                          cmdo.hargs[global.config.language] = oldstr;
-                        }
-                      } else {
-                        cmdo.hargs = {};
-                        cmdo.hargs[global.config.language] = "";
-                      }
-                      global.commandMapping[cmd] = {
-                        args: cmdo.hargs,
-                        desc: cmdo.hdesc,
-                        scope: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope],
-                        compatibly: parseInt(cmdo.compatibly),
-                        handler: plname
-                      }
-                    }
-                  }
-                  if (cmdo["chatHook"] && cmdo["chatHookType"] && cmdo["chatHookPlatform"]) {
-                    global.chatHook.push({
-                      resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
-                      listentype: cmdo["chatHookType"],
-                      listenplatform: parseInt(cmdo["chatHookPlatform"]),
-                      handler: plname
-                    });
-                  }
-                  global.loadedPlugins[plname] = {
-                    author: pltemp1[plname].author,
-                    version: pltemp1[plname].version
-                  }
-                  log("[INTERNAL]", plname, pltemp1[plname].version, "by", pltemp1[plname].author, "loaded.");
-                } catch (ex) {
-                  log("[INTERNAL]", plname, "contains an malformed executable code and cannot be loaded. Plugin depend on this code may not work correctly. Additional information:", ex);
-                }
-              }
-            }
-          } else {
-            setTimeout(temp6, 1000);
+            throw "File " + plinfo["plugin_exec"] + " not found.";
           }
         }
-        temp6();
-        return {
-          handler: "internal",
-          data: "Reloaded"
-        }
-      },
-      compatibly: 0,
-      handler: "INTERNAL"
-    }
-    global.commandMapping["reload"].args[global.config.language] = "";
-    global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
-
-    global.commandMapping["togglethanos"] = {
-      args: {},
-      desc: {},
-      scope: function (type, data) {
-        if (type != "Facebook") {
-          return {
-            data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
-            handler: "internal"
-          }
-        }
-        var threadID = data.msgdata.threadID;
-        if (!global.data.thanosBlacklist[threadID]) {
-          global.data.thanosBlacklist[threadID] = true;
-        } else {
-          global.data.thanosBlacklist[threadID] = false;
-        }
-        return {
-          data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.thanosBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
-          handler: "internal"
-        }
-      },
-      compatibly: 1,
-      handler: "INTERNAL"
-    }
-    global.commandMapping["togglethanos"].args[global.config.language] = "";
-    global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
-
-    var facebook = {};
-    facebookcb = function callback(err, api) {
-      if (err) {
-        facebook.error = err;
-        log("[Facebook]", err);
-        log("[Facebook]", "Error saved to 'facebook.error'.");
-        return false;
-      } else {
-        facebook.error = false;
       }
-      log("[Facebook]", "Logged in.");
-      delete facebook.api;
-      facebook.api = api;
-      if (global.config.usefbappstate) {
+      if (typeof plinfo["node_depends"] == "object") {
+        for (var nid in plinfo["node_depends"]) {
+          try {
+            global.nodemodule[nid] = require(nid);
+          } catch (ex) {
+            log("[INTERNAL]", pluginFileList[n], "is requiring node modules named", nid, "but it isn't installed. Attempting to install it through npm package manager...");
+            global.nodemodule["child_process"].execSync("npm i " + nid + (plinfo["node_depends"][nid] == "*" || plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])), {
+              stdio: "ignore"
+            });
+            try {
+              global.nodemodule[nid] = require(nid);
+            } catch (ex) {
+              throw "Cannot load node module: " + nid
+            }
+          }
+        }
+      }
+      pltemp1[plinfo["plugin_name"]] = plinfo;
+      pltemp1[plinfo["plugin_name"]].filename = pluginFileList[n];
+      pltemp2[plinfo["plugin_name"]] = plexec;
+    } catch (ex) {
+      log("[INTERNAL]", "Error while loading plugin at \"" + pluginFileList[n] + "\":", ex);
+    }
+  }
+
+  for (var plname in pltemp1) {
+    var passed = true;
+    if (pltemp1[plname]["dependents"]) {
+      for (var no in pltemp1[plname]["dependents"]) {
+        if (!pltemp1[pltemp1[plname]["dependents"][no]]) {
+          passed = false;
+          log("[INTERNAL]", plname, "depend on plugin named", pltemp1[plname]["dependents"][no] + ", but that plugin is not installed/loaded.");
+        }
+      }
+    }
+    if (passed) {
+      try {
+        global.plugins[pltemp1[plname]["plugin_scope"]] = requireFromString(pltemp2[plname], path.join(pltemp1[plname].filename, pltemp1[plname]["plugin_exec"]));
+        for (var cmd in pltemp1[plname]["command_map"]) {
+          var cmdo = pltemp1[plname]["command_map"][cmd];
+          if (!cmdo["hdesc"] || !cmdo["fscope"] || isNaN(parseInt(cmdo["compatibly"]))) {
+            log("[INTERNAL]", plname, "has a command that isn't have enough information to define (/" + cmd + ")");
+          } else if (!global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope]) {
+            log("[INTERNAL]", plname, "is missing a function for /" + cmd);
+          } else {
+            var oldstr;
+            if (typeof cmdo.hdesc != "object") {
+              oldstr = cmdo.hdesc;
+              cmdo.hdesc = {};
+              cmdo.hdesc[global.config.language] = oldstr;
+            }
+            if (cmdo.hargs) {
+              if (typeof cmdo.hargs != "object") {
+                oldstr = cmdo.hargs;
+                cmdo.hargs = {};
+                cmdo.hargs[global.config.language] = oldstr;
+              }
+            } else {
+              cmdo.hargs = {};
+              cmdo.hargs[global.config.language] = "";
+            }
+            global.commandMapping[cmd] = {
+              args: cmdo.hargs,
+              desc: cmdo.hdesc,
+              scope: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope],
+              compatibly: parseInt(cmdo.compatibly),
+              handler: plname
+            }
+          }
+        }
+        if (typeof cmdo["chatHook"] == "string" && typeof cmdo["chatHookType"] == "string" && !isNaN(parseInt(cmdo["chatHookPlatform"]))) {
+          global.chatHook.push({
+            resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][cmdo["chatHook"]],
+            listentype: cmdo["chatHookType"],
+            listenplatform: parseInt(cmdo["chatHookPlatform"]),
+            handler: plname
+          });
+        }
+        global.loadedPlugins[plname] = {
+          author: pltemp1[plname].author,
+          version: pltemp1[plname].version
+        }
+        log("[INTERNAL]", "Loaded", plname, pltemp1[plname].version, "by", pltemp1[plname].author);
+      } catch (ex) {
+        log("[INTERNAL]", plname, "contains an malformed executable code and cannot be loaded. Plugin depend on this code may not work correctly. Additional information:", ex);
+      }
+    }
+  }
+}
+function unloadPlugin() {
+  for (var name in global.loadedPlugins) {
+    for (var cmd in global.commandMapping) {
+      if (global.commandMapping[cmd].handler == name) {
+        delete global.commandMapping[cmd];
+      }
+    }
+    delete global.plugins[pltemp1[name]["plugin_scope"]];
+    log("[INTERNAL]", "Unloaded plugin ", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
+    delete global.loadedPlugins[name];
+  }
+}
+
+loadPlugin();
+
+var client = {};
+global.commandMapping["version"] = {
+  args: {},
+  desc: {},
+  scope: function (type, data) {
+    var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
+      headers: {
+        "User-Agent": global.config.fbuseragent
+      }
+    }).body.toString());
+    var latestrelease = githubdata[githubdata.length - 1];
+    var latestgithubversion = latestrelease.ref.replace("refs/tags/", "");
+    var codedata = JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
+      headers: {
+        "User-Agent": global.config.fbuseragent
+      }
+    }).body.toString());
+    var latestcodeversion = codedata.version;
+    return {
+      handler: "internal",
+      data: "Currently running on version " + version + "\r\nLatest GitHub version: " + latestgithubversion + "\r\nLatest code version: " + latestcodeversion
+    }
+  },
+  compatibly: 0,
+  handler: "INTERNAL"
+}
+global.commandMapping["version"].args[global.config.language] = "";
+global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
+
+global.commandMapping["help"] = {
+  args: {},
+  desc: {},
+  scope: function (type, data) {
+    var page = 1;
+    page = parseInt(data.args[1]) || 1;
+    if (page < 1) page = 1;
+    var mts = "";
+    mts += global.lang["HELP_OUTPUT_PREFIX"];
+    var helpobj = global.commandMapping["help"];
+    helpobj.command = "help";
+    helpobj.args[global.config.language] = global.lang["HELP_ARGS"];
+    helpobj.desc[global.config.language] = global.lang["HELP_DESC"];
+    var hl = [helpobj];
+    for (var no in global.commandMapping) {
+      if (no !== "help") {
+        var tempx = global.commandMapping[no];
+        tempx.command = no;
+        hl.push(tempx);
+      }
+    }
+    if (type == "Discord") {
+      mts += "\r\n```HTTP"
+    }
+    for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
+      if (i < hl.length) {
+        mts += "\r\n" + (i + 1).toString() + ". /" + hl[i].command;
+        if (!!hl[i].args && hl[i].args != "") {
+          mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+        }
+        mts += ": " + hl[i].desc[global.config.language];
+      }
+    }
+    if (type == "Discord") {
+      mts += "\r\n```"
+    }
+    mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 5).ceil() + ')';
+    return {
+      handler: "internal",
+      data: mts
+    }
+  },
+  compatibly: 0,
+  handler: "INTERNAL"
+}
+global.commandMapping["help"].args[global.config.language] = global.lang["HELP_ARGS"];
+global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
+global.commandMapping["shutdown"] = {
+  args: {},
+  desc: {},
+  scope: function (type, data) {
+    if (data.admin && global.config.allowAdminUseRestartCommand) {
+      setTimeout(function () { process.exit(); }, 1000);
+      return {
+        handler: "internal",
+        data: "Shutting down..."
+      }
+    } else {
+      return {
+        handler: "internal",
+        data: global.lang["INSUFFICIENT_PERM"]
+      }
+    }
+  },
+  compatibly: 0,
+  handler: "INTERNAL"
+}
+global.commandMapping["shutdown"].args[global.config.language] = "";
+global.commandMapping["shutdown"].desc[global.config.language] = global.lang["SHUTDOWN_DESC"];
+
+global.commandMapping["plugins"] = {
+  args: {},
+  desc: {},
+  scope: function (type, data) {
+    if (!data.admin && !global.config.allowUserUsePluginsCommand) {
+      return {
+        handler: "internal",
+        data: global.lang["INSUFFICIENT_PERM"]
+      }
+    }
+    var page = 1;
+    page = parseInt(data.args[1]) || 1;
+    if (page < 1) page = 1;
+    var mts = "";
+    mts += global.lang["PLUGINS_OUTPUT_PREFIX"];
+    var hl = [];
+    for (var no in global.loadedPlugins) {
+      var tempx = global.loadedPlugins[no];
+      tempx.name = no;
+      hl.push(tempx);
+    }
+    if (type == "Discord") {
+      mts += "\r\n```HTTP"
+    }
+    for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
+      if (i < hl.length) {
+        mts += "\r\n" + (i + 1).toString() + ". " + hl[i].name;
+        if (!!hl[i].version && hl[i].version != "") {
+          mts += " " + hl[i].version;
+        }
+        mts += " by " + hl[i].author;
+      }
+    }
+    if (type == "Discord") {
+      mts += "\r\n```"
+    }
+    mts += '\r\n(Page ' + page + '/' + (hl.length / 5).ceil() + ')';
+    return {
+      handler: "internal",
+      data: mts
+    }
+  },
+  compatibly: 0,
+  handler: "INTERNAL"
+}
+global.commandMapping["plugins"].args[global.config.language] = "";
+global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
+
+global.commandMapping["reload"] = {
+  args: {},
+  desc: {},
+  scope: function (type, data) {
+    if (!data.admin && !global.config.allowUserUseReloadCommand) {
+      return {
+        handler: "internal",
+        data: global.lang["INSUFFICIENT_PERM"]
+      }
+    }
+    unloadPlugin();
+    loadPlugin();
+    return {
+      handler: "internal",
+      data: "Reloaded"
+    }
+  },
+  compatibly: 0,
+  handler: "INTERNAL"
+}
+global.commandMapping["reload"].args[global.config.language] = "";
+global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
+
+global.commandMapping["togglethanos"] = {
+  args: {},
+  desc: {},
+  scope: function (type, data) {
+    if (type != "Facebook") {
+      return {
+        data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
+        handler: "internal"
+      }
+    }
+    var threadID = data.msgdata.threadID;
+    if (!global.data.thanosBlacklist[threadID]) {
+      global.data.thanosBlacklist[threadID] = true;
+    } else {
+      global.data.thanosBlacklist[threadID] = false;
+    }
+    return {
+      data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.thanosBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
+      handler: "internal"
+    }
+  },
+  compatibly: 1,
+  handler: "INTERNAL"
+}
+global.commandMapping["togglethanos"].args[global.config.language] = "";
+global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
+
+var facebook = {};
+facebookcb = function callback(err, api) {
+  if (err) {
+    facebook.error = err;
+    log("[Facebook]", err);
+    log("[Facebook]", "Error saved to 'facebook.error'.");
+    return false;
+  } else {
+    facebook.error = false;
+  }
+  log("[Facebook]", "Logged in.");
+  delete facebook.api;
+  facebook.api = api;
+  if (global.config.usefbappstate) {
+    try {
+      fs.writeFileSync(path.join(__dirname, "/fbstate.json"), JSON.stringify(api.getAppState()));
+    } catch (ex) {
+      log("[INTERNAL]", ex);
+    }
+  }
+  global.config.fbemail = "<censored, security measures>";
+  global.config.fbpassword = "<censored, security measures>"
+
+  function fetchName(id, force, callingback) {
+    if (!callingback) {
+      callingback = function () { }
+    }
+    if (!global.data.cacheName["FB-" + id] || !!force) {
+      api.getUserInfo(id, (err, ret) => {
+        if (err) return log("[INTERNAL]", err);
+        log("[CACHENAME]", id + " => " + ret[id].name);
+        global.data.cacheName["FB-" + id] = ret[id].name;
         try {
-          fs.writeFileSync(__dirname + "/fbstate.json", JSON.stringify(api.getAppState()));
+          callingback();
         } catch (ex) {
           log("[INTERNAL]", ex);
         }
-      }
+      });
+    } else {
+      callingback();
+    }
+  }
+  facebook.api.fetchName = fetchName;
 
-      function fetchName(id, force, callingback) {
-        if (!callingback) {
-          callingback = function () { }
-        }
-        if (!global.data.cacheName["FB-" + id] || !!force) {
-          api.getUserInfo(id, (err, ret) => {
-            if (err) return log("[INTERNAL]", err);
-            log("[CACHENAME]", id + " => " + ret[id].name);
-            global.data.cacheName["FB-" + id] = ret[id].name;
-            try {
-              callingback();
-            } catch (ex) {
-              log("[INTERNAL]", ex);
+  facebook.removePendingClock = setInterval(function (api, log, botname, connectedmsg) {
+    api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
+      if (err) {
+        return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+      }
+      for (var i in list) {
+        setTimeout(function (id) {
+          api[0].handleMessageRequest(id, true);
+          api[0].sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+            if (err) {
+              return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
             }
           });
-        } else {
-          callingback();
-        }
+          log("[Facebook]", "Bot added to", id);
+        }, i * 500, list[i].threadID);
       }
-      facebook.api.fetchName = fetchName;
+    });
+    api[0].markAsReadAll();
+  }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
 
-      facebook.removePendingClock = setInterval(function (api, log, botname, connectedmsg) {
-        api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
-          if (err) {
-            return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
-          }
-          for (var i in list) {
-            setTimeout(function (id) {
-              api[0].handleMessageRequest(id, true);
-              api[0].sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
-                if (err) {
-                  return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+  !global.data.messageList ? global.data.messageList = {} : "";
+  facebook.listener = api.listenMqtt(function callback(err, message) {
+    try {
+      if (message != undefined) {
+        for (var n in global.chatHook) {
+          if (global.chatHook[n].chatHookPlatform & 1) {
+            var chhandling = global.chatHook[n];
+            if (chhandling.listentype == "everything") {
+              var admin = false;
+              for (var no in global.config.admins) {
+                if (global.config.admins[no] == "FB-" + message.senderID) {
+                  admin = true;
                 }
+              }
+              chhandling("Facebook", {
+                time: receivetime,
+                msgdata: message,
+                api: api,
+                prefix: prefix,
+                admin: admin
               });
-              log("[Facebook]", "Bot added to", id);
-            }, i * 500, list[i].threadID);
+            }
           }
-        });
-        api[0].markAsReadAll();
-      }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
-
-      !global.data.messageList ? global.data.messageList = {} : "";
-      // eslint-disable-next-line require-await
-      facebook.listener = api.listenMqtt(function callback(err, message) {
-        try {
-          if (message != undefined) {
-            for (var n in global.chatHook) {
-              if (global.chatHook[n].chatHookPlatform & 1) {
-                var chhandling = global.chatHook[n];
-                if (chhandling.listentype == "everything") {
-                  var admin = false;
-                  for (var no in global.config.admins) {
-                    if (global.config.admins[no] == "FB-" + message.senderID) {
-                      admin = true;
-                    }
-                  }
-                  chhandling("Facebook", {
-                    time: receivetime,
-                    msgdata: message,
-                    api: api,
-                    prefix: prefix,
-                    admin: admin
-                  });
+        }
+        switch (message.type) {
+          case "message":
+            fetchName(message.senderID);
+            if (global.config.enableThanosTimeGems) {
+              global.data.messageList[message.messageID] = message;
+              for (var id in global.data.messageList) {
+                if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
+                  delete global.data.messageList[id];
                 }
               }
             }
-            switch (message.type) {
-              case "message":
-                fetchName(message.senderID);
-                if (global.config.enableThanosTimeGems) {
-                  global.data.messageList[message.messageID] = message;
-                  for (var id in global.data.messageList) {
-                    if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
-                      delete global.data.messageList[id];
-                    }
-                  }
-                }
-                setTimeout(function () {
-                  api.markAsRead(message.threadID);
-                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                    return !(el == null || el == "" || el == " ");
-                  });
-                  arg.map(xy => xy.replace(/["]/g, ""));
-                  if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
-                    api.getThreadInfo(message.threadID, function (err, data) {
-                      var participants = data.participantIDs;
-                      var character = "ͥ";
-                      var sendString = "";
-                      var mentionObj = [];
-                      var i = 0;
-                      for (var n in participants) {
-                        sendString += character;
-                        mentionObj.push({
-                          tag: character,
-                          id: participants[n],
-                          fromIndex: i
-                        });
-                        i++;
-                      }
-                      api.sendMessage({
-                        body: sendString,
-                        mentions: mentionObj
-                      }, message.threadID, function (err) {
-                        if (err) {
-                          log("[Facebook]", "@everyone errored:", err);
-                        }
-                      }, message.messageID);
-                    });
-                  }
-                  if (message.body.startsWith("/")) {
-                    if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
-                      log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
-                      var receivetime = new Date();
-                      var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                        return !(el == null || el == "" || el == " ");
-                      });
-                      arg.map(xy => xy.replace(/["]/g, ""));
-                      var toarg = arg;
-                      if (global.commandMapping[arg[0].substr(1)]) {
-                        if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                          api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
-                        } else {
-                          var argv = JSON.parse(JSON.stringify(arg));
-                          var admin = false;
-                          for (var no in global.config.admins) {
-                            if (global.config.admins[no] == "FB-" + message.senderID) {
-                              admin = true;
-                            }
-                          }
-                          var mentions = {};
-                          for (var y in message.mentions) {
-                            mentions["FB-" + y] = message.mentions[y];
-                          }
-                          try {
-                            if (!client) {
-                              client = undefined
-                            }
-                            var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                              args: argv,
-                              time: receivetime,
-                              msgdata: message,
-                              facebookapi: api,
-                              discordapi: client,
-                              prefix: prefix,
-                              admin: admin,
-                              mentions: mentions,
-                              log: function logPlugin(...message) {
-                                log.apply(global, [
-                                  "[PLUGIN]",
-                                  "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
-                                ].concat(message));
-                              }
-                            });
-                            if (!returndata) return undefined;
-                            if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                              var endTyping = api.sendTypingIndicator(message.threadID);
-                              setTimeout(function (api, returndata, endTyping, message) {
-                                api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
-                                endTyping();
-                                setTimeout(function (api, message) {
-                                  api.markAsRead(message.threadID);
-                                }, 500, api, message);
-                              }, returndata.data.length * 30, api, returndata, endTyping, message);
-                            } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                              if (!returndata.data.body) {
-                                returndata.data.body = "";
-                              }
-                              returndata.data.body = prefix + " " + returndata.data.body;
-                              var endTyping = api.sendTypingIndicator(message.threadID);
-                              setTimeout(function (api, returndata, endTyping, message, log) {
-                                api.sendMessage(returndata.data, message.threadID, function (err) {
-                                  if (err) {
-                                    log("[Facebook]", err);
-                                  }
-                                }, message.messageID);
-                                endTyping();
-                                setTimeout(function (api, message) {
-                                  api.markAsRead(message.threadID);
-                                }, 500, api, message);
-                              }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
-                            }
-                          } catch (ex) {
-                            try {
-                              log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
-                            } catch (exp) {
-                              log("[INTERNAL]", toarg[0], "contain an error:", ex);
-                            }
-                          }
-                        }
-                      } else {
-                        api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
-                      }
-                    } else {
-                      log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
-                    }
-                  } else {
-                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
-                  }
-                }, 195);
-                break;
-              case "event":
-                log("[Facebook]", message);
-                try {
-                  if (message.logMessageType == "log:subscribe") {
-                    var containBot = false;
-                    var botID = api.getCurrentUserID();
-                    for (var n in message.logMessageData.addedParticipants) {
-                      if (message.logMessageData.addedParticipants[n].userFbId == botID) {
-                        containBot = true;
-                      }
-                    }
-                    if (containBot) {
-                      api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
-                      log("[Facebook]", message.author, "added Bot to", message.threadID);
-                    }
-                  }
-                } catch (ex) {
-                  log("[Facebook]", ex);
-                }
-                break;
-              case "message_reaction":
-                log("[Facebook]", message);
-                break;
-              case "message_unsend":
-                if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
-                  var removedMessage = global.data.messageList[message.messageID];
-                  var attachmentArray = [];
-                  for (var n in removedMessage.attachments) {
-                    switch (removedMessage.attachments[n].type) {
-                      case "file":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename
-                        });
-                        break;
-                      case "photo":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".png"
-                        });
-                        break;
-                      case "audio":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".mp3"
-                        });
-                        break;
-                      case "video":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".mp4"
-                        });
-                        break;
-                      case "animated_image":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".gif"
-                        });
-                        break;
-                      case "sticker":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].ID + ".png"
-                        });
-                        break;
-                    }
-                  }
-                  var att = [];
-                  var bannedatt = [];
-                  for (var n in attachmentArray) {
-                    var imagesx = new streamBuffers.ReadableStreamBuffer({
-                      frequency: 10,
-                      chunkSize: 2048
-                    });
-                    imagesx.path = attachmentArray[n].name;
-                    imagesx.put(attachmentArray[n].data);
-                    imagesx.stop();
-                    if ((attachmentArray[n].type == "photo" ||
-                      attachmentArray[n].type == "animated_image") && !global.data.thanosBlacklist[message.threadID]) {
-
-                      var image = new Image();
-                      image.src = attachmentArray[n].data;
-                      var cvs = new Canvas(image.width, image.height);
-                      var ctx = cvs.getContext("2d");
-                      ctx.drawImage(image, 0, 0);
-                      var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
-
-                      // eslint-disable-next-line no-loop-func
-                      var worker = new Worker(() => {
-                        onmessage = function (event) {
-                          var wait = require("wait-for-stuff");
-                          try {
-                            var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: (event.data.small ? 224 : 299) }));
-                          } catch (ex) {
-                            var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
-                          }
-                          var data = event.data;
-                          try {
-                            var cl = wait.for.promise(NSFWJS.classify({
-                              data: new Uint8Array(data.data),
-                              width: data.width,
-                              height: data.height
-                            }, 5));
-                            postMessage({
-                              class: cl,
-                              id: data.id
-                            });
-                          } catch (ex) {
-                            postMessage({
-                              error: ex.toString(),
-                              id: data.id
-                            });
-                          }
-                        }
-                      }, [], { silent: true });
-                      // eslint-disable-next-line no-loop-func
-                      worker.onmessage = function (event) {
-                        var data = event.data;
-                        Object.assign(global.nsfwjsdata[data.id], data);
-                        global.nsfwjsdata[data.id].complete = true;
-                        worker.terminate();
-                        // eslint-disable-next-line no-delete-var
-                        delete worker;
-                        if (data.error) {
-                          log("[Facebook]", "Error in image classifier:", data.error);
-                        }
-                      }
-
-                      var id = Date.now().toString() + "-" + random(0, 99).toString() + random(0, 99).toString() + Math.random().toString() + Math.random().toString();
-                      global.nsfwjsdata[id] = {};
-                      global.nsfwjsdata[id].complete = false;
-                      worker.postMessage({
-                        id: id,
-                        data: Array.from(imgdata1.data),
-                        width: imgdata1.width,
-                        height: imgdata1.height,
-                        small: global.config.nsfwjsSmallModel
-                      });
-
-                      wait.for.value(global.nsfwjsdata[id], "complete", true);
-                      var classing = global.nsfwjsdata[id].class;
-                      try {
-                        var classify = classing[0].className;
-                        var percentage = classing[0].probability * 100;
-                      } catch (ex) { }
-                      switch (classify) {
-                        case "Neutral":
-                        case "Drawing":
-                        case "Sexy":
-                          att.push(imagesx);
-                        // eslint-disable-next-line no-fallthrough
-                        case "Hentai":
-                        case "Porn":
-                          bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
-                          log("[Facebook]", "Removed image classified as:", classify);
-                          break;
-                        default:
-                          log("[Facebook]", "Invalid image classification:", classify, classing);
-                          att.push(imagesx);
-                      }
-                    } else {
-                      att.push(imagesx);
-                    }
-                  }
-                  if (!global.data.thanosBlacklist[message.threadID]) {
-                    var btext = "";
-                    if (bannedatt.length != 0) {
-                      btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
-                    }
-                    api.sendMessage({
-                      body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
-                      mentions: [{
-                        tag: "@" + global.data.cacheName["FB-" + message.senderID],
-                        id: message.senderID,
-                        fromIndex: 0
-                      }],
-                      attachment: att
-                    }, message.threadID, function (err) {
-                      if (err) {
-                        log("[Facebook]", err);
-                      } else {
-                        api.markAsRead(message.threadID);
-                      }
-                    });
-                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
-                  } else {
-                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
-                  }
-                  fs.writeFileSync(__dirname + "/deletedmsg/" + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
-                  for (var id in global.data.messageList) {
-                    if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
-                      delete global.data.messageList[id];
-                    }
-                  }
-                } else {
-                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + ". (" + message.messageID + ")");
-                }
-                break;
-              case "message_reply":
-                if (global.config.enableThanosTimeGems) {
-                  global.data.messageList[message.messageID] = message;
-                  for (var id in global.data.messageList) {
-                    if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
-                      delete global.data.messageList[id];
-                    }
-                  }
-                }
-                for (var xzxz in message.messageReply.attachments) {
-                  if (message.messageReply.attachments[xzxz].error) {
-                    fs.writeFileSync(__dirname + '/logs/message-error-' + message.messageID + ".json", JSON.stringify(message, null, 4));
-                  }
-                }
-                setTimeout(function () {
-                  api.markAsRead(message.threadID);
-                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                    return !(el == null || el == "" || el == " ");
-                  });
-                  arg.map(xy => xy.replace(/["]/g, ""));
-                  if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
-                    api.getThreadInfo(message.threadID, function (err, data) {
-                      var participants = data.participantIDs;
-                      var character = "ͥ";
-                      var sendString = "";
-                      var mentionObj = [];
-                      var i = 0;
-                      for (var n in participants) {
-                        sendString += character;
-                        mentionObj.push({
-                          tag: character,
-                          id: participants[n],
-                          fromIndex: i
-                        });
-                        i++;
-                      }
-                      api.sendMessage({
-                        body: sendString,
-                        mentions: mentionObj
-                      }, message.threadID, function (err) {
-                        if (err) {
-                          log("[Facebook]", err);
-                        }
-                      }, message.messageID);
-                    });
-                  }
-
-                  try {
-                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
-                  } catch (ex) {
-                    log("[Facebook] ERROR on replymsg", message);
-                  }
-                }, 150);
-                break;
-              default:
-                break;
-            }
-          } else {
-            log("[Facebook]", "Detected undefined!", err);
-          }
-        } catch (ex) {
-          log("[Facebook]", ex, message);
-        }
-      });
-      log("[Facebook]", "Started Facebook listener");
-    }
-
-    consoles = function consoles() {
-      rl.question('console@c3c:js# ', (message) => {
-        log("[INTERNAL]", "CONSOLE issued javascript code:", message);
-        try {
-          log("[JAVASCRIPT]", eval(message));
-        } catch (ex) {
-          log("[JAVASCRIPT]", ex);
-        }
-        consoles();
-      });
-    }
-    consoles();
-
-    if (global.config.enableSSHRemoteConsole) {
-      var ssh2 = require('ssh2');
-      var hostkey = crypto.generateKeyPairSync('rsa', {
-        modulusLength: 4096,
-        publicKeyEncoding: {
-          type: 'spki',
-          format: 'pem'
-        },
-        privateKeyEncoding: {
-          type: 'pkcs1',
-          format: 'pem'
-        }
-      });
-      log("[SSH]", "Generated new keys.");
-      global.ssh2server = new ssh2.Server({
-        hostKeys: [hostkey.privateKey]
-      }, function connListener(client, conninfo) {
-        log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.header.versions.software);
-        client.on('authentication', function (ctx) {
-          var user = ctx.username;
-          if (user.length !== global.config.sshUsername.length ||
-            !(user == global.config.sshUsername)) {
-            log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username (", user, ")");
-            return ctx.reject([], false);
-          }
-          switch (ctx.method) {
-            case 'password':
-              var password = ctx.password;
-              if (password.length === global.config.sshPassword.length &&
-                password == global.config.sshPassword) {
-                return ctx.accept();
-              } else {
-                log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
-                return ctx.reject(["password"], false);
-              }
-            /* case 'publickey':
-            log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with public keys, which is not supported.");
-              return ctx.reject(); */
-            default:
-              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is authenticating with method:", ctx.method, ". Notifying client that a password is needed...");
-              return ctx.reject(["password"], true);
-          }
-        }).on('ready', function () {
-          log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated successfully.");
-          client.on('session', function (accept, reject) {
-            var session = accept();
-
-            //SFTP Protocol
-            session.on('sftp', function (accept, reject) {
-              log("[SSH]", conninfo.ip + ":" + conninfo.port, "requested to establish SFTP connection (File Editor).");
-              var sftpStream = accept();
-              var openFiles = {};
-              var fdmap = {};
-              var handleCount = 0;
-              sftpStream.on('OPEN', function (reqid, filename, flags, attrs) {
-                if (!fs.existsSync(__dirname + filename)) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename, ", which does not exist.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                } else {
-                  var handle = Buffer.alloc(4);
-                  handle.writeUInt32BE(fs.openSync(__dirname + filename, flags), 0);
-                  openFiles[handle.readUInt32BE(0)] = true;
-                  fdmap[handle.readUInt32BE(0)] = filename;
-                  sftpStream.handle(reqid, handle);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename, "( fd:", handle.readUInt32BE(0), ")");
-                }
-              }).on('STAT', function (reqid, path) {
-                if (!fs.existsSync(__dirname + path)) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path, ", which does not exist.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                } else {
-                  sftpStream.attrs(reqid, fs.statSync(__dirname + path))
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path);
-                }
-              }).on('LSTAT', function (reqid, path) {
-                if (!fs.existsSync(__dirname + path)) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path, ", which does not exist.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                } else {
-                  sftpStream.attrs(reqid, fs.lstatSync(__dirname + path))
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path);
-                }
-              }).on('MKDIR', function (reqid, path, attrs) {
-                if (fs.existsSync(__dirname + path)) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path, ", which exists.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                } else {
-                  try {
-                    fs.mkdirSync(__dirname + path);
-                    sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
-                    log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path);
-                  } catch (ex) {
-                    sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                    log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path, ", which can't be created. Additional information:", ex.toString());
-                  }
-                }
-              }).on('RENAME', function (reqid, oldpath, newpath) {
-                if (!fs.existsSync(__dirname + oldpath)) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming", path, ", which doesn't exists.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                } else {
-                  try {
-                    fs.renameSync(__dirname + oldpath, __dirname + newpath);
-                    sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
-                    log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming path", oldpath, "to", newpath);
-                  } catch (ex) {
-                    sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                    log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming path", path, ", which can't be renamed. Additional information:", ex.toString());
-                  }
-                }
-              }).on('READ', function (reqid, handle, offset, length) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }
-                try {
-                  var databuff = Buffer.alloc(length);
-                  var datasize = fs.readSync(handle.readUInt32BE(0), databuff, offset, length);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], "with offset =", offset, ", length = ", length);
-                  sftpStream.data(reqid, databuff);
-                  if (datasize < length) {
-                    sftpStream.status(reqid, sftpStream.STATUS_CODE.EOF);
-                  }
-                } catch (ex) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], ", which cannot be read. Additional information:", ex.toString());
-                  sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }
-              }).on('WRITE', function (reqid, handle, offset, data) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }
-
-                try {
-                  fs.writeSync(handle.readUInt32BE(0), data, offset);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)]);
-                  sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
-                } catch (ex) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)], ", which cannot be writen. Additional information:", ex.toString());
-                  sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }
-              }).on('FSTAT', function (reqid, handle) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }
-
-                try {
-                  sftpStream.attrs(reqid, fs.fstatSync(handle.readUInt32BE(0)));
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)]);
-                } catch (ex) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which cannot be read. Additional information:", ex.toString());
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }
-              }).on('FSETSTAT', function (reqid, handle, attrs) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }
-                log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which cannot be writen (because no)");
-                return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-              }).on('CLOSE', function (reqid, handle) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file descriptor", handle.readUInt32BE(0), ", which does not exist.");
-                  return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                }
-                try {
-                  fs.closeSync(handle.readUInt32BE(0));
-                  delete openFiles[handle.readUInt32BE(0)];
-                  sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file", fdmap[handle.readUInt32BE(0)], ".");
-                  delete fdmap[handle.readUInt32BE(0)];
-                } catch (ex) {
-                  sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file", fdmap[handle.readUInt32BE(0)], ", but can't be closed. Additional information:", ex.toString());
-                }
+            setTimeout(function () {
+              api.markAsRead(message.threadID);
+              var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                return !(el == null || el == "" || el == " ");
               });
-            });
-
-            //SSH Shell
-            session.once('shell', function (accept, reject) {
-              log("[SSH]", conninfo.ip + ":" + conninfo.port, "requested a shell (Remote Console).");
-              global.sshstream[conninfo.ip + ":" + conninfo.port] = accept();
-              global.sshstream[conninfo.ip + ":" + conninfo.port].write('\u001B[2J\u001B[0;0f');
-              global.sshstream[conninfo.ip + ":" + conninfo.port].write(global.config.botname + " v" + version + (global.config.botname != "C3CBot" ? "(Powered by C3C)" : ""));
-              global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
-              global.sshstream[conninfo.ip + ":" + conninfo.port].write("https://github.com/lequanglam/c3c");
-              global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
-              global.sshstream[conninfo.ip + ":" + conninfo.port].write("---------------------------------< EOH");
-              global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
-
-              var sshrl = readline.createInterface({
-                input: global.sshstream[conninfo.ip + ":" + conninfo.port].stdin,
-                output: global.sshstream[conninfo.ip + ":" + conninfo.port].stdout,
-                terminal: true,
-                prompt: ""
-              });
-              global.sshcurrsession[conninfo.ip + ":" + conninfo.port] = sshrl;
-              var consolessh = function consolessh() {
-                // eslint-disable-next-line no-extra-boolean-cast
-                if (!!global.sshcurrsession[conninfo.ip + ":" + conninfo.port]) {
-                  sshrl.question('ssh@c3c:js# ', (message) => {
-                    log("[INTERNAL]", conninfo.ip + ":" + conninfo.port, "issued javascript code:", message);
-                    try {
-                      log("[SSH-JAVASCRIPT]", eval(message));
-                    } catch (ex) {
-                      log("[SSH-JAVASCRIPT]", ex);
-                    }
-                    consolessh();
-                  });
-                }
-              }
-              consolessh();
-
-              // process.stdout.pipe(stream, {end: false});
-              // stream.pipe(process.stdin, {end: false});
-            });
-          });
-        }).on('end', function () {
-          delete global.sshcurrsession[conninfo.ip + ":" + conninfo.port];
-          delete global.sshstream[conninfo.ip + ":" + conninfo.port];
-          log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");
-        }).on('error', function (err) {
-          log("[SSH]", "ERR!", err);
-          delete global.sshcurrsession[conninfo.ip + ":" + conninfo.port];
-          delete global.sshstream[conninfo.ip + ":" + conninfo.port];
-        });
-      }).on('error', function (err) {
-        log("[SSH]", "ERR!", err);
-      }).listen(global.config.sshRemoteConsolePort, global.config.sshRemoteConsoleIP, function () {
-        log("[SSH]", "Listening for SSH connection at", this.address().address + ":" + this.address().port);
-      });
-    }
-
-    !global.data.cacheName ? global.data.cacheName = {} : "";
-    !global.data.thanosBlacklist ? global.data.thanosBlacklist = {} : "";
-
-    if (global.config.enablefb) {
-      var temporaryAppState = {};
-      var fbloginobj = {};
-      fbloginobj.email = global.config.fbemail;
-      fbloginobj.password = global.config.fbpassword;
-      if (global.config.usefbappstate && fs.existsSync(__dirname + "/fbstate.json")) {
-        fbloginobj.appState = JSON.parse(fs.readFileSync(__dirname + "/fbstate.json", 'utf8'));
-      }
-      try {
-        log("[Facebook]", "Logging in...");
-        var fbinstance = require("fca-unofficial")(fbloginobj, {
-          userAgent: global.config.fbuseragent,
-          logLevel: global.config.DEBUG_FCA_LOGLEVEL,
-          selfListen: true,
-          listenEvents: true
-        }, facebookcb);
-        fbloginobj = undefined;
-        forceReconnect = function forceReconnect() {
-          log("[Facebook]", "6 hours has passed. Destroying FCA instance and creating a new one...");
-          if (facebook.listener) {
-            facebook.listener();
-            log("[Facebook]", "Stopped Facebook listener");
-            temporaryAppState = facebook.api.getAppState();
-          }
-          try {
-            clearInterval(facebook.removePendingClock);
-          } catch (ex) { }
-          fbinstance = undefined;
-          fbinstance = require("fca-unofficial")({
-            appState: temporaryAppState
-          }, {
-            userAgent: global.config.fbuseragent,
-            logLevel: global.config.DEBUG_FCA_LOGLEVEL,
-            selfListen: true,
-            listenEvents: true
-          }, facebookcb);
-          log("[Facebook]", "New instance created.");
-          log("[Facebook]", "Logging in...");
-          setTimeout(function (fr) {
-            if (facebook.error && !facebook.listener) {
-              log("[Facebook]", "Detected error. Attempting to reconnect...");
-              fr();
-            }
-          }, 30000, forceReconnect);
-        }
-        setInterval(forceReconnect, 21600000);
-      } catch (ex) {
-        log("[Facebook]", "Error found in codebase:", ex);
-      }
-    }
-
-    if (global.config.enablediscord) {
-      const Discord = require('discord.js');
-      client = new Discord.Client();
-      client.on('ready', () => {
-        log("[Discord]", "Logged in as", client.user.tag + ".");
-      });
-      client.on('error', error => {
-        log("[Discord]", "Crashed with error: ", error);
-        log("[Discord]", "Trying to reconnect... Some commands might not work correctly.");
-      });
-
-      discordMessageHandler = function (message) {
-        if (message.content.startsWith("/")) {
-          if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) || (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) && message.author.tag != client.user.tag && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, ("DC-" + message.author.id))) {
-            log("[Discord]", message.author.id, "(" + message.author.tag + ")", "issued command in", message.channel.id + " (" + message.channel.name + "):", message.content, (message.attachments.size > 0 ? message.attachments : ""));
-            var currenttime = new Date();
-            var arg = message.content.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-              return !(el == null || el == "" || el == " ");
-            });
-            arg.map(xy => xy.replace(/[\"]/g, ""));
-            if (global.commandMapping[arg[0].substr(1)]) {
-              if (!(global.commandMapping[arg[0].substr(1)].compatibly & 2) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                message.reply("\r\n" + prefix + " " + global.lang["UNSUPPORTED_INTERFACE"]);
-              } else {
-                var admin = false;
-                for (var no in global.config.admins) {
-                  if (global.config.admins[no] == "DC-" + message.author.id) {
-                    admin = true;
+              arg.map(xy => xy.replace(/["]/g, ""));
+              if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
+                api.getThreadInfo(message.threadID, function (err, data) {
+                  var participants = data.participantIDs;
+                  var character = "ͥ";
+                  var sendString = "";
+                  var mentionObj = [];
+                  var i = 0;
+                  for (var n in participants) {
+                    sendString += character;
+                    mentionObj.push({
+                      tag: character,
+                      id: participants[n],
+                      fromIndex: i
+                    });
+                    i++;
                   }
-                }
-                global.data.cacheName["DC-" + message.author.id] = message.author.tag;
-                var mentions = {};
-                message.mentions.users.forEach(function (y, x) {
-                  mentions["DC-" + x] = y;
-                  global.data.cacheName["DC-" + x] = y.username + "#" + y.discrimator;
+                  api.sendMessage({
+                    body: sendString,
+                    mentions: mentionObj
+                  }, message.threadID, function (err) {
+                    if (err) {
+                      log("[Facebook]", "@everyone errored:", err);
+                    }
+                  }, message.messageID);
                 });
-                try {
-                  if (facebook) {
-                    if (!facebook.api) {
-                      facebook.api = {}
+              }
+              if (message.body.startsWith("/")) {
+                if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
+                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
+                  var receivetime = new Date();
+                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                    return !(el == null || el == "" || el == " ");
+                  });
+                  arg.map(xy => xy.replace(/["]/g, ""));
+                  var toarg = arg;
+                  if (global.commandMapping[arg[0].substr(1)]) {
+                    if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
+                      api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
+                    } else {
+                      var argv = JSON.parse(JSON.stringify(arg));
+                      var admin = false;
+                      for (var no in global.config.admins) {
+                        if (global.config.admins[no] == "FB-" + message.senderID) {
+                          admin = true;
+                        }
+                      }
+                      var mentions = {};
+                      for (var y in message.mentions) {
+                        mentions["FB-" + y] = message.mentions[y];
+                      }
+                      try {
+                        if (!client) {
+                          client = undefined
+                        }
+                        var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                          args: argv,
+                          time: receivetime,
+                          msgdata: message,
+                          facebookapi: api,
+                          discordapi: client,
+                          prefix: prefix,
+                          admin: admin,
+                          mentions: mentions,
+                          log: function logPlugin(...message) {
+                            log.apply(global, [
+                              "[PLUGIN]",
+                              "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                            ].concat(message));
+                          }
+                        });
+                        if (!returndata) return undefined;
+                        if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                          var endTyping = api.sendTypingIndicator(message.threadID);
+                          setTimeout(function (api, returndata, endTyping, message) {
+                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
+                            endTyping();
+                            setTimeout(function (api, message) {
+                              api.markAsRead(message.threadID);
+                            }, 500, api, message);
+                          }, returndata.data.length * 30, api, returndata, endTyping, message);
+                        } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                          if (!returndata.data.body) {
+                            returndata.data.body = "";
+                          }
+                          returndata.data.body = prefix + " " + returndata.data.body;
+                          var endTyping = api.sendTypingIndicator(message.threadID);
+                          setTimeout(function (api, returndata, endTyping, message, log) {
+                            api.sendMessage(returndata.data, message.threadID, function (err) {
+                              if (err) {
+                                log("[Facebook]", err);
+                              }
+                            }, message.messageID);
+                            endTyping();
+                            setTimeout(function (api, message) {
+                              api.markAsRead(message.threadID);
+                            }, 500, api, message);
+                          }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                        }
+                      } catch (ex) {
+                        try {
+                          log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
+                        } catch (exp) {
+                          log("[INTERNAL]", toarg[0], "contain an error:", ex);
+                        }
+                      }
                     }
                   } else {
-                    facebook = {};
-                    facebook.api = {};
+                    api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
                   }
-                  var returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
-                    args: arg,
-                    time: currenttime,
-                    msgdata: message,
-                    prefix: prefix,
-                    admin: admin,
-                    mentions: mentions,
-                    discordapi: client,
-                    facebookapi: facebook.api
+                } else {
+                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
+                }
+              } else {
+                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
+              }
+            }, 195);
+            break;
+          case "event":
+            log("[Facebook]", message);
+            try {
+              if (message.logMessageType == "log:subscribe") {
+                var containBot = false;
+                var botID = api.getCurrentUserID();
+                for (var n in message.logMessageData.addedParticipants) {
+                  if (message.logMessageData.addedParticipants[n].userFbId == botID) {
+                    containBot = true;
+                  }
+                }
+                if (containBot) {
+                  api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
+                  log("[Facebook]", message.author, "added Bot to", message.threadID);
+                }
+              }
+            } catch (ex) {
+              log("[Facebook]", ex);
+            }
+            break;
+          case "message_reaction":
+            log("[Facebook]", message);
+            break;
+          case "message_unsend":
+            if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
+              var removedMessage = global.data.messageList[message.messageID];
+              var attachmentArray = [];
+              for (var n in removedMessage.attachments) {
+                switch (removedMessage.attachments[n].type) {
+                  case "file":
+                    attachmentArray.push({
+                      type: removedMessage.attachments[n].type,
+                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                      name: removedMessage.attachments[n].filename
+                    });
+                    break;
+                  case "photo":
+                    attachmentArray.push({
+                      type: removedMessage.attachments[n].type,
+                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                      name: removedMessage.attachments[n].filename + ".png"
+                    });
+                    break;
+                  case "audio":
+                    attachmentArray.push({
+                      type: removedMessage.attachments[n].type,
+                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                      name: removedMessage.attachments[n].filename + ".mp3"
+                    });
+                    break;
+                  case "video":
+                    attachmentArray.push({
+                      type: removedMessage.attachments[n].type,
+                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                      name: removedMessage.attachments[n].filename + ".mp4"
+                    });
+                    break;
+                  case "animated_image":
+                    attachmentArray.push({
+                      type: removedMessage.attachments[n].type,
+                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                      name: removedMessage.attachments[n].filename + ".gif"
+                    });
+                    break;
+                  case "sticker":
+                    attachmentArray.push({
+                      type: removedMessage.attachments[n].type,
+                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                      name: removedMessage.attachments[n].ID + ".png"
+                    });
+                    break;
+                }
+              }
+              var att = [];
+              var bannedatt = [];
+              for (var n in attachmentArray) {
+                var imagesx = new streamBuffers.ReadableStreamBuffer({
+                  frequency: 10,
+                  chunkSize: 2048
+                });
+                imagesx.path = attachmentArray[n].name;
+                imagesx.put(attachmentArray[n].data);
+                imagesx.stop();
+                if ((attachmentArray[n].type == "photo" ||
+                  attachmentArray[n].type == "animated_image") && !global.data.thanosBlacklist[message.threadID]) {
+
+                  var image = new Image();
+                  image.src = attachmentArray[n].data;
+                  var cvs = new Canvas(image.width, image.height);
+                  var ctx = cvs.getContext("2d");
+                  ctx.drawImage(image, 0, 0);
+                  var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
+
+                  // eslint-disable-next-line no-loop-func
+                  var worker = new Worker(() => {
+                    onmessage = function (event) {
+                      var wait = require("wait-for-stuff");
+                      try {
+                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: (event.data.small ? 224 : 299) }));
+                      } catch (ex) {
+                        var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
+                      }
+                      var data = event.data;
+                      try {
+                        var cl = wait.for.promise(NSFWJS.classify({
+                          data: new Uint8Array(data.data),
+                          width: data.width,
+                          height: data.height
+                        }, 5));
+                        postMessage({
+                          class: cl,
+                          id: data.id
+                        });
+                      } catch (ex) {
+                        postMessage({
+                          error: ex.toString(),
+                          id: data.id
+                        });
+                      }
+                    }
+                  }, [], { silent: true });
+                  // eslint-disable-next-line no-loop-func
+                  worker.onmessage = function (event) {
+                    var data = event.data;
+                    Object.assign(global.nsfwjsdata[data.id], data);
+                    global.nsfwjsdata[data.id].complete = true;
+                    worker.terminate();
+                    // eslint-disable-next-line no-delete-var
+                    delete worker;
+                    if (data.error) {
+                      log("[Facebook]", "Error in image classifier:", data.error);
+                    }
+                  }
+
+                  var id = Date.now().toString() + "-" + random(0, 99).toString() + random(0, 99).toString() + Math.random().toString() + Math.random().toString();
+                  global.nsfwjsdata[id] = {};
+                  global.nsfwjsdata[id].complete = false;
+                  worker.postMessage({
+                    id: id,
+                    data: Array.from(imgdata1.data),
+                    width: imgdata1.width,
+                    height: imgdata1.height,
+                    small: global.config.nsfwjsSmallModel
                   });
-                  if (!returndata) return undefined;
-                  if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                    message.reply("\r\n" + prefix + " " + returndata.data);
-                  } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                    var body = returndata.data.body;
-                    delete returndata.data.body;
-                    message.reply("\r\n" + prefix + " " + body, returndata.data);
+
+                  wait.for.value(global.nsfwjsdata[id], "complete", true);
+                  var classing = global.nsfwjsdata[id].class;
+                  try {
+                    var classify = classing[0].className;
+                    var percentage = classing[0].probability * 100;
+                  } catch (ex) { }
+                  switch (classify) {
+                    case "Neutral":
+                    case "Drawing":
+                    case "Sexy":
+                      att.push(imagesx);
+                    // eslint-disable-next-line no-fallthrough
+                    case "Hentai":
+                    case "Porn":
+                      bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
+                      log("[Facebook]", "Removed image classified as:", classify);
+                      break;
+                    default:
+                      log("[Facebook]", "Invalid image classification:", classify, classing);
+                      att.push(imagesx);
                   }
-                } catch (ex) {
-                  log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
+                } else {
+                  att.push(imagesx);
+                }
+              }
+              if (!global.data.thanosBlacklist[message.threadID]) {
+                var btext = "";
+                if (bannedatt.length != 0) {
+                  btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
+                }
+                api.sendMessage({
+                  body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
+                  mentions: [{
+                    tag: "@" + global.data.cacheName["FB-" + message.senderID],
+                    id: message.senderID,
+                    fromIndex: 0
+                  }],
+                  attachment: att
+                }, message.threadID, function (err) {
+                  if (err) {
+                    log("[Facebook]", err);
+                  } else {
+                    api.markAsRead(message.threadID);
+                  }
+                });
+                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+              } else {
+                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
+              }
+              fs.writeFileSync(path.join(__dirname, "/deletedmsg/") + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
+              for (var id in global.data.messageList) {
+                if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
+                  delete global.data.messageList[id];
                 }
               }
             } else {
-              message.reply("\r\n" + prefix + " " + global.lang["UNKNOWN_CMD"]);
+              log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + ". (" + message.messageID + ")");
             }
-          } else {
-            log("[Discord]", message.author.id, "(" + message.author.tag + ")", (message.channel instanceof Discord.DMChannel ? "DMed:" : "messaged in channel " + message.channel.id + " (" + message.channel.name + "):"), message.content, (message.attachments.size > 0 ? message.attachments : ""));
-          }
-        } else {
-          log("[Discord]", message.author.id, "(" + message.author.tag + ")", (message.channel instanceof Discord.DMChannel ? "DMed:" : "messaged in channel " + message.channel.id + " (" + message.channel.name + "):"), message.content, (message.attachments.size > 0 ? message.attachments : ""));
-        }
-      }
-      client.on('message', discordMessageHandler);
-      log("[Discord]", "Logging in...");
-      client.login(global.config.discordtoken);
-    }
+            break;
+          case "message_reply":
+            if (global.config.enableThanosTimeGems) {
+              global.data.messageList[message.messageID] = message;
+              for (var id in global.data.messageList) {
+                if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
+                  delete global.data.messageList[id];
+                }
+              }
+            }
+            for (var xzxz in message.messageReply.attachments) {
+              if (message.messageReply.attachments[xzxz].error) {
+                fs.writeFileSync(path.join(__dirname, '/logs/message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
+              }
+            }
+            setTimeout(function () {
+              api.markAsRead(message.threadID);
+              var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                return !(el == null || el == "" || el == " ");
+              });
+              arg.map(xy => xy.replace(/["]/g, ""));
+              if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
+                api.getThreadInfo(message.threadID, function (err, data) {
+                  var participants = data.participantIDs;
+                  var character = "ͥ";
+                  var sendString = "";
+                  var mentionObj = [];
+                  var i = 0;
+                  for (var n in participants) {
+                    sendString += character;
+                    mentionObj.push({
+                      tag: character,
+                      id: participants[n],
+                      fromIndex: i
+                    });
+                    i++;
+                  }
+                  api.sendMessage({
+                    body: sendString,
+                    mentions: mentionObj
+                  }, message.threadID, function (err) {
+                    if (err) {
+                      log("[Facebook]", err);
+                    }
+                  }, message.messageID);
+                });
+              }
 
-    //Handling exit
-    var shutdownHandler = function (errorlevel) {
-      log("[INTERNAL]", "Detected process is shutting down, handling...");
-      //Stop Facebook listener
-      if (facebook.listener) {
+              try {
+                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
+              } catch (ex) {
+                log("[Facebook] ERROR on replymsg", message);
+              }
+            }, 150);
+            break;
+          default:
+            break;
+        }
+      } else {
+        log("[Facebook]", "Detected undefined!", err);
+      }
+    } catch (ex) {
+      log("[Facebook]", ex, message);
+    }
+  });
+  log("[Facebook]", "Started Facebook listener");
+}
+
+consoles = function consoles() {
+  rl.question('console@c3c:js# ', (message) => {
+    log("[INTERNAL]", "CONSOLE issued javascript code:", message);
+    try {
+      log("[JAVASCRIPT]", eval(message));
+    } catch (ex) {
+      log("[JAVASCRIPT]", ex);
+    }
+    consoles();
+  });
+}
+consoles();
+
+if (global.config.enableSSHRemoteConsole) {
+  var ssh2 = require('ssh2');
+  var hostkey = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 4096,
+    publicKeyEncoding: {
+      type: 'spki',
+      format: 'pem'
+    },
+    privateKeyEncoding: {
+      type: 'pkcs1',
+      format: 'pem'
+    }
+  });
+  log("[SSH]", "Generated new keys.");
+  global.ssh2server = new ssh2.Server({
+    hostKeys: [hostkey.privateKey]
+  }, function connListener(client, conninfo) {
+    log("[SSH]", conninfo.ip + ":" + conninfo.port, "connected with client named", conninfo.header.versions.software);
+    client.on('authentication', function (ctx) {
+      var user = ctx.username;
+      if (user.length !== global.config.sshUsername.length ||
+        !(user == global.config.sshUsername)) {
+        log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong username (", user, ")");
+        return ctx.reject([], false);
+      }
+      switch (ctx.method) {
+        case 'password':
+          var password = ctx.password;
+          if (password.length === global.config.sshPassword.length &&
+            password == global.config.sshPassword) {
+            return ctx.accept();
+          } else {
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with wrong password.");
+            return ctx.reject(["password"], false);
+          }
+        /* case 'publickey':
+        log("[SSH]", conninfo.ip + ":" + conninfo.port, "tried to authenticate with public keys, which is not supported.");
+          return ctx.reject(); */
+        default:
+          log("[SSH]", conninfo.ip + ":" + conninfo.port, "is authenticating with method:", ctx.method, ". Notifying client that a password is needed...");
+          return ctx.reject(["password"], true);
+      }
+    }).on('ready', function () {
+      log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated successfully.");
+      client.on('session', function (accept, reject) {
+        var session = accept();
+
+        //SFTP Protocol
+        session.on('sftp', function (accept, reject) {
+          log("[SSH]", conninfo.ip + ":" + conninfo.port, "requested to establish SFTP connection (File Editor).");
+          var sftpStream = accept();
+          var openFiles = {};
+          var fdmap = {};
+          var handleCount = 0;
+          sftpStream.on('OPEN', function (reqid, filename, flags, attrs) {
+            if (!fs.existsSync(__dirname + filename)) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename, ", which does not exist.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            } else {
+              var handle = Buffer.alloc(4);
+              handle.writeUInt32BE(fs.openSync(__dirname + filename, flags), 0);
+              openFiles[handle.readUInt32BE(0)] = true;
+              fdmap[handle.readUInt32BE(0)] = filename;
+              sftpStream.handle(reqid, handle);
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename, "( fd:", handle.readUInt32BE(0), ")");
+            }
+          }).on('STAT', function (reqid, path) {
+            if (!fs.existsSync(__dirname + path)) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path, ", which does not exist.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            } else {
+              sftpStream.attrs(reqid, fs.statSync(__dirname + path))
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path);
+            }
+          }).on('LSTAT', function (reqid, path) {
+            if (!fs.existsSync(__dirname + path)) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path, ", which does not exist.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            } else {
+              sftpStream.attrs(reqid, fs.lstatSync(__dirname + path))
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path);
+            }
+          }).on('MKDIR', function (reqid, path, attrs) {
+            if (fs.existsSync(__dirname + path)) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path, ", which exists.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            } else {
+              try {
+                fs.mkdirSync(__dirname + path);
+                sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path);
+              } catch (ex) {
+                sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path, ", which can't be created. Additional information:", ex.toString());
+              }
+            }
+          }).on('RENAME', function (reqid, oldpath, newpath) {
+            if (!fs.existsSync(__dirname + oldpath)) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming", path, ", which doesn't exists.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            } else {
+              try {
+                fs.renameSync(__dirname + oldpath, __dirname + newpath);
+                sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming path", oldpath, "to", newpath);
+              } catch (ex) {
+                sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming path", path, ", which can't be renamed. Additional information:", ex.toString());
+              }
+            }
+          }).on('READ', function (reqid, handle, offset, length) {
+            if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            }
+            try {
+              var databuff = Buffer.alloc(length);
+              var datasize = fs.readSync(handle.readUInt32BE(0), databuff, offset, length);
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], "with offset =", offset, ", length = ", length);
+              sftpStream.data(reqid, databuff);
+              if (datasize < length) {
+                sftpStream.status(reqid, sftpStream.STATUS_CODE.EOF);
+              }
+            } catch (ex) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], ", which cannot be read. Additional information:", ex.toString());
+              sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            }
+          }).on('WRITE', function (reqid, handle, offset, data) {
+            if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            }
+
+            try {
+              fs.writeSync(handle.readUInt32BE(0), data, offset);
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)]);
+              sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
+            } catch (ex) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)], ", which cannot be writen. Additional information:", ex.toString());
+              sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            }
+          }).on('FSTAT', function (reqid, handle) {
+            if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            }
+
+            try {
+              sftpStream.attrs(reqid, fs.fstatSync(handle.readUInt32BE(0)));
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)]);
+            } catch (ex) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which cannot be read. Additional information:", ex.toString());
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            }
+          }).on('FSETSTAT', function (reqid, handle, attrs) {
+            if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            }
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which cannot be writen (because no)");
+            return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+          }).on('CLOSE', function (reqid, handle) {
+            if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file descriptor", handle.readUInt32BE(0), ", which does not exist.");
+              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            }
+            try {
+              fs.closeSync(handle.readUInt32BE(0));
+              delete openFiles[handle.readUInt32BE(0)];
+              sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file", fdmap[handle.readUInt32BE(0)], ".");
+              delete fdmap[handle.readUInt32BE(0)];
+            } catch (ex) {
+              sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file", fdmap[handle.readUInt32BE(0)], ", but can't be closed. Additional information:", ex.toString());
+            }
+          });
+        });
+
+        //SSH Shell
+        session.once('shell', function (accept, reject) {
+          log("[SSH]", conninfo.ip + ":" + conninfo.port, "requested a shell (Remote Console).");
+          global.sshstream[conninfo.ip + ":" + conninfo.port] = accept();
+          global.sshstream[conninfo.ip + ":" + conninfo.port].write('\u001B[2J\u001B[0;0f');
+          global.sshstream[conninfo.ip + ":" + conninfo.port].write(global.config.botname + " v" + version + (global.config.botname != "C3CBot" ? "(Powered by C3C)" : ""));
+          global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
+          global.sshstream[conninfo.ip + ":" + conninfo.port].write("https://github.com/lequanglam/c3c");
+          global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
+          global.sshstream[conninfo.ip + ":" + conninfo.port].write("---------------------------------< EOH");
+          global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
+
+          var sshrl = readline.createInterface({
+            input: global.sshstream[conninfo.ip + ":" + conninfo.port].stdin,
+            output: global.sshstream[conninfo.ip + ":" + conninfo.port].stdout,
+            terminal: true,
+            prompt: ""
+          });
+          global.sshcurrsession[conninfo.ip + ":" + conninfo.port] = sshrl;
+          var consolessh = function consolessh() {
+            // eslint-disable-next-line no-extra-boolean-cast
+            if (!!global.sshcurrsession[conninfo.ip + ":" + conninfo.port]) {
+              sshrl.question('ssh@c3c:js# ', (message) => {
+                log("[INTERNAL]", conninfo.ip + ":" + conninfo.port, "issued javascript code:", message);
+                try {
+                  log("[SSH-JAVASCRIPT]", eval(message));
+                } catch (ex) {
+                  log("[SSH-JAVASCRIPT]", ex);
+                }
+                consolessh();
+              });
+            }
+          }
+          consolessh();
+
+          // process.stdout.pipe(stream, {end: false});
+          // stream.pipe(process.stdin, {end: false});
+        });
+      });
+    }).on('end', function () {
+      delete global.sshcurrsession[conninfo.ip + ":" + conninfo.port];
+      delete global.sshstream[conninfo.ip + ":" + conninfo.port];
+      log("[SSH]", conninfo.ip + ":" + conninfo.port, "disconnected.");
+    }).on('error', function (err) {
+      log("[SSH]", "ERR!", err);
+      delete global.sshcurrsession[conninfo.ip + ":" + conninfo.port];
+      delete global.sshstream[conninfo.ip + ":" + conninfo.port];
+    });
+  }).on('error', function (err) {
+    log("[SSH]", "ERR!", err);
+  }).listen(global.config.sshRemoteConsolePort, global.config.sshRemoteConsoleIP, function () {
+    log("[SSH]", "Listening for SSH connection at", this.address().address + ":" + this.address().port);
+  });
+}
+
+!global.data.cacheName ? global.data.cacheName = {} : "";
+!global.data.thanosBlacklist ? global.data.thanosBlacklist = {} : "";
+
+if (global.config.enablefb) {
+  var temporaryAppState = {};
+  var fbloginobj = {};
+  fbloginobj.email = global.config.fbemail;
+  fbloginobj.password = global.config.fbpassword;
+  if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "/fbstate.json"))) {
+    fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "/fbstate.json"), 'utf8'));
+  }
+  try {
+    log("[Facebook]", "Logging in...");
+    var fbinstance = require("fca-unofficial")(fbloginobj, {
+      userAgent: global.config.fbuseragent,
+      logLevel: global.config.DEBUG_FCA_LOGLEVEL,
+      selfListen: true,
+      listenEvents: true
+    }, facebookcb);
+    forceReconnect = function forceReconnect(error) {
+      if (!error) {
+        log("[Facebook]", "6 hours has passed. Destroying FCA instance and creating a new one...");
+      }
+      if (typeof facebook.listener == "function") {
         facebook.listener();
         log("[Facebook]", "Stopped Facebook listener");
+        temporaryAppState = facebook.api.getAppState();
       }
-      //Stop Discord listener and destroy Discord client
-      if (global.config.enablediscord) {
-        client.removeListener('message', discordMessageHandler);
-        log("[Discord]", "Stopped Discord listener");
-        client.destroy();
-        log("[Discord]", "Logged out and destroyed client.");
-      }
-      //Logout if don't use appstates
-      if (!global.config.usefbappstate && !!facebook.api) {
-        facebook.api.logout();
-        log("[Facebook]", "Logged out");
-      }
-      //Stop auto-saving
       try {
-        clearInterval(autosave);
-        log("[INTERNAL]", "Stopped auto-save.");
-      } catch (ex) {
-        log("[INTERNAL]", ex);
-      }
-      //Unload all plugins 
-      for (var name in global.loadedPlugins) {
-        log("[INTERNAL]", "Attempting to unload plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
-        for (var cmd in global.commandMapping) {
-          if (global.commandMapping[cmd].handler == name) {
-            delete global.commandMapping[cmd];
-          }
+        clearInterval(facebook.removePendingClock);
+      } catch (ex) { }
+      fbinstance = undefined;
+      fbinstance = require("fca-unofficial")({
+        appState: temporaryAppState
+      }, {
+        userAgent: global.config.fbuseragent,
+        logLevel: global.config.DEBUG_FCA_LOGLEVEL,
+        selfListen: true,
+        listenEvents: true
+      }, facebookcb);
+      log("[Facebook]", "New instance created.");
+      log("[Facebook]", "Logging in...");
+      setTimeout(function (fr) {
+        if (facebook.error && !facebook.listener) {
+          log("[Facebook]", "Detected error. Attempting to reconnect...");
+          fr(true);
         }
-        delete global.plugins[pltemp1[name]["plugin_scope"]];
-        log("[INTERNAL]", "Unloaded plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
-        delete global.loadedPlugins[name];
-      }
-
-      //Save for the last time
-      if (testmode) {
-        fs.writeFileSync(__dirname + "/data-test.json", JSON.stringify(global.data, null, 4));
-      } else {
-        fs.writeFileSync(__dirname + "/data.json", JSON.stringify(global.data, null, 4));
-      }
-      log("[INTERNAL]", "Saved data");
-
-      //Close SSH connections
-      for (var conn in global.sshstream) {
-        try {
-          global.sshstream[conn].close();
-        } catch (ex) {
-          log("[SSH]", conn, "is already closed. Skipping...");
-        }
-      }
-
-      //Stop model server
-      NSFWJS_MODEL_PROCESSES.stop();
-      log("[INTERNAL]", "Closed HTTP Model Server.");
-
-      //All finished, kill the process!
-      log("[INTERNAL]", "Closing bot with code " + errorlevel + "...");
+      }, 30000, forceReconnect);
     }
-    //Handle SIGINT and SIGTERM
-    var signalHandler = function (signal) {
-      log("[INTERNAL]", signal, "detected, triggering exit function...");
-      process.exit();
-    }
-
-    process.on('SIGTERM', function () { signalHandler("SIGTERM"); }); //Ctrl+C but not on Windows?
-    process.on('SIGINT', function () { signalHandler("SIGINT"); }); //Ctrl+C?
-    process.on('SIGHUP', function () { signalHandler("SIGHUP"); }); //Windows Command Prompt close button?
-    rl.on('SIGTERM', function () { process.emit('SIGTERM'); });
-    rl.on('SIGINT', function () { process.emit('SIGINT'); });
-    process.on('exit', shutdownHandler);
-  } else {
-    setTimeout(temp5, 1000);
+    setInterval(forceReconnect, 21600000);
+  } catch (ex) {
+    log("[Facebook]", "Error found in codebase:", ex);
   }
 }
-temp5();
+
+if (global.config.enablediscord) {
+  const Discord = require('discord.js');
+  client = new Discord.Client();
+  client.on('ready', () => {
+    log("[Discord]", "Logged in as", client.user.tag + ".");
+  });
+  client.on('error', error => {
+    log("[Discord]", "Crashed with error: ", error);
+    log("[Discord]", "Trying to reconnect... Some commands might not work correctly.");
+  });
+
+  discordMessageHandler = function (message) {
+    if (message.content.startsWith("/")) {
+      if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) || (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) && message.author.tag != client.user.tag && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, ("DC-" + message.author.id))) {
+        log("[Discord]", message.author.id, "(" + message.author.tag + ")", "issued command in", message.channel.id + " (" + message.channel.name + "):", message.content, (message.attachments.size > 0 ? message.attachments : ""));
+        var currenttime = new Date();
+        var arg = message.content.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+          return !(el == null || el == "" || el == " ");
+        });
+        arg.map(xy => xy.replace(/["]/g, ""));
+        if (global.commandMapping[arg[0].substr(1)]) {
+          if (!(global.commandMapping[arg[0].substr(1)].compatibly & 2) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
+            message.reply("\r\n" + prefix + " " + global.lang["UNSUPPORTED_INTERFACE"]);
+          } else {
+            var admin = false;
+            for (var no in global.config.admins) {
+              if (global.config.admins[no] == "DC-" + message.author.id) {
+                admin = true;
+              }
+            }
+            global.data.cacheName["DC-" + message.author.id] = message.author.tag;
+            var mentions = {};
+            message.mentions.users.forEach(function (y, x) {
+              mentions["DC-" + x] = y;
+              global.data.cacheName["DC-" + x] = y.username + "#" + y.discrimator;
+            });
+            try {
+              if (facebook) {
+                if (!facebook.api) {
+                  facebook.api = {}
+                }
+              } else {
+                facebook = {};
+                facebook.api = {};
+              }
+              var returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
+                args: arg,
+                time: currenttime,
+                msgdata: message,
+                prefix: prefix,
+                admin: admin,
+                mentions: mentions,
+                discordapi: client,
+                facebookapi: facebook.api
+              });
+              if (!returndata) return undefined;
+              if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                message.reply("\r\n" + prefix + " " + returndata.data);
+              } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                var body = returndata.data.body;
+                delete returndata.data.body;
+                message.reply("\r\n" + prefix + " " + body, returndata.data);
+              }
+            } catch (ex) {
+              log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
+            }
+          }
+        } else {
+          message.reply("\r\n" + prefix + " " + global.lang["UNKNOWN_CMD"]);
+        }
+      } else {
+        log("[Discord]", message.author.id, "(" + message.author.tag + ")", (message.channel instanceof Discord.DMChannel ? "DMed:" : "messaged in channel " + message.channel.id + " (" + message.channel.name + "):"), message.content, (message.attachments.size > 0 ? message.attachments : ""));
+      }
+    } else {
+      log("[Discord]", message.author.id, "(" + message.author.tag + ")", (message.channel instanceof Discord.DMChannel ? "DMed:" : "messaged in channel " + message.channel.id + " (" + message.channel.name + "):"), message.content, (message.attachments.size > 0 ? message.attachments : ""));
+    }
+  }
+  client.on('message', discordMessageHandler);
+  log("[Discord]", "Logging in...");
+  client.login(global.config.discordtoken);
+  global.config.discordtoken = "<censored, security measures>"
+}
+
+//Handling exit
+var shutdownHandler = function (errorlevel) {
+  log("[INTERNAL]", "Detected process is shutting down, handling...");
+  //Stop Facebook listener
+  if (facebook.listener) {
+    facebook.listener();
+    log("[Facebook]", "Stopped Facebook listener");
+  }
+  //Stop Discord listener and destroy Discord client
+  if (global.config.enablediscord) {
+    client.removeListener('message', discordMessageHandler);
+    log("[Discord]", "Stopped Discord listener");
+    client.destroy();
+    log("[Discord]", "Logged out and destroyed client.");
+  }
+  //Logout if don't use appstates
+  if (!global.config.usefbappstate && facebook.api) {
+    facebook.api.logout();
+    log("[Facebook]", "Logged out");
+  }
+  //Stop auto-saving
+  try {
+    clearInterval(autosave);
+    log("[INTERNAL]", "Stopped auto-save.");
+  } catch (ex) {
+    log("[INTERNAL]", ex);
+  }
+  //Unload all plugins 
+  unloadPlugin();
+
+  //Save for the last time
+  if (testmode) {
+    fs.writeFileSync(path.join(__dirname, "/data-test.json"), JSON.stringify(global.data, null, 4));
+  } else {
+    fs.writeFileSync(path.join(__dirname, "/data.json"), JSON.stringify(global.data, null, 4));
+  }
+  log("[INTERNAL]", "Saved data");
+
+  //Close SSH connections
+  for (var conn in global.sshstream) {
+    try {
+      global.sshstream[conn].close();
+    } catch (ex) {
+      log("[SSH]", conn, "is already closed. Skipping...");
+    }
+  }
+
+  //Stop model server
+  NSFWJS_MODEL_PROCESSES.stop();
+  log("[INTERNAL]", "Closed HTTP Model Server.");
+
+  log("[INTERNAL]", "Closing bot with code " + errorlevel + "..." + "\x1b[m");
+}
+//Handle SIGINT and SIGTERM
+var signalHandler = function (signal) {
+  log("[INTERNAL]", signal, "detected, triggering exit function...");
+  process.exit();
+}
+
+process.on('SIGTERM', function () { signalHandler("SIGTERM"); }); //Ctrl+C but not on Windows?
+process.on('SIGINT', function () { signalHandler("SIGINT"); }); //Ctrl+C?
+process.on('SIGHUP', function () { signalHandler("SIGHUP"); }); //Windows Command Prompt close button?
+rl.on('SIGTERM', function () { process.emit('SIGTERM'); });
+rl.on('SIGINT', function () { process.emit('SIGINT'); });
+process.on('exit', shutdownHandler);
