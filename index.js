@@ -613,11 +613,11 @@ var autosave = setInterval(function (testmode, log) {
     global.isDataSaving = true;
     try {
       if (testmode) {
-        fs.writeFileSync(path.join(__dirname, "/data-test-temp.json"), JSON.stringify(global.data, null, 4));
-        fs.renameSync(path.join(__dirname, "/data-test-temp.json", __dirname + "/data-test.json"));
+        fs.writeFileSync(path.join(__dirname, "data-test-temp.json"), JSON.stringify(global.data, null, 4));
+        fs.renameSync(path.join(__dirname, "data-test-temp.json"), path.join(__dirname + "data-test.json"));
       } else {
-        fs.writeFileSync(path.join(__dirname, "/data-temp.json"), JSON.stringify(global.data, null, 4));
-        fs.renameSync(path.join(__dirname, "/data-temp.json", __dirname + "/data.json"));
+        fs.writeFileSync(path.join(__dirname, "data-temp.json"), JSON.stringify(global.data, null, 4));
+        fs.renameSync(path.join(__dirname, "data-temp.json"), path.join(__dirname + "data.json"));
       }
     } catch (err) {
       log("[INTERNAL]", "Auto-save encounted an error:", err);
@@ -735,8 +735,8 @@ function requireFromString(src, filename) {
 
 //Plugin Load
 
-ensureExists(path.join(__dirname, "/deletedmsg/"));
-ensureExists(path.join(__dirname, "/plugins/"));
+ensureExists(path.join(__dirname, "deletedmsg/"));
+ensureExists(path.join(__dirname, "plugins/"));
 
 function loadPlugin() {
   global.plugins = {}; //Plugin Scope
@@ -748,7 +748,7 @@ function loadPlugin() {
   !global.commandMapping ? global.commandMapping = {} : "";
 
   log("[INTERNAL]", "Searching for plugins in ./plugins/ ...");
-  var pluginFileList = findFromDir(path.join(__dirname, "/plugins/"), /.*\.z3p$/, true, false);
+  var pluginFileList = findFromDir(path.join(__dirname, "plugins/"), /.*\.z3p$/, true, false);
   for (var n in pluginFileList) {
     try {
       var zip = new StreamZip({
@@ -1094,7 +1094,7 @@ facebookcb = function callback(err, api) {
   facebook.api = api;
   if (global.config.usefbappstate) {
     try {
-      fs.writeFileSync(path.join(__dirname, "/fbstate.json"), JSON.stringify(api.getAppState()));
+      fs.writeFileSync(path.join(__dirname, "fbstate.json"), JSON.stringify(api.getAppState()));
     } catch (ex) {
       log("[INTERNAL]", ex);
     }
@@ -1495,7 +1495,7 @@ facebookcb = function callback(err, api) {
               } else {
                 log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
               }
-              fs.writeFileSync(path.join(__dirname, "/deletedmsg/") + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
+              fs.writeFileSync(path.join(__dirname, "deletedmsg/") + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
               for (var id in global.data.messageList) {
                 if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
                   delete global.data.messageList[id];
@@ -1516,7 +1516,7 @@ facebookcb = function callback(err, api) {
             }
             for (var xzxz in message.messageReply.attachments) {
               if (message.messageReply.attachments[xzxz].error) {
-                fs.writeFileSync(path.join(__dirname, '/logs/message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
+                fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
               }
             }
             setTimeout(function () {
