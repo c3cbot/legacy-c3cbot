@@ -1853,7 +1853,9 @@ if (global.config.enablefb) {
       userAgent: global.config.fbuseragent,
       logLevel: global.config.DEBUG_FCA_LOGLEVEL,
       selfListen: true,
-      listenEvents: true
+      listenEvents: true,
+      updatePresence: false,
+      autoMarkRead: true
     }, facebookcb);
     forceReconnect = function forceReconnect(error) {
       if (!error) {
