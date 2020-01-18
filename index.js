@@ -1420,15 +1420,20 @@ facebookcb = function callback(err, api) {
                       }
                     }
                   }, [], { silent: true });
+                  var z = 0;
                   worker.onmessage = function (event) {
                     var data = event.data;
                     Object.assign(global.nsfwjsdata[data.id], data);
                     global.nsfwjsdata[data.id].complete = true;
+                    z--;
+                    if (z == 0) {
+                      worker.terminate();
+                    }
                     if (data.error) {
                       log("[Facebook]", "Error in image classifier:", data.error);
                     }
                   }
-                  var z = 0;
+                  var idlist = [];
                   for (var n in attachmentArray) {
                     var imagesx = new streamBuffers.ReadableStreamBuffer({
                       frequency: 10,
@@ -1457,34 +1462,32 @@ facebookcb = function callback(err, api) {
                         height: imgdata1.height,
                         small: global.config.nsfwjsSmallModel
                       });
-
-                      wait.for.value(global.nsfwjsdata[id], "complete", true);
-                      z--;
-                      if (z == 0) {
-                        worker.terminate();
-                      }
-                      var classing = global.nsfwjsdata[id].class;
-                      try {
-                        var classify = classing[0].className;
-                        var percentage = classing[0].probability * 100;
-                      } catch (ex) { }
-                      switch (classify) {
-                        case "Neutral":
-                        case "Drawing":
-                        case "Sexy":
-                          att.push(imagesx);
-                        // eslint-disable-next-line no-fallthrough
-                        case "Hentai":
-                        case "Porn":
-                          bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
-                          log("[Facebook]", "Removed image classified as:", classify);
-                          break;
-                        default:
-                          log("[Facebook]", "Invalid image classification:", classify, classing);
-                          att.push(imagesx);
-                      }
                     } else {
                       att.push(imagesx);
+                    }
+                  }
+                  for (var id in idlist) {
+                    // eslint-disable-next-line no-loop-func
+                    wait.for.condition(() => global.nsfwjsdata[id].complete);
+                    var classing = global.nsfwjsdata[id].class;
+                    try {
+                      var classify = classing[0].className;
+                      var percentage = classing[0].probability * 100;
+                    } catch (ex) { }
+                    switch (classify) {
+                      case "Neutral":
+                      case "Drawing":
+                      case "Sexy":
+                        att.push(imagesx);
+                      // eslint-disable-next-line no-fallthrough
+                      case "Hentai":
+                      case "Porn":
+                        bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
+                        log("[Facebook]", "Removed image classified as:", classify);
+                        break;
+                      default:
+                        log("[Facebook]", "Invalid image classification:", classify, classing);
+                        att.push(imagesx);
                     }
                   }
 
