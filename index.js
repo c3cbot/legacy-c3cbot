@@ -1192,7 +1192,7 @@ facebookcb = function callback(err, api) {
               }
             }
             setTimeout(function () {
-              api.markAsRead(message.threadID);
+              //api.markAsRead(message.threadID);
               var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                 return !(el == null || el == "" || el == " ");
               });
@@ -1276,9 +1276,9 @@ facebookcb = function callback(err, api) {
                             setTimeout(function (api, returndata, endTyping, message) {
                               api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
                               endTyping();
-                              setTimeout(function (api, message) {
-                                api.markAsRead(message.threadID);
-                              }, 500, api, message);
+                              //setTimeout(function (api, message) {
+                              //  api.markAsRead(message.threadID);
+                              //}, 500, api, message);
                             }, returndata.data.length * 30, api, returndata, endTyping, message);
                           } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
                             if (!returndata.data.body) {
@@ -1293,9 +1293,9 @@ facebookcb = function callback(err, api) {
                                 }
                               }, message.messageID);
                               endTyping();
-                              setTimeout(function (api, message) {
-                                api.markAsRead(message.threadID);
-                              }, 500, api, message);
+                              //setTimeout(function (api, message) {
+                              //  api.markAsRead(message.threadID);
+                              //}, 500, api, message);
                             }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                           }
                         });
@@ -1504,9 +1504,9 @@ facebookcb = function callback(err, api) {
                 }, message.threadID, function (err) {
                   if (err) {
                     log("[Facebook]", err);
-                  } else {
-                    api.markAsRead(message.threadID);
-                  }
+                  } //else {
+                    //api.markAsRead(message.threadID);
+                  //}
                 });
                 log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
               } else {
@@ -1537,7 +1537,7 @@ facebookcb = function callback(err, api) {
               }
             }
             setTimeout(function () {
-              api.markAsRead(message.threadID);
+              //api.markAsRead(message.threadID);
               var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                 return !(el == null || el == "" || el == " ");
               });
@@ -1875,7 +1875,8 @@ if (global.config.enablefb) {
         logLevel: global.config.DEBUG_FCA_LOGLEVEL,
         selfListen: true,
         listenEvents: true,
-        updatePresence: false
+        updatePresence: false,
+        autoMarkRead: true
       }, facebookcb);
       log("[Facebook]", "New instance created.");
       log("[Facebook]", "Logging in...");
