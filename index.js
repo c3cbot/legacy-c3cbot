@@ -1859,7 +1859,7 @@ if (global.config.enablefb) {
     }, facebookcb);
     forceReconnect = function forceReconnect(error) {
       if (!error) {
-        log("[Facebook]", "6 hours has passed. Destroying FCA instance and creating a new one...");
+        log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (6 hours clock)");
       }
       if (typeof facebook.listener == "function") {
         facebook.listener();
