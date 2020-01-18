@@ -614,10 +614,10 @@ var autosave = setInterval(function (testmode, log) {
     try {
       if (testmode) {
         fs.writeFileSync(path.join(__dirname, "data-test-temp.json"), JSON.stringify(global.data, null, 4));
-        fs.renameSync(path.join(__dirname, "data-test-temp.json"), path.join(__dirname + "data-test.json"));
+        fs.renameSync(path.join(__dirname, "data-test-temp.json"), path.join(__dirname, "data-test.json"));
       } else {
         fs.writeFileSync(path.join(__dirname, "data-temp.json"), JSON.stringify(global.data, null, 4));
-        fs.renameSync(path.join(__dirname, "data-temp.json"), path.join(__dirname + "data.json"));
+        fs.renameSync(path.join(__dirname, "data-temp.json"), path.join(__dirname, "data.json"));
       }
     } catch (err) {
       log("[INTERNAL]", "Auto-save encounted an error:", err);
@@ -1343,75 +1343,58 @@ facebookcb = function callback(err, api) {
             break;
           case "message_unsend":
             if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
-              var removedMessage = global.data.messageList[message.messageID];
-              var attachmentArray = [];
-              for (var n in removedMessage.attachments) {
-                switch (removedMessage.attachments[n].type) {
-                  case "file":
-                    attachmentArray.push({
-                      type: removedMessage.attachments[n].type,
-                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                      name: removedMessage.attachments[n].filename
-                    });
-                    break;
-                  case "photo":
-                    attachmentArray.push({
-                      type: removedMessage.attachments[n].type,
-                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                      name: removedMessage.attachments[n].filename + ".png"
-                    });
-                    break;
-                  case "audio":
-                    attachmentArray.push({
-                      type: removedMessage.attachments[n].type,
-                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                      name: removedMessage.attachments[n].filename + ".mp3"
-                    });
-                    break;
-                  case "video":
-                    attachmentArray.push({
-                      type: removedMessage.attachments[n].type,
-                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                      name: removedMessage.attachments[n].filename + ".mp4"
-                    });
-                    break;
-                  case "animated_image":
-                    attachmentArray.push({
-                      type: removedMessage.attachments[n].type,
-                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                      name: removedMessage.attachments[n].filename + ".gif"
-                    });
-                    break;
-                  case "sticker":
-                    attachmentArray.push({
-                      type: removedMessage.attachments[n].type,
-                      data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                      name: removedMessage.attachments[n].ID + ".png"
-                    });
-                    break;
-                }
-              }
-              var att = [];
-              var bannedatt = [];
-              for (var n in attachmentArray) {
-                var imagesx = new streamBuffers.ReadableStreamBuffer({
-                  frequency: 10,
-                  chunkSize: 2048
-                });
-                imagesx.path = attachmentArray[n].name;
-                imagesx.put(attachmentArray[n].data);
-                imagesx.stop();
-                if ((attachmentArray[n].type == "photo" ||
-                  attachmentArray[n].type == "animated_image") && !global.data.thanosBlacklist[message.threadID]) {
-
-                  var image = new Image();
-                  image.src = attachmentArray[n].data;
-                  var cvs = new Canvas(image.width, image.height);
-                  var ctx = cvs.getContext("2d");
-                  ctx.drawImage(image, 0, 0);
-                  var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
-
-                  // eslint-disable-next-line no-loop-func
+              if (!global.data.thanosBlacklist[message.threadID]) {
+                (function () {
+                  var removedMessage = global.data.messageList[message.messageID];
+                  var attachmentArray = [];
+                  for (var n in removedMessage.attachments) {
+                    switch (removedMessage.attachments[n].type) {
+                      case "file":
+                        attachmentArray.push({
+                          type: removedMessage.attachments[n].type,
+                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                          name: removedMessage.attachments[n].filename
+                        });
+                        break;
+                      case "photo":
+                        attachmentArray.push({
+                          type: removedMessage.attachments[n].type,
+                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                          name: removedMessage.attachments[n].filename + ".png"
+                        });
+                        break;
+                      case "audio":
+                        attachmentArray.push({
+                          type: removedMessage.attachments[n].type,
+                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                          name: removedMessage.attachments[n].filename + ".mp3"
+                        });
+                        break;
+                      case "video":
+                        attachmentArray.push({
+                          type: removedMessage.attachments[n].type,
+                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                          name: removedMessage.attachments[n].filename + ".mp4"
+                        });
+                        break;
+                      case "animated_image":
+                        attachmentArray.push({
+                          type: removedMessage.attachments[n].type,
+                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                          name: removedMessage.attachments[n].filename + ".gif"
+                        });
+                        break;
+                      case "sticker":
+                        attachmentArray.push({
+                          type: removedMessage.attachments[n].type,
+                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                          name: removedMessage.attachments[n].ID + ".png"
+                        });
+                        break;
+                    }
+                  }
+                  var att = [];
+                  var bannedatt = [];
                   var worker = new Worker(() => {
                     onmessage = function (event) {
                       var wait = require("wait-for-stuff");
@@ -1439,76 +1422,95 @@ facebookcb = function callback(err, api) {
                       }
                     }
                   }, [], { silent: true });
-                  // eslint-disable-next-line no-loop-func
                   worker.onmessage = function (event) {
                     var data = event.data;
                     Object.assign(global.nsfwjsdata[data.id], data);
                     global.nsfwjsdata[data.id].complete = true;
-                    worker.terminate();
-                    // eslint-disable-next-line no-delete-var
-                    delete worker;
                     if (data.error) {
                       log("[Facebook]", "Error in image classifier:", data.error);
                     }
                   }
+                  var z = 0;
+                  for (var n in attachmentArray) {
+                    var imagesx = new streamBuffers.ReadableStreamBuffer({
+                      frequency: 10,
+                      chunkSize: 2048
+                    });
+                    imagesx.path = attachmentArray[n].name;
+                    imagesx.put(attachmentArray[n].data);
+                    imagesx.stop();
+                    if ((attachmentArray[n].type == "photo" ||
+                      attachmentArray[n].type == "animated_image") && !global.data.thanosBlacklist[message.threadID]) {
+                      z++;
+                      var image = new Image();
+                      image.src = attachmentArray[n].data;
+                      var cvs = new Canvas(image.width, image.height);
+                      var ctx = cvs.getContext("2d");
+                      ctx.drawImage(image, 0, 0);
+                      var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
 
-                  var id = Date.now().toString() + "-" + random(0, 99).toString() + random(0, 99).toString() + Math.random().toString() + Math.random().toString();
-                  global.nsfwjsdata[id] = {};
-                  global.nsfwjsdata[id].complete = false;
-                  worker.postMessage({
-                    id: id,
-                    data: Array.from(imgdata1.data),
-                    width: imgdata1.width,
-                    height: imgdata1.height,
-                    small: global.config.nsfwjsSmallModel
-                  });
+                      var id = Date.now().toString() + "-" + random(0, 99).toString() + random(0, 99).toString() + Math.random().toString() + Math.random().toString();
+                      global.nsfwjsdata[id] = {};
+                      global.nsfwjsdata[id].complete = false;
+                      worker.postMessage({
+                        id: id,
+                        data: Array.from(imgdata1.data),
+                        width: imgdata1.width,
+                        height: imgdata1.height,
+                        small: global.config.nsfwjsSmallModel
+                      });
 
-                  wait.for.value(global.nsfwjsdata[id], "complete", true);
-                  var classing = global.nsfwjsdata[id].class;
-                  try {
-                    var classify = classing[0].className;
-                    var percentage = classing[0].probability * 100;
-                  } catch (ex) { }
-                  switch (classify) {
-                    case "Neutral":
-                    case "Drawing":
-                    case "Sexy":
+                      wait.for.value(global.nsfwjsdata[id], "complete", true);
+                      z--;
+                      if (z == 0) {
+                        worker.terminate();
+                      }
+                      var classing = global.nsfwjsdata[id].class;
+                      try {
+                        var classify = classing[0].className;
+                        var percentage = classing[0].probability * 100;
+                      } catch (ex) { }
+                      switch (classify) {
+                        case "Neutral":
+                        case "Drawing":
+                        case "Sexy":
+                          att.push(imagesx);
+                        // eslint-disable-next-line no-fallthrough
+                        case "Hentai":
+                        case "Porn":
+                          bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
+                          log("[Facebook]", "Removed image classified as:", classify);
+                          break;
+                        default:
+                          log("[Facebook]", "Invalid image classification:", classify, classing);
+                          att.push(imagesx);
+                      }
+                    } else {
                       att.push(imagesx);
-                    // eslint-disable-next-line no-fallthrough
-                    case "Hentai":
-                    case "Porn":
-                      bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
-                      log("[Facebook]", "Removed image classified as:", classify);
-                      break;
-                    default:
-                      log("[Facebook]", "Invalid image classification:", classify, classing);
-                      att.push(imagesx);
+                    }
                   }
-                } else {
-                  att.push(imagesx);
-                }
-              }
-              if (!global.data.thanosBlacklist[message.threadID]) {
-                var btext = "";
-                if (bannedatt.length != 0) {
-                  btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
-                }
-                api.sendMessage({
-                  body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
-                  mentions: [{
-                    tag: "@" + global.data.cacheName["FB-" + message.senderID],
-                    id: message.senderID,
-                    fromIndex: 0
-                  }],
-                  attachment: att
-                }, message.threadID, function (err) {
-                  if (err) {
-                    log("[Facebook]", err);
-                  } //else {
-                    //api.markAsRead(message.threadID);
-                  //}
-                });
-                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+
+                  var btext = "";
+                  if (bannedatt.length != 0) {
+                    btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
+                  }
+                  api.sendMessage({
+                    body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
+                    mentions: [{
+                      tag: "@" + global.data.cacheName["FB-" + message.senderID],
+                      id: message.senderID,
+                      fromIndex: 0
+                    }],
+                    attachment: att
+                  }, message.threadID, function (err) {
+                    if (err) {
+                      log("[Facebook]", err);
+                    } else {
+                      api.markAsRead(message.threadID);
+                    }
+                  });
+                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                })();
               } else {
                 log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
               }
