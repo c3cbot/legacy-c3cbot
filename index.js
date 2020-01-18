@@ -1149,7 +1149,8 @@ facebookcb = function callback(err, api) {
   }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
 
   !global.data.messageList ? global.data.messageList = {} : "";
-  facebook.listener = api.listenMqtt(function callback(err, message) {
+  // eslint-disable-next-line require-await
+  facebook.listener = api.listenMqtt(async function callback(err, message) {
     try {
       if (message != undefined) {
         switch (message.type) {
@@ -1420,15 +1421,10 @@ facebookcb = function callback(err, api) {
                       }
                     }
                   }, [], { silent: true });
-                  var z = 0;
                   worker.onmessage = function (event) {
                     var data = event.data;
                     Object.assign(global.nsfwjsdata[data.id], data);
                     global.nsfwjsdata[data.id].complete = true;
-                    z--;
-                    if (z == 0) {
-                      worker.terminate();
-                    }
                     if (data.error) {
                       log("[Facebook]", "Error in image classifier:", data.error);
                     }
@@ -1444,7 +1440,6 @@ facebookcb = function callback(err, api) {
                     imagesx.stop();
                     if ((attachmentArray[n].type == "photo" ||
                       attachmentArray[n].type == "animated_image") && !global.data.thanosBlacklist[message.threadID]) {
-                      z++;
                       var image = new Image();
                       image.src = attachmentArray[n].data;
                       var cvs = new Canvas(image.width, image.height);
@@ -1490,7 +1485,7 @@ facebookcb = function callback(err, api) {
                         att.push(imagesx);
                     }
                   }
-
+                  worker.terminate();
                   var btext = "";
                   if (bannedatt.length != 0) {
                     btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
