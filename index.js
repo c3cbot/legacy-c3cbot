@@ -131,7 +131,7 @@ global.sshcurrsession = {};
 global.sshstream = {};
 global.nsfwjsdata = {};
 
-ensureExists(path.join(__dirname, "/logs/"));
+ensureExists(path.join(__dirname, "logs/"));
 
 /**
  * Log to console and also write to logs file, print to every ssh console session
@@ -249,20 +249,20 @@ var defaultconfig = {
 }
 
 //Load config
-global.config = fs.existsSync(path.join(__dirname, "/config.json")) ? (function () {
-  var readedConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "/config.json")));
+global.config = fs.existsSync(path.join(__dirname, "config.json")) ? (function () {
+  var readedConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "config.json")));
   for (var configName in defaultconfig) {
     if (!Object.prototype.hasOwnProperty.call(readedConfig, configName)) {
       readedConfig[configName] = defaultconfig[configName];
       log("[INTERNAL]", "Missing", configName, "in config file. Adding with default value (", defaultconfig[configName], ")...");
     }
   }
-  fs.writeFileSync(path.join(__dirname, "/config.json"), JSON.stringify(readedConfig, null, 4));
+  fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(readedConfig, null, 4));
   return readedConfig;
 })() : (function () {
   log("[INTERNAL]", "Config file not found. Creating a default one...");
   try {
-    fs.writeFileSync(path.join(__dirname, "/config.json"), JSON.stringify(defaultconfig, null, 4));
+    fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(defaultconfig, null, 4));
   } catch (ex) {
     log("[INTERNAL]", "Cannot write default config, returned an error: ", ex);
   }
@@ -1844,8 +1844,8 @@ if (global.config.enablefb) {
   var fbloginobj = {};
   fbloginobj.email = global.config.fbemail;
   fbloginobj.password = global.config.fbpassword;
-  if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "/fbstate.json"))) {
-    fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "/fbstate.json"), 'utf8'));
+  if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "fbstate.json"))) {
+    fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8'));
   }
   try {
     log("[Facebook]", "Logging in...");
@@ -2008,9 +2008,9 @@ var shutdownHandler = function (errorlevel) {
 
   //Save for the last time
   if (testmode) {
-    fs.writeFileSync(path.join(__dirname, "/data-test.json"), JSON.stringify(global.data, null, 4));
+    fs.writeFileSync(path.join(__dirname, "data-test.json"), JSON.stringify(global.data, null, 4));
   } else {
-    fs.writeFileSync(path.join(__dirname, "/data.json"), JSON.stringify(global.data, null, 4));
+    fs.writeFileSync(path.join(__dirname, "data.json"), JSON.stringify(global.data, null, 4));
   }
   log("[INTERNAL]", "Saved data");
 
