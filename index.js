@@ -33,8 +33,7 @@ Number.prototype.floor = function (decimal) {
 
 //Check folder exists and create it 
 function ensureExists(path, mask) {
-  if (typeof mask == 'function') { // allow the `mask` parameter to be optional
-    cb = mask;
+  if (typeof mask != 'number') {
     mask = 0o777;
   }
   try {
@@ -107,7 +106,7 @@ const util = require('util');
 var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
 var wait = require('wait-for-stuff');
-const onChange = require('on-change');
+////const onChange = require('on-change');
 global.nodemodule.fs = require('fs');
 global.nodemodule.http = require('http');
 global.nodemodule.https = require('https');
@@ -122,11 +121,11 @@ const rl = readline.createInterface({
   terminal: true,
   prompt: ""
 });
-var querystring = require('querystring');
-const request = require('request');
-var delay = require('delay');
+////var querystring = require('querystring');
+////const request = require('request');
+////var delay = require('delay');
 const StreamZip = require('node-stream-zip');
-var tf = require("@tensorflow/tfjs");
+////var tf = require("@tensorflow/tfjs");
 global.sshcurrsession = {};
 global.sshstream = {};
 global.nsfwjsdata = {};
