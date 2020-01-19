@@ -1364,7 +1364,7 @@ facebookcb = function callback(err, api) {
                 for (var n in message.attachments) {
                   var type = message.attachments[n].type;
                   type = type[0].toLocaleUpperCase() + type.substr(1);
-                  str += "\r\n[";
+                  str += "\r\n  <";
                   str += type;
                   str += " ";
                   switch (message.attachments[n].type) {
@@ -1384,7 +1384,7 @@ facebookcb = function callback(err, api) {
                   }
                   str += "| ";
                   str += message.attachments[n].url;
-                  str += "]";
+                  str += ">";
                 }
                 log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
               }
@@ -1393,7 +1393,7 @@ facebookcb = function callback(err, api) {
               for (var n in message.attachments) {
                 var type = message.attachments[n].type;
                 type = type[0].toLocaleUpperCase() + type.substr(1);
-                str += "\r\n[";
+                str += "\r\n  <";
                 str += type;
                 str += " ";
                 switch (message.attachments[n].type) {
@@ -1413,7 +1413,7 @@ facebookcb = function callback(err, api) {
                 }
                 str += "| ";
                 str += message.attachments[n].url;
-                str += "]";
+                str += ">";
               }
               log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
             }
@@ -1674,7 +1674,7 @@ facebookcb = function callback(err, api) {
                 for (var n in message.attachments) {
                   var type = message.attachments[n].type;
                   type = type[0].toLocaleUpperCase() + type.substr(1);
-                  str += "\r\n[";
+                  str += "\r\n  <";
                   str += type;
                   str += " ";
                   switch (message.attachments[n].type) {
@@ -1694,7 +1694,7 @@ facebookcb = function callback(err, api) {
                   }
                   str += "| ";
                   str += message.attachments[n].url;
-                  str += "]";
+                  str += ">";
                 }
               log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", message.body, str);
             } catch (ex) {
