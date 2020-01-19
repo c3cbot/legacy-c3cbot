@@ -1370,7 +1370,8 @@ facebookcb = function callback(err, api) {
                   switch (message.attachments[n].type) {
                     case "audio":
                     case "video":
-                      str += message.attachments[n].duration;
+                      var dr = new Date(message.attachments[n].duration);
+                      str += dr.getHours() + ":" + dr.getMinutes() + ":" + dr.getSeconds();
                       str += " ";
                       if (message.attachments[n].type == "audio") break;
                     // eslint-disable-next-line no-fallthrough
@@ -1399,7 +1400,8 @@ facebookcb = function callback(err, api) {
                 switch (message.attachments[n].type) {
                   case "audio":
                   case "video":
-                    str += message.attachments[n].duration;
+                    var dr = new Date(message.attachments[n].duration);
+                    str += dr.getHours() + ":" + dr.getMinutes() + ":" + dr.getSeconds();
                     str += " ";
                     if (message.attachments[n].type == "audio") break;
                   // eslint-disable-next-line no-fallthrough
@@ -1680,7 +1682,8 @@ facebookcb = function callback(err, api) {
                   switch (message.attachments[n].type) {
                     case "audio":
                     case "video":
-                      str += message.attachments[n].duration;
+                      var dr = new Date(message.attachments[n].duration);
+                      str += dr.getHours() + ":" + dr.getMinutes() + ":" + dr.getSeconds();
                       str += " ";
                       if (message.attachments[n].type == "audio") break;
                     // eslint-disable-next-line no-fallthrough
