@@ -1528,9 +1528,11 @@ facebookcb = function callback(err, api) {
                 }
               }
             }
-            for (var xzxz in message.messageReply.attachments) {
-              if (message.messageReply.attachments[xzxz].error) {
-                fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
+            if (message.messageReply) {
+              for (var xzxz in message.messageReply.attachments) {
+                if (message.messageReply.attachments[xzxz].error) {
+                  fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
+                }
               }
             }
             api.markAsRead(message.threadID);
