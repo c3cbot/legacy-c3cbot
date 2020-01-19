@@ -1363,7 +1363,7 @@ facebookcb = function callback(err, api) {
                 var str = "";
                 for (var n in message.attachments) {
                   var type = message.attachments[n].type;
-                  type[0] = type[0].toLocaleUpperCase();
+                  type = type[0].toLocaleUpperCase() + type.substr(1);
                   str += "\r\n[";
                   str += type;
                   str += " ";
@@ -1384,11 +1384,38 @@ facebookcb = function callback(err, api) {
                   }
                   str += "| ";
                   str += message.attachments[n].url;
+                  str += "]";
                 }
                 log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
               }
             } else {
-              log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
+              var str = "";
+              for (var n in message.attachments) {
+                var type = message.attachments[n].type;
+                type = type[0].toLocaleUpperCase() + type.substr(1);
+                str += "\r\n[";
+                str += type;
+                str += " ";
+                switch (message.attachments[n].type) {
+                  case "audio":
+                  case "video":
+                    str += message.attachments[n].duration;
+                    str += " ";
+                    if (message.attachments[n].type == "audio") break;
+                  // eslint-disable-next-line no-fallthrough
+                  case "photo":
+                  case "animated_image":
+                  case "sticker":
+                    str += message.attachments[n].width;
+                    str += "x";
+                    str += message.attachments[n].height;
+                    str += " ";
+                }
+                str += "| ";
+                str += message.attachments[n].url;
+                str += "]";
+              }
+              log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
             }
             break;
           case "event":
@@ -1643,7 +1670,33 @@ facebookcb = function callback(err, api) {
             }
 
             try {
-              log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", (message.body != "" ? message.body : message.attachments));
+              var str = "";
+                for (var n in message.attachments) {
+                  var type = message.attachments[n].type;
+                  type = type[0].toLocaleUpperCase() + type.substr(1);
+                  str += "\r\n[";
+                  str += type;
+                  str += " ";
+                  switch (message.attachments[n].type) {
+                    case "audio":
+                    case "video":
+                      str += message.attachments[n].duration;
+                      str += " ";
+                      if (message.attachments[n].type == "audio") break;
+                    // eslint-disable-next-line no-fallthrough
+                    case "photo":
+                    case "animated_image":
+                    case "sticker":
+                      str += message.attachments[n].width;
+                      str += "x";
+                      str += message.attachments[n].height;
+                      str += " ";
+                  }
+                  str += "| ";
+                  str += message.attachments[n].url;
+                  str += "]";
+                }
+              log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", message.body, str);
             } catch (ex) {
               log("[Facebook] ERROR on replymsg", message);
             }
