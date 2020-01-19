@@ -1269,6 +1269,7 @@ facebookcb = function callback(err, api) {
                       if (!client) {
                         client = undefined
                       }
+                      var starttime = Date.now();
                       new Promise(function (resolve, reject) {
                         setTimeout(function () {
                           resolve(global.commandMapping[arg[0].substr(1)].scope("Facebook", {
@@ -1316,7 +1317,7 @@ facebookcb = function callback(err, api) {
                                 }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                               }
                             }
-                          }))
+                          }));
                         }, 50);
                       }).then(function (returndata) {
                         if (!returndata) return undefined;
@@ -1347,6 +1348,13 @@ facebookcb = function callback(err, api) {
                             }, 500, api, message);
                           }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                         }
+                        var endtime = Date.now();
+                        var calctime = new Date(endtime - starttime);
+                        if (calctime.getUTCSeconds() >= 10) {
+                          log("[INTERNAL]", "Timing Warning: Command \"", toarg.join(" "), "\" took", calctime.getUTCSeconds + "." + calctime.getUTCMilliseconds() + "s to execute! (Maximum 10s)");
+                        }
+                      }).catch(ex => {
+                        throw ex;
                       });
                     } catch (ex) {
                       try {
@@ -1371,7 +1379,7 @@ facebookcb = function callback(err, api) {
                     case "audio":
                     case "video":
                       var dr = new Date(message.attachments[n].duration);
-                      str += dr.getHours() + ":" + dr.getMinutes() + ":" + dr.getSeconds();
+                      str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
                       str += " ";
                       if (message.attachments[n].type == "audio") break;
                     // eslint-disable-next-line no-fallthrough
@@ -1401,7 +1409,7 @@ facebookcb = function callback(err, api) {
                   case "audio":
                   case "video":
                     var dr = new Date(message.attachments[n].duration);
-                    str += dr.getHours() + ":" + dr.getMinutes() + ":" + dr.getSeconds();
+                    str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
                     str += " ";
                     if (message.attachments[n].type == "audio") break;
                   // eslint-disable-next-line no-fallthrough
@@ -1683,7 +1691,7 @@ facebookcb = function callback(err, api) {
                     case "audio":
                     case "video":
                       var dr = new Date(message.attachments[n].duration);
-                      str += dr.getHours() + ":" + dr.getMinutes() + ":" + dr.getSeconds();
+                      str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
                       str += " ";
                       if (message.attachments[n].type == "audio") break;
                     // eslint-disable-next-line no-fallthrough
