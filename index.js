@@ -106,6 +106,7 @@ const util = require('util');
 var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
 var wait = require('wait-for-stuff');
+var semver = require("semver");
 ////const onChange = require('on-change');
 global.nodemodule.fs = require('fs');
 global.nodemodule.http = require('http');
@@ -692,24 +693,26 @@ function cpuAverage() {
  *
  * @return  {number}           Percentage of CPU load.
  */
-function cpuLoad(avgTime) {
-  return new Promise((resolve) => {
-    this.samples = [];
-    this.samples[1] = cpuAverage();
-    this.refresh = setTimeout(() => {
-      this.samples[0] = this.samples[1];
+class CPULoad {
+  constructor(avgTime) {
+    return new Promise((resolve) => {
+      this.samples = [];
       this.samples[1] = cpuAverage();
-      var totalDiff = this.samples[1].total - this.samples[0].total;
-      var idleDiff = this.samples[1].idle - this.samples[0].idle;
-      resolve(1 - idleDiff / totalDiff);
-    }, avgTime);
-  });
+      this.refresh = setTimeout(() => {
+        this.samples[0] = this.samples[1];
+        this.samples[1] = cpuAverage();
+        var totalDiff = this.samples[1].total - this.samples[0].total;
+        var idleDiff = this.samples[1].idle - this.samples[0].idle;
+        resolve(1 - idleDiff / totalDiff);
+      }, avgTime);
+    });
+  }
 }
 
 var titleClocking = setInterval(async () => {
   var titleescape1 = String.fromCharCode(27) + ']0;';
   var titleescape2 = String.fromCharCode(7);
-  var cpupercent = await cpuLoad(1000);
+  var cpupercent = await new CPULoad(1000);
   var title = global.config.botname + " v" + version + " | " + (cpupercent * 100).toFixed(0) + "% CPU" + " | " + ((os.totalmem() - os.freemem()) / 1024 / 1024).toFixed(0) + " MB" + "/" + (os.totalmem() / 1024 / 1024).toFixed(0) + " MB RAM" + " | BOT: " + (process.memoryUsage().rss / 1024 / 1024).toFixed(0) + " MB USED";
   process.title = title;
   // eslint-disable-next-line no-extra-boolean-cast
@@ -733,9 +736,19 @@ function requireFromString(src, filename) {
 }
 
 //Plugin Load
-
 ensureExists(path.join(__dirname, "deletedmsg/"));
 ensureExists(path.join(__dirname, "plugins/"));
+
+function checkPluginCompatibly(version) {
+  version = version.toString();
+  try {
+    //* Only plugin complied with version 0.3beta1 is allowed
+    var allowedVersion = "=0.3.0-beta.1";
+    return semver.intersects(semver.clean(version), allowedVersion);
+  } catch (ex) {
+    return false;
+  }
+}
 
 function loadPlugin() {
   global.plugins = {}; //Plugin Scope
@@ -762,6 +775,13 @@ function loadPlugin() {
       }
       if (!plinfo["plugin_name"] || !plinfo["plugin_scope"] || !plinfo["plugin_exec"]) {
         throw "Invalid plugins.json file (Not enough data)!";
+      }
+      if (!plinfo["complied_for"]) {
+        throw "Plugin doesn't have complied for tag (prob complied for version <=0.2.8, which isn't allowed).";
+      } else {
+        if (!checkPluginCompatibly(plinfo["complied_for"])) {
+          throw "Plugin is complied for version {0}, but this version doesn't support it.".replace("{0}", plinfo["complied_for"]);
+        }
       }
       try {
         var plexec = zip.entryDataSync(plinfo["plugin_exec"]).toString('utf8');
@@ -1249,7 +1269,7 @@ facebookcb = function callback(err, api) {
                       if (!client) {
                         client = undefined
                       }
-                      var pm = new Promise(function (resolve, reject) {
+                      new Promise(function (resolve, reject) {
                         setTimeout(function () {
                           resolve(global.commandMapping[arg[0].substr(1)].scope("Facebook", {
                             args: argv,
@@ -1265,6 +1285,36 @@ facebookcb = function callback(err, api) {
                                 "[PLUGIN]",
                                 "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
                               ].concat(message));
+                            },
+                            return: function returndata(returndata) {
+                              if (!returndata) return undefined;
+                              if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                                var endTyping = api.sendTypingIndicator(message.threadID);
+                                setTimeout(function (api, returndata, endTyping, message) {
+                                  api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
+                                  endTyping();
+                                  setTimeout(function (api, message) {
+                                    api.markAsRead(message.threadID);
+                                  }, 500, api, message);
+                                }, returndata.data.length * 30, api, returndata, endTyping, message);
+                              } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                                if (!returndata.data.body) {
+                                  returndata.data.body = "";
+                                }
+                                returndata.data.body = prefix + " " + returndata.data.body;
+                                var endTyping = api.sendTypingIndicator(message.threadID);
+                                setTimeout(function (api, returndata, endTyping, message, log) {
+                                  api.sendMessage(returndata.data, message.threadID, function (err) {
+                                    if (err) {
+                                      log("[Facebook]", err);
+                                    }
+                                  }, message.messageID);
+                                  endTyping();
+                                  setTimeout(function (api, message) {
+                                    api.markAsRead(message.threadID);
+                                  }, 500, api, message);
+                                }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                              }
                             }
                           }))
                         }, 50);
