@@ -1360,7 +1360,32 @@ facebookcb = function callback(err, api) {
                   api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
                 }
               } else {
-                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
+                var str = "";
+                for (var n in message.attachments) {
+                  var type = message.attachments[n].type;
+                  type[0] = type[0].toLocaleUpperCase();
+                  str += "\r\n[";
+                  str += type;
+                  str += " ";
+                  switch (message.attachments[n].type) {
+                    case "audio":
+                    case "video":
+                      str += message.attachments[n].duration;
+                      str += " ";
+                      if (message.attachments[n].type == "audio") break;
+                    // eslint-disable-next-line no-fallthrough
+                    case "photo":
+                    case "animated_image":
+                    case "sticker":
+                      str += message.attachments[n].width;
+                      str += "x";
+                      str += message.attachments[n].height;
+                      str += " ";
+                  }
+                  str += "| ";
+                  str += message.attachments[n].url;
+                }
+                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
               }
             } else {
               log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), (message.body != "" ? message.body : message.attachments));
