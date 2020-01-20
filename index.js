@@ -1219,7 +1219,7 @@ facebookcb = function callback(err, api) {
             if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
               api.getThreadInfo(message.threadID, function (err, data) {
                 var participants = data.participantIDs;
-                var character = "ͥ";
+                var character = "@";
                 var sendString = "";
                 var mentionObj = [];
                 var i = 0;
