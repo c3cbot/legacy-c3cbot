@@ -1351,7 +1351,7 @@ facebookcb = function callback(err, api) {
                         var endtime = Date.now();
                         var calctime = new Date(endtime - starttime);
                         if (calctime.getUTCSeconds() >= 10) {
-                          log("[INTERNAL]", "Timing Warning: Command \"", toarg.join(" "), "\" took", calctime.getUTCSeconds + "." + calctime.getUTCMilliseconds() + "s to execute! (Maximum 10s)");
+                          log("[INTERNAL]", "Timing Warning: Command \"", toarg.join(" "), "\" took", calctime.getUTCSeconds() + "." + calctime.getUTCMilliseconds() + "s to execute! (Maximum 10s)");
                         }
                       }).catch(ex => {
                         throw ex;
