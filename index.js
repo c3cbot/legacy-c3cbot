@@ -1292,7 +1292,11 @@ facebookcb = function callback(err, api) {
                               if (returndata.handler == "internal" && typeof returndata.data == "string") {
                                 var endTyping = api.sendTypingIndicator(message.threadID);
                                 setTimeout(function (api, returndata, endTyping, message) {
-                                  api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
+                                  api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                                    if (err) {
+                                      log("[Facebook] Errored while sending response:", err);
+                                    }
+                                  }, message.messageID);
                                   endTyping();
                                   setTimeout(function (api, message) {
                                     api.markAsRead(message.threadID);
@@ -1307,7 +1311,7 @@ facebookcb = function callback(err, api) {
                                 setTimeout(function (api, returndata, endTyping, message, log) {
                                   api.sendMessage(returndata.data, message.threadID, function (err) {
                                     if (err) {
-                                      log("[Facebook]", err);
+                                      log("[Facebook] Errored while sending response:", err);
                                     }
                                   }, message.messageID);
                                   endTyping();
@@ -1324,7 +1328,11 @@ facebookcb = function callback(err, api) {
                         if (returndata.handler == "internal" && typeof returndata.data == "string") {
                           var endTyping = api.sendTypingIndicator(message.threadID);
                           setTimeout(function (api, returndata, endTyping, message) {
-                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function () { }, message.messageID);
+                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                              if (err) {
+                                log("[Facebook] Errored while sending response:", err);
+                              }
+                            }, message.messageID);
                             endTyping();
                             setTimeout(function (api, message) {
                               api.markAsRead(message.threadID);
@@ -1339,7 +1347,7 @@ facebookcb = function callback(err, api) {
                           setTimeout(function (api, returndata, endTyping, message, log) {
                             api.sendMessage(returndata.data, message.threadID, function (err) {
                               if (err) {
-                                log("[Facebook]", err);
+                                log("[Facebook] Errored while sending response:", err);
                               }
                             }, message.messageID);
                             endTyping();
@@ -1611,7 +1619,7 @@ facebookcb = function callback(err, api) {
                     attachment: att
                   }, message.threadID, function (err) {
                     if (err) {
-                      log("[Facebook]", err);
+                      log("[Facebook] Errored while sending Anti-Unsend response:", err);
                     } else {
                       api.markAsRead(message.threadID);
                     }
@@ -1655,7 +1663,7 @@ facebookcb = function callback(err, api) {
             if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
               api.getThreadInfo(message.threadID, function (err, data) {
                 var participants = data.participantIDs;
-                var character = "ͥ";
+                var character = "@";
                 var sendString = "";
                 var mentionObj = [];
                 var i = 0;
@@ -1673,7 +1681,7 @@ facebookcb = function callback(err, api) {
                   mentions: mentionObj
                 }, message.threadID, function (err) {
                   if (err) {
-                    log("[Facebook]", err);
+                    log("[Facebook] @everyone errored:", err);
                   }
                 }, message.messageID);
               });
