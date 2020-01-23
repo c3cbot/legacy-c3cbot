@@ -69,3 +69,4 @@ data-test-temp.json
 logs/
 deletedmsg/
 fbstate.json
+plugins/*/*

@@ -1,0 +1,11 @@
+{
+  "name": "c3c-plugins",
+  "version": "0.0.0",
+  "description": "Plugin folder",
+  "main": "null",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "UIRI",
+  "license": "UNLICENSED"
+}

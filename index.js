@@ -1796,15 +1796,17 @@ if (global.config.enableSSHRemoteConsole) {
 
         //SFTP Protocol
         session.on('sftp', function (accept, reject) {
+          return reject();
+          // eslint-disable-next-line no-unreachable
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "requested to establish SFTP connection (File Editor).");
           var sftpStream = accept();
           var openFiles = {};
           var fdmap = {};
-          var handleCount = 0;
+          //var handleCount = 0;
           sftpStream.on('OPEN', function (reqid, filename, flags, attrs) {
             if (!fs.existsSync(__dirname + filename)) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename, ", which does not exist.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             } else {
               var handle = Buffer.alloc(4);
               handle.writeUInt32BE(fs.openSync(__dirname + filename, flags), 0);
@@ -1813,10 +1815,49 @@ if (global.config.enableSSHRemoteConsole) {
               sftpStream.handle(reqid, handle);
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename, "( fd:", handle.readUInt32BE(0), ")");
             }
+          }).on('OPENDIR', function (reqid, path) {
+            if (!fs.existsSync(__dirname + path)) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening directory", path, ", which does not exist.");
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
+            } else {
+              var dir = fs.opendirSync(path);
+              var handle = Math.pow(2, 31) - 1;
+              while (openFiles[handle]) {
+                handle = random(Math.pow(2, 29), Math.pow(2, 31) - 1);
+              }
+              openFiles[handle] = true;
+              fdmap[handle] = dir;
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening directory", path);
+              sftpStream.handle(reqid, handle);
+            }
+          }).on('READDIR', function (reqid, handle) {
+            if (!(fdmap[handle.readUInt32BE(0)] instanceof fs.Dir)) {
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading directory at file descriptor", handle.readUInt32BE(0), ", which does not exist.");
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
+            } else {
+              var dirread = fdmap[handle].readSync();
+              dirread.map(function (paths) {
+                var x = path.relative(__dirname, paths).replace(/\\/, "/");
+                if (x.startsWith("../")) {
+                  x = x.substr(2);
+                } else {
+                  x = x.substr(1);
+                }
+                return x;
+              });
+              sftpStream.name(handle.readUInt32BE(0), dirread);
+              log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading directory", fdmap[handle.readUInt32BE(0)].substr(5));
+            }
+          }).on('REALPATH', function (reqid, path) {
+            try {
+              sftpStream.name(reqid, fs.normalize(path));
+            } catch (ex) {
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
+            }
           }).on('STAT', function (reqid, path) {
             if (!fs.existsSync(__dirname + path)) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path, ", which does not exist.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             } else {
               sftpStream.attrs(reqid, fs.statSync(__dirname + path))
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path);
@@ -1824,7 +1865,7 @@ if (global.config.enableSSHRemoteConsole) {
           }).on('LSTAT', function (reqid, path) {
             if (!fs.existsSync(__dirname + path)) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path, ", which does not exist.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             } else {
               sftpStream.attrs(reqid, fs.lstatSync(__dirname + path))
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path);
@@ -1832,35 +1873,35 @@ if (global.config.enableSSHRemoteConsole) {
           }).on('MKDIR', function (reqid, path, attrs) {
             if (fs.existsSync(__dirname + path)) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path, ", which exists.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             } else {
               try {
                 fs.mkdirSync(__dirname + path);
-                sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
+                sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
                 log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path);
               } catch (ex) {
-                sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+                sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
                 log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path, ", which can't be created. Additional information:", ex.toString());
               }
             }
           }).on('RENAME', function (reqid, oldpath, newpath) {
             if (!fs.existsSync(__dirname + oldpath)) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming", path, ", which doesn't exists.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             } else {
               try {
                 fs.renameSync(__dirname + oldpath, __dirname + newpath);
-                sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
+                sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
                 log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming path", oldpath, "to", newpath);
               } catch (ex) {
-                sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+                sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
                 log("[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming path", path, ", which can't be renamed. Additional information:", ex.toString());
               }
             }
           }).on('READ', function (reqid, handle, offset, length) {
             if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             }
             try {
               var databuff = Buffer.alloc(length);
@@ -1868,30 +1909,30 @@ if (global.config.enableSSHRemoteConsole) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], "with offset =", offset, ", length = ", length);
               sftpStream.data(reqid, databuff);
               if (datasize < length) {
-                sftpStream.status(reqid, sftpStream.STATUS_CODE.EOF);
+                sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.EOF);
               }
             } catch (ex) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle.readUInt32BE(0)], ", which cannot be read. Additional information:", ex.toString());
-              sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             }
           }).on('WRITE', function (reqid, handle, offset, data) {
             if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             }
 
             try {
               fs.writeSync(handle.readUInt32BE(0), data, offset);
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)]);
-              sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
+              sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
             } catch (ex) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle.readUInt32BE(0)], ", which cannot be writen. Additional information:", ex.toString());
-              sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             }
           }).on('FSTAT', function (reqid, handle) {
             if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             }
 
             try {
@@ -1899,28 +1940,39 @@ if (global.config.enableSSHRemoteConsole) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)]);
             } catch (ex) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which cannot be read. Additional information:", ex.toString());
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             }
           }).on('FSETSTAT', function (reqid, handle, attrs) {
             if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which isn't opened.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
             }
             log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[handle.readUInt32BE(0)], ", which cannot be writen (because no)");
-            return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+            return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
           }).on('CLOSE', function (reqid, handle) {
             if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file descriptor", handle.readUInt32BE(0), ", which does not exist.");
-              return sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
+            } else if (handle.length === 4 && fdmap[handle.readUInt32BE(0)] instanceof fs.Dir) {
+              try {
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing directory", fdmap[handle.readUInt32BE(0)].path, ".");
+                fdmap[handle.readUInt32BE(0)].closeSync();
+                delete openFiles[handle.readUInt32BE(0)];
+                sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
+                delete fdmap[handle.readUInt32BE(0)];
+              } catch (ex) {
+                sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
+                log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing directory", fdmap[handle.readUInt32BE(0)].path, ", but can't be closed. Additional information:", ex.toString());
+              }
             }
             try {
               fs.closeSync(handle.readUInt32BE(0));
               delete openFiles[handle.readUInt32BE(0)];
-              sftpStream.status(reqid, sftpStream.STATUS_CODE.OK);
+              sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file", fdmap[handle.readUInt32BE(0)], ".");
               delete fdmap[handle.readUInt32BE(0)];
             } catch (ex) {
-              sftpStream.status(reqid, sftpStream.STATUS_CODE.FAILURE);
+              sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
               log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file", fdmap[handle.readUInt32BE(0)], ", but can't be closed. Additional information:", ex.toString());
             }
           });
