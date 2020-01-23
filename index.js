@@ -1558,7 +1558,8 @@ facebookcb = function callback(err, api) {
                     imagesx.put(attachmentArray[n].data);
                     imagesx.stop();
                     if ((attachmentArray[n].type == "photo" ||
-                      attachmentArray[n].type == "animated_image") && !global.data.thanosBlacklist[message.threadID]) {
+                      attachmentArray[n].type == "animated_image") && 
+                      !global.data.thanosBlacklist[message.threadID]) {
                       var image = new Image();
                       image.src = attachmentArray[n].data;
                       var cvs = new Canvas(image.width, image.height);
