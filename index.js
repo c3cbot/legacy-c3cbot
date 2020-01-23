@@ -107,14 +107,8 @@ var streamBuffers = require('stream-buffers');
 var syncrequest = require('sync-request');
 var wait = require('wait-for-stuff');
 var semver = require("semver");
+var childProcess = require("child_process");
 ////const onChange = require('on-change');
-global.nodemodule.fs = require('fs');
-global.nodemodule.http = require('http');
-global.nodemodule.https = require('https');
-global.nodemodule.striptags = require("striptags");
-global.nodemodule.util = require("util");
-global.nodemodule["child_process"] = require('child_process');
-global.nodemodule["stream-buffers"] = require('stream-buffers');
 const readline = require('readline');
 const rl = readline.createInterface({
   input: process.stdin,
@@ -727,7 +721,14 @@ var titleClocking = setInterval(async () => {
   }
 }, 5000);
 
-//"require" from code string
+/**
+ * "require" with data as string
+ *
+ * @param   {string}  src       Source code
+ * @param   {string}  filename  File name
+ *
+ * @return  {any}               module.exports of source code
+ */
 function requireFromString(src, filename) {
   var Module = module.constructor;
   var m = new Module();
@@ -742,8 +743,8 @@ ensureExists(path.join(__dirname, "plugins/"));
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Only plugin complied with version 0.3beta1 is allowed
-    var allowedVersion = "=0.3.0-beta.1";
+    //* Plugin complied with version 0.3beta1 or 0.3beta2 is allowed
+    var allowedVersion = "=0.3.0-beta.1 =0.3.0-beta.2";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
@@ -800,14 +801,33 @@ function loadPlugin() {
       if (typeof plinfo["node_depends"] == "object") {
         for (var nid in plinfo["node_depends"]) {
           try {
-            global.nodemodule[nid] = require(nid);
+            var defaultmodule = require("module").builtinModules;
+            if (defaultmodule.indexOf(nid) != -1) {
+              global.nodemodule[nid] = require(nid);
+            } else {
+              var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
+              var packagejson = require(path.join(moduledir, "package.json"));
+              global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
+                encoding: "utf8"
+              }), path.join(moduledir, "package.json"));
+            }
           } catch (ex) {
             log("[INTERNAL]", pluginFileList[n], "is requiring node modules named", nid, "but it isn't installed. Attempting to install it through npm package manager...");
-            global.nodemodule["child_process"].execSync("npm i " + nid + (plinfo["node_depends"][nid] == "*" || plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])), {
-              stdio: "ignore"
+            childProcess.execSync("npm i " + nid + (plinfo["node_depends"][nid] == "*" || plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])), {
+              stdio: "ignore",
+              cwd: path.join(__dirname, "plugins")
             });
             try {
-              global.nodemodule[nid] = require(nid);
+              var defaultmodule = require("module").builtinModules;
+              if (defaultmodule.indexOf(nid) != -1) {
+                global.nodemodule[nid] = require(nid);
+              } else {
+                var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
+                var packagejson = require(path.join(moduledir, "package.json"));
+                global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
+                  encoding: "utf8"
+                }), path.join(moduledir, "package.json"));
+              }
             } catch (ex) {
               throw "Cannot load node module: " + nid
             }
