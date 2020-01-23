@@ -70,6 +70,6 @@ logs/
 deletedmsg/
 fbstate.json
 plugins/*/*
-plugins/package.json
-plguins/package-lock.json
+plugins/package-lock.json
 plugins/node_modules/
+plugins/package.json

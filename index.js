@@ -806,10 +806,11 @@ function loadPlugin() {
               global.nodemodule[nid] = require(nid);
             } else {
               var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
-              var packagejson = require(path.join(moduledir, "package.json"));
-              global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
-                encoding: "utf8"
-              }), path.join(moduledir, "package.json"));
+              //var packagejson = require(path.join(moduledir, "package.json"));
+              //global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
+              //  encoding: "utf8"
+              //}), moduledir);
+              global.nodemodule[nid] = require(moduledir);
             }
           } catch (ex) {
             log("[INTERNAL]", pluginFileList[n], "is requiring node modules named", nid, "but it isn't installed. Attempting to install it through npm package manager...");
@@ -823,13 +824,14 @@ function loadPlugin() {
                 global.nodemodule[nid] = require(nid);
               } else {
                 var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
-                var packagejson = require(path.join(moduledir, "package.json"));
-                global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
-                  encoding: "utf8"
-                }), path.join(moduledir, "package.json"));
+                //var packagejson = require(path.join(moduledir, "package.json"));
+                //global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
+                //  encoding: "utf8"
+                //}), moduledir);
+                global.nodemodule[nid] = require(moduledir);
               }
             } catch (ex) {
-              throw "Cannot load node module: " + nid
+              throw "Cannot load node module: " + nid + ". Additional info: " + ex;
             }
           }
         }
@@ -1578,7 +1580,7 @@ facebookcb = function callback(err, api) {
                     imagesx.put(attachmentArray[n].data);
                     imagesx.stop();
                     if ((attachmentArray[n].type == "photo" ||
-                      attachmentArray[n].type == "animated_image") && 
+                      attachmentArray[n].type == "animated_image") &&
                       !global.data.thanosBlacklist[message.threadID]) {
                       var image = new Image();
                       image.src = attachmentArray[n].data;
@@ -1710,32 +1712,32 @@ facebookcb = function callback(err, api) {
 
             try {
               var str = "";
-                for (var n in message.attachments) {
-                  var type = message.attachments[n].type;
-                  type = type[0].toLocaleUpperCase() + type.substr(1);
-                  str += "\r\n  <";
-                  str += type;
-                  str += " ";
-                  switch (message.attachments[n].type) {
-                    case "audio":
-                    case "video":
-                      var dr = new Date(message.attachments[n].duration);
-                      str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
-                      str += " ";
-                      if (message.attachments[n].type == "audio") break;
-                    // eslint-disable-next-line no-fallthrough
-                    case "photo":
-                    case "animated_image":
-                    case "sticker":
-                      str += message.attachments[n].width;
-                      str += "x";
-                      str += message.attachments[n].height;
-                      str += " ";
-                  }
-                  str += "| ";
-                  str += message.attachments[n].url;
-                  str += ">";
+              for (var n in message.attachments) {
+                var type = message.attachments[n].type;
+                type = type[0].toLocaleUpperCase() + type.substr(1);
+                str += "\r\n  <";
+                str += type;
+                str += " ";
+                switch (message.attachments[n].type) {
+                  case "audio":
+                  case "video":
+                    var dr = new Date(message.attachments[n].duration);
+                    str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                    str += " ";
+                    if (message.attachments[n].type == "audio") break;
+                  // eslint-disable-next-line no-fallthrough
+                  case "photo":
+                  case "animated_image":
+                  case "sticker":
+                    str += message.attachments[n].width;
+                    str += "x";
+                    str += message.attachments[n].height;
+                    str += " ";
                 }
+                str += "| ";
+                str += message.attachments[n].url;
+                str += ">";
+              }
               log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", message.body, str);
             } catch (ex) {
               log("[Facebook] ERROR on replymsg", message);
