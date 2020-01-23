@@ -474,37 +474,6 @@ var randomBytes = function (numbytes) {
 
 //Cryptography
 var crypto = require('crypto');
-var texte = require("text-encoding");
-
-/**
- * Convert a hex string to UTF-8 string
- *
- * @param   {string}  string  A hex string.
- *
- * @return  {string}          An UTF-8 string.
- */
-function HEXTEXT(string) {
-  var alphabet = '0123456789abcdef'.split('');
-  var decodeLookup = [];
-  for (var i = 0; i < 256; i++) {
-    if (i < 16) {
-      if (i < 10) {
-        decodeLookup[0x30 + i] = i
-      } else {
-        decodeLookup[0x61 - 10 + i] = i
-      }
-    }
-  }
-  var sizeof = string.length >> 1
-  var length = sizeof << 1
-  var array = new Uint8Array(sizeof)
-  var n = 0
-  var i = 0
-  while (i < length) {
-    array[n++] = decodeLookup[string.charCodeAt(i++)] << 4 | decodeLookup[string.charCodeAt(i++)]
-  }
-  return new texte.TextDecoder("utf-8").decode(array);
-}
 
 /**
  * Get a HMAC hash.
