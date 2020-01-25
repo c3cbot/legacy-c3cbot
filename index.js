@@ -713,7 +713,7 @@ function checkPluginCompatibly(version) {
   version = version.toString();
   try {
     //* Plugin complied with version 0.3beta1 or 0.3beta2 is allowed
-    var allowedVersion = "=0.3.0-beta.1 || =0.3.0-beta.2";
+    var allowedVersion = ">=0.3.0-beta.1 || <=0.3.0-beta.4";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
@@ -1121,9 +1121,12 @@ facebookcb = function callback(err, api) {
     if (!callingback) {
       callingback = function () { }
     }
-    if (!global.data.cacheName["FB-" + id] || !!force) {
-      api.getUserInfo(id, (err, ret) => {
-        if (err) return log("[INTERNAL]", err);
+    if (!global.data.cacheName["FB-" + id] || global.data.cacheName["FB-" + id].startsWith("FETCHING-") || !!force) {
+      if (global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return;
+      global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now().toString();
+      var res = wait.for.function(api.getUserInfo, id);
+      (function (err, ret) {
+        if (err) return log("[Facebook] Failed to fetch names:", err);
         log("[CACHENAME]", id + " => " + ret[id].name);
         global.data.cacheName["FB-" + id] = ret[id].name;
         try {
@@ -1131,7 +1134,7 @@ facebookcb = function callback(err, api) {
         } catch (ex) {
           log("[INTERNAL]", ex);
         }
-      });
+      })(res[0], res[1]);
     } else {
       callingback();
     }
@@ -1163,6 +1166,7 @@ facebookcb = function callback(err, api) {
   facebook.listener = api.listenMqtt(async function callback(err, message) {
     try {
       if (message != undefined) {
+        var nointernalresolve = false;
         switch (message.type) {
           case "read":
           case "read_receipt":
@@ -1181,13 +1185,57 @@ facebookcb = function callback(err, api) {
                   admin = true;
                 }
               }
-              chhandling.resolverFunc("Facebook", {
+              if (chhandling.resolverFunc("Facebook", {
                 time: receivetime,
                 msgdata: message,
                 api: api,
                 prefix: prefix,
-                admin: admin
-              });
+                admin: admin,
+                // eslint-disable-next-line no-loop-func
+                log: function logPlugin(...message) {
+                  log.apply(global, [
+                    "[PLUGIN]",
+                    "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                  ].concat(message));
+                },
+                // eslint-disable-next-line no-loop-func
+                return: function returndata(returndata) {
+                  if (!returndata) return undefined;
+                  if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                    var endTyping = api.sendTypingIndicator(message.threadID);
+                    setTimeout(function (api, returndata, endTyping, message) {
+                      api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                        if (err) {
+                          log("[Facebook] Errored while sending response:", err);
+                        }
+                      }, message.messageID);
+                      endTyping();
+                      setTimeout(function (api, message) {
+                        api.markAsRead(message.threadID);
+                      }, 500, api, message);
+                    }, returndata.data.length * 30, api, returndata, endTyping, message);
+                  } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                    if (!returndata.data.body) {
+                      returndata.data.body = "";
+                    }
+                    returndata.data.body = prefix + " " + returndata.data.body;
+                    var endTyping = api.sendTypingIndicator(message.threadID);
+                    setTimeout(function (api, returndata, endTyping, message, log) {
+                      api.sendMessage(returndata.data, message.threadID, function (err) {
+                        if (err) {
+                          log("[Facebook] Errored while sending response:", err);
+                        }
+                      }, message.messageID);
+                      endTyping();
+                      setTimeout(function (api, message) {
+                        api.markAsRead(message.threadID);
+                      }, 500, api, message);
+                    }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                  }
+                }
+              }) === true) {
+                nointernalresolve = true;
+              }
             }
           }
         }
@@ -1241,7 +1289,7 @@ facebookcb = function callback(err, api) {
                 });
                 arg.map(xy => xy.replace(/["]/g, ""));
                 var toarg = arg;
-                if (global.commandMapping[arg[0].substr(1)]) {
+                if (global.commandMapping[arg[0].substr(1)] && !nointernalresolve) {
                   if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
                     api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
                   } else {
