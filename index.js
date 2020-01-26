@@ -213,6 +213,7 @@ var defaultconfig = {
   fblisten: [
     "0" //Replace 0 with FB Thread ID
   ],
+  facebookProxy: null,
   enablediscord: false,
   discordtoken: "",
   discordlistenwhitelist: false,
@@ -712,8 +713,8 @@ ensureExists(path.join(__dirname, "plugins/"));
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Plugin complied with version 0.3beta1=>0.3beta4 is allowed
-    var allowedVersion = ">=0.3.0-beta.1 <=0.3.0-beta.4";
+    //* Plugin complied with version 0.3beta1=>0.3beta5 is allowed
+    var allowedVersion = ">=0.3.0-beta.1 <=0.3.0-beta.5";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
@@ -2083,16 +2084,20 @@ if (global.config.enablefb) {
   if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "fbstate.json"))) {
     fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8'));
   }
+  var configobj = {
+    userAgent: global.config.fbuseragent,
+    logLevel: global.config.DEBUG_FCA_LOGLEVEL,
+    selfListen: true,
+    listenEvents: true,
+    updatePresence: false,
+    autoMarkRead: true
+  }
+  if (global.config.facebookProxy != null) {
+    configobj.proxy = global.config.facebookProxy;
+  }
   try {
     log("[Facebook]", "Logging in...");
-    var fbinstance = require("fca-unofficial")(fbloginobj, {
-      userAgent: global.config.fbuseragent,
-      logLevel: global.config.DEBUG_FCA_LOGLEVEL,
-      selfListen: true,
-      listenEvents: true,
-      updatePresence: false,
-      autoMarkRead: true
-    }, facebookcb);
+    var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
     forceReconnect = function forceReconnect(error) {
       if (!error) {
         log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (6 hours clock)");
