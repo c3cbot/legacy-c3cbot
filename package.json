@@ -29,7 +29,7 @@
     "discord.js": "^11.5.1",
     "erlpack": "https://github.com/hammerandchisel/erlpack",
     "eslint": "^5.16.0",
-    "fca-unofficial": "",
+    "fca-unofficial": "^1.0.6",
     "js-yaml": "^3.13.1",
     "libsodium-wrappers": "^0.7.4",
     "node-opus": "^0.3.2",
