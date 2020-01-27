@@ -108,6 +108,9 @@ var syncrequest = require('sync-request');
 var wait = require('wait-for-stuff');
 var semver = require("semver");
 var childProcess = require("child_process");
+const Socks = require('socks');
+var url = require("url");
+const EventEmitter = require('events')
 ////const onChange = require('on-change');
 const readline = require('readline');
 const rl = readline.createInterface({
@@ -214,6 +217,7 @@ var defaultconfig = {
     "0" //Replace 0 with FB Thread ID
   ],
   facebookProxy: null,
+  facebookProxyUseSOCKS: false,
   enablediscord: false,
   discordtoken: "",
   discordlistenwhitelist: false,
@@ -276,6 +280,204 @@ global.lang = require('js-yaml').load(fs.existsSync(path.join(__dirname, "lang",
     encoding: 'utf-8'
   });
 })());
+
+if (global.config.facebookProxyUseSOCKS) {
+  var sock2HTTP = function (config) {
+    function randomElement(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function getProxyObject(host, port, login, password) {
+      return {
+        ipaddress: host,
+        // eslint-disable-next-line radix
+        port: parseInt(port, 10),
+        type: 5,
+        authentication: { 
+          username: login || '', 
+          password: password || '' 
+        }
+      };
+    }
+
+    function parseProxyLine(line) {
+      const proxyInfo = line.split(':');
+
+      if (proxyInfo.length !== 4 && proxyInfo.length !== 2) {
+        throw new Error(`Incorrect proxy line: ${line}`);
+      }
+
+      return getProxyObject.apply(this, proxyInfo);
+    }
+
+    function requestListener(getProxyInfo, request, response) {
+      log("[SOCKS2HTTP]", info(`request: ${request.url}`));
+
+      const proxy = getProxyInfo();
+      const ph = url.parse(request.url);
+
+      const socksAgent = new Socks.Agent({
+        proxy,
+        target: { 
+          host: ph.hostname, 
+          port: ph.port 
+        }
+      });
+
+      const options = {
+        port: ph.port,
+        hostname: ph.hostname,
+        method: request.method,
+        path: ph.path,
+        headers: request.headers,
+        agent: socksAgent
+      };
+
+      const proxyRequest = http.request(options);
+
+      request.on('error', (err) => {
+        log("[SOCKS2HTTP]", `${err.message}`);
+        proxyRequest.destroy(err);
+      });
+
+      proxyRequest.on('error', (error) => {
+        log("[SOCKS2HTTP]", `${error.message} on proxy ${proxy.ipaddress}:${proxy.port}`);
+        response.writeHead(500);
+        response.end('Connection error\n');
+      });
+
+      proxyRequest.on('response', (proxyResponse) => {
+        proxyResponse.pipe(response);
+        response.writeHead(proxyResponse.statusCode, proxyResponse.headers);
+      });
+
+      request.pipe(proxyRequest);
+    }
+
+    function connectListener(getProxyInfo, request, socketRequest, head) {
+      const proxy = getProxyInfo();
+
+      const ph = url.parse(`http://${request.url}`);
+      const { hostname: host, port } = ph;
+
+      const options = {
+        proxy,
+        target: { 
+          host, 
+          port 
+        },
+        command: 'connect'
+      };
+
+      let socket;
+
+      socketRequest.on('error', (err) => {
+        log("[SOCKS2HTTP]", `${err.message}`);
+        if (socket) {
+          socket.destroy(err);
+        }
+      });
+
+      Socks.createConnection(options, (error, _socket) => {
+        socket = _socket;
+
+        if (error) {
+          // error in SocksSocket creation
+          log("[SOCKS2HTTP]", `${error.message} connection creating on ${proxy.ipaddress}:${proxy.port}`);
+          socketRequest.write(`HTTP/${request.httpVersion} 500 Connection error\r\n\r\n`);
+          return;
+        }
+
+        socket.on('error', (err) => {
+          log("[SOCKS2HTTP]", `${err.message}`);
+          socketRequest.destroy(err);
+        });
+
+        // tunneling to the host
+        socket.pipe(socketRequest);
+        socketRequest.pipe(socket);
+
+        socket.write(head);
+        socketRequest.write(`HTTP/${request.httpVersion} 200 Connection established\r\n\r\n`);
+        socket.resume();
+      });
+    }
+
+    function ProxyServer(options) {
+      // TODO: start point
+      http.Server.call(this, () => { });
+
+      this.proxyList = [];
+
+      if (options.socks) {
+        // stand alone proxy loging
+        this.loadProxy(options.socks);
+      } else if (options.socksList) {
+        // proxy list loading
+        this.loadProxyFile(options.socksList);
+        if (options.proxyListReloadTimeout) {
+          setInterval(
+            () => {
+              this.loadProxyFile(options.socksList);
+            },
+            options.proxyListReloadTimeout * 1000
+          );
+        }
+      }
+
+      this.addListener(
+        'request',
+        requestListener.bind(null, () => randomElement(this.proxyList))
+      );
+      this.addListener(
+        'connect',
+        connectListener.bind(null, () => randomElement(this.proxyList))
+      );
+    }
+
+    util.inherits(ProxyServer, http.Server);
+
+    ProxyServer.prototype.loadProxy = function loadProxy(proxyLine) {
+      try {
+        this.proxyList.push(parseProxyLine(proxyLine));
+      } catch (ex) {
+        log("[SOCKS2HTTP]", ex.message);
+      }
+    };
+
+    ProxyServer.prototype.loadProxyFile = function loadProxyFile(fileName) {
+      log("[SOCKS2HTTP]", `Loading proxy list from file: ${fileName}`);
+
+      fs.readFile(fileName, (err, data) => {
+        if (err) {
+          log("[SOCKS2HTTP]", `Impossible to read the proxy file : ${fileName} error : ${err.message}`);
+          return;
+        }
+
+        const lines = data.toString().split('\n');
+        const proxyList = [];
+        for (let i = 0; i < lines.length; i += 1) {
+          if (!(lines[i] !== '' && lines[i].charAt(0) !== '#')) {
+            try {
+              proxyList.push(parseProxyLine(lines[i]));
+            } catch (ex) {
+              log("[SOCKS2HTTP]", ex.message);
+            }
+          }
+        }
+        this.proxyList = proxyList;
+      });
+    };
+
+    return new ProxyServer(config);
+  };
+
+  var localSocksProxy = sock2HTTP({
+    port: 2813,
+    host: "127.0.0.2",
+    socks: global.config.facebookProxy
+  });
+}
 
 /**
  * Obfuscate a string.
@@ -599,9 +801,11 @@ var autosave = setInterval(function (testmode, log) {
 //* NSFW detection API load
 log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
 var NSFWJS_MODEL_PROCESSES = new Worker(() => {
+  var wait = require("wait-for-stuff");
   onmessage = function (evn) {
     if (evn.data.type == "close") {
-      self.NSFWJS_MODEL_SERVER.close();
+      wait.for.callback(self.NSFWJS_MODEL_SERVER.close);
+      self.postMessage("closed");
       self.terminate();
     } else if (evn.data.type == "dirname") {
       var dirname = evn.data.data;
@@ -617,14 +821,21 @@ var NSFWJS_MODEL_PROCESSES = new Worker(() => {
           res.write('404 FILE NOT FOUND');
           res.end();
         }
-      }).listen(2812);
+      }).listen(2812, "127.0.0.2");
     }
   }
 });
+NSFWJS_MODEL_PROCESSES.stopEvent = new EventEmitter();
+NSFWJS_MODEL_PROCESSES.onmessage = function (evn) {
+  if (evn.data == "closed") {
+    NSFWJS_MODEL_PROCESSES.stopEvent.emit("stop");
+  }
+}
 NSFWJS_MODEL_PROCESSES.stop = function () {
   this.postMessage({
     type: "close"
   });
+  wait.for.event(NSFWJS_MODEL_PROCESSES.stopEvent, "stop");
 }
 NSFWJS_MODEL_PROCESSES.postMessage({
   type: "dirname",
@@ -713,8 +924,8 @@ ensureExists(path.join(__dirname, "plugins/"));
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Plugin complied with version 0.3beta1=>0.3beta5 is allowed
-    var allowedVersion = ">=0.3.0-beta.1 <=0.3.0-beta.5";
+    //* Plugin complied with version 0.3beta1=>0.3beta6 is allowed
+    var allowedVersion = ">=0.3.0-beta.1 <=0.3.0-beta.6";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
@@ -867,6 +1078,17 @@ function loadPlugin() {
             handler: plname
           });
         }
+        if (typeof global.plugins[pltemp1[plname]["plugin_scope"]].onLoad == "function") {
+          global.plugins[pltemp1[plname]["plugin_scope"]].onLoad({
+            // eslint-disable-next-line no-loop-func
+            log: function logPlugin(...message) {
+              log.apply(global, [
+                "[PLUGIN]",
+                "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+              ].concat(message));
+            }
+          })
+        }
         global.loadedPlugins[plname] = {
           author: pltemp1[plname].author,
           version: pltemp1[plname].version
@@ -891,7 +1113,7 @@ function unloadPlugin() {
       }
     }
     delete global.plugins[pltemp1[name]["plugin_scope"]];
-    log("[INTERNAL]", "Unloaded plugin ", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
+    log("[INTERNAL]", "Unloaded plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
     delete global.loadedPlugins[name];
   }
 }
@@ -1101,10 +1323,11 @@ facebookcb = function callback(err, api) {
     facebook.error = err;
     log("[Facebook]", err);
     log("[Facebook]", "Error saved to 'facebook.error'.");
-    return false;
+    return null;
   } else {
-    facebook.error = false;
+    facebook.error = null;
   }
+
   log("[Facebook]", "Logged in.");
   delete facebook.api;
   facebook.api = api;
@@ -1163,8 +1386,7 @@ facebookcb = function callback(err, api) {
   }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
 
   !global.data.messageList ? global.data.messageList = {} : "";
-  // eslint-disable-next-line require-await
-  facebook.listener = api.listenMqtt(async function callback(err, message) {
+  facebook.listener = api.listenMqtt(function callback(err, message) {
     try {
       if (message != undefined) {
         var nointernalresolve = false;
@@ -1557,7 +1779,7 @@ facebookcb = function callback(err, api) {
                     onmessage = function (event) {
                       var wait = require("wait-for-stuff");
                       try {
-                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://localhost:2812/", { size: (event.data.small ? 224 : 299) }));
+                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.2:2812/", { size: (event.data.small ? 224 : 299) }));
                       } catch (ex) {
                         var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
                       }
@@ -2093,7 +2315,11 @@ if (global.config.enablefb) {
     autoMarkRead: true
   }
   if (global.config.facebookProxy != null) {
-    configobj.proxy = global.config.facebookProxy;
+    if (global.config.facebookProxyUseSOCKS) {
+      configobj.proxy = "http://127.0.0.2:2813";
+    } else {
+      configobj.proxy = "http://" + global.config.facebookProxy;
+    }
   }
   try {
     log("[Facebook]", "Logging in...");
@@ -2113,14 +2339,7 @@ if (global.config.enablefb) {
       fbinstance = undefined;
       fbinstance = require("fca-unofficial")({
         appState: temporaryAppState
-      }, {
-        userAgent: global.config.fbuseragent,
-        logLevel: global.config.DEBUG_FCA_LOGLEVEL,
-        selfListen: true,
-        listenEvents: true,
-        updatePresence: false,
-        autoMarkRead: true
-      }, facebookcb);
+      }, configobj, facebookcb);
       log("[Facebook]", "New instance created.");
       log("[Facebook]", "Logging in...");
       setTimeout(function (fr) {
@@ -2189,7 +2408,23 @@ if (global.config.enablediscord) {
                 admin: admin,
                 mentions: mentions,
                 discordapi: client,
-                facebookapi: facebook.api
+                facebookapi: facebook.api,
+                log: function logPlugin(...message) {
+                  log.apply(global, [
+                    "[PLUGIN]",
+                    "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                  ].concat(message));
+                },
+                return: function returndata(returndata) {
+                  if (!returndata) return undefined;
+                  if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                    message.reply("\r\n" + prefix + " " + returndata.data);
+                  } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                    var body = returndata.data.body;
+                    delete returndata.data.body;
+                    message.reply("\r\n" + prefix + " " + body, returndata.data);
+                  }
+                }
               });
               if (!returndata) return undefined;
               if (returndata.handler == "internal" && typeof returndata.data == "string") {
@@ -2268,9 +2503,15 @@ var shutdownHandler = function (errorlevel) {
 
   //Stop model server
   NSFWJS_MODEL_PROCESSES.stop();
-  log("[INTERNAL]", "Closed HTTP Model Server.");
+  log("[INTERNAL]", "Closed local HTTP Model Server.");
 
-  log("[INTERNAL]", "Closing bot with code " + errorlevel + "..." + "\x1b[m");
+  //Stop local SOCK2HTTP
+  if (typeof localSocksProxy != "undefined") {
+    wait.for.callback(localSocksProxy.close);
+    log("[INTERNAL]", "Closed local SOCKS2HTTP proxy.");
+  }
+
+  log("[INTERNAL]", "Closing bot with code " + errorlevel + "..." + "\x1b[m\r\n");
 }
 //Handle SIGINT and SIGTERM
 var signalHandler = function (signal) {
