@@ -825,17 +825,17 @@ var NSFWJS_MODEL_PROCESSES = new Worker(() => {
     }
   }
 });
-NSFWJS_MODEL_PROCESSES.stopEvent = new EventEmitter();
+NSFWJS_MODEL_PROCESSES_STOPEVENT = new EventEmitter();
 NSFWJS_MODEL_PROCESSES.onmessage = function (evn) {
   if (evn.data == "closed") {
-    NSFWJS_MODEL_PROCESSES.stopEvent.emit("stop");
+    NSFWJS_MODEL_PROCESSES_STOPEVENT.emit("stop");
   }
 }
 NSFWJS_MODEL_PROCESSES.stop = function () {
   this.postMessage({
     type: "close"
   });
-  wait.for.event(NSFWJS_MODEL_PROCESSES.stopEvent, "stop");
+  wait.for.event(NSFWJS_MODEL_PROCESSES_STOPEVENT, "stop");
 }
 NSFWJS_MODEL_PROCESSES.postMessage({
   type: "dirname",
