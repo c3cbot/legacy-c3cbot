@@ -337,7 +337,7 @@ if (global.config.facebookProxyUseSOCKS) {
         throw new Error(`Incorrect proxy line: ${line}`);
       }
 
-      return getProxyObject.apply(this, proxyInfo);
+      return this.getProxyObject.apply(this, proxyInfo);
     }
 
     requestListener(getProxyInfo, request, response) {
