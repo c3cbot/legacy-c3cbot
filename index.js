@@ -323,9 +323,9 @@ if (global.config.facebookProxyUseSOCKS) {
         // eslint-disable-next-line radix
         port: parseInt(port, 10),
         type: 5,
-        authentication: { 
-          username: login || '', 
-          password: password || '' 
+        authentication: {
+          username: login || '',
+          password: password || ''
         }
       };
     }
@@ -348,9 +348,9 @@ if (global.config.facebookProxyUseSOCKS) {
 
       const socksAgent = new Socks.Agent({
         proxy,
-        target: { 
-          host: ph.hostname, 
-          port: ph.port 
+        target: {
+          host: ph.hostname,
+          port: ph.port
         }
       });
 
@@ -392,9 +392,9 @@ if (global.config.facebookProxyUseSOCKS) {
 
       const options = {
         proxy,
-        target: { 
-          host, 
-          port 
+        target: {
+          host,
+          port
         },
         command: 'connect'
       };
@@ -830,7 +830,7 @@ NSFWJS_MODEL_PROCESSES.stop = function () {
   this.postMessage({
     type: "close"
   });
-  wait.for.event(NSFWJS_MODEL_PROCESSES_STOPEVENT, "stop");
+  //wait.for.event(NSFWJS_MODEL_PROCESSES_STOPEVENT, "stop");
 }
 NSFWJS_MODEL_PROCESSES.postMessage({
   type: "dirname",
@@ -859,9 +859,9 @@ function cpuAverage() {
 /**
  * Get CPU percentage in avgTime ms.
  *
- * @param   {number}  avgTime  Time in milliseconds.
+ * @param   {number}   avgTime  Time in milliseconds.
  *
- * @return  {number}           Percentage of CPU load.
+ * @return  {Promise}           A promise that will resolve with percentage of CPU load.
  */
 class CPULoad {
   constructor(avgTime) {
@@ -878,11 +878,31 @@ class CPULoad {
     });
   }
 }
+/**
+   * Get load percentage of CPU (sync)
+   *
+   * @param   {number}  avgTime  Time between samples in milliseconds
+   *
+   * @return  {number}           Percentage of CPU load.
+   */
+CPULoad.prototype.getPercentage = function getPercentage(avgTime) {
+  return wait.for.promise(new Promise((resolve) => {
+    this.samples = [];
+    this.samples[1] = cpuAverage();
+    this.refresh = setTimeout(() => {
+      this.samples[0] = this.samples[1];
+      this.samples[1] = cpuAverage();
+      var totalDiff = this.samples[1].total - this.samples[0].total;
+      var idleDiff = this.samples[1].idle - this.samples[0].idle;
+      resolve(1 - idleDiff / totalDiff);
+    }, avgTime);
+  }));
+}
 
-var titleClocking = setInterval(async () => {
+var titleClocking = setInterval(() => {
   var titleescape1 = String.fromCharCode(27) + ']0;';
   var titleescape2 = String.fromCharCode(7);
-  var cpupercent = await new CPULoad(1000);
+  var cpupercent = CPULoad.getPercentage(1000);
   var title = global.config.botname + " v" + version + " | " + (cpupercent * 100).toFixed(0) + "% CPU" + " | " + ((os.totalmem() - os.freemem()) / 1024 / 1024).toFixed(0) + " MB" + "/" + (os.totalmem() / 1024 / 1024).toFixed(0) + " MB RAM" + " | BOT: " + (process.memoryUsage().rss / 1024 / 1024).toFixed(0) + " MB USED";
   process.title = title;
   // eslint-disable-next-line no-extra-boolean-cast
@@ -895,7 +915,7 @@ var titleClocking = setInterval(async () => {
       }
     }
   }
-}, 5000);
+}, 2000);
 
 /**
  * "require" with data as string
