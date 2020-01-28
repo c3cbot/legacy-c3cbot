@@ -474,7 +474,7 @@ if (global.config.facebookProxyUseSOCKS) {
 
   var localSocksProxy = sock2HTTP({
     port: 2813,
-    host: "127.0.0.2",
+    host: "127.0.0.1",
     socks: global.config.facebookProxy
   });
 }
@@ -821,7 +821,7 @@ var NSFWJS_MODEL_PROCESSES = new Worker(() => {
           res.write('404 FILE NOT FOUND');
           res.end();
         }
-      }).listen(2812, "127.0.0.2");
+      }).listen(2812, "127.0.0.1");
     }
   }
 });
@@ -1779,7 +1779,7 @@ facebookcb = function callback(err, api) {
                     onmessage = function (event) {
                       var wait = require("wait-for-stuff");
                       try {
-                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.2:2812/", { size: (event.data.small ? 224 : 299) }));
+                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.1:2812/", { size: (event.data.small ? 224 : 299) }));
                       } catch (ex) {
                         var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
                       }
@@ -2316,7 +2316,7 @@ if (global.config.enablefb) {
   }
   if (global.config.facebookProxy != null) {
     if (global.config.facebookProxyUseSOCKS) {
-      configobj.proxy = "http://127.0.0.2:2813";
+      configobj.proxy = "http://127.0.0.1:2813";
     } else {
       configobj.proxy = "http://" + global.config.facebookProxy;
     }
