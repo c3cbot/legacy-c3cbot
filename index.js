@@ -958,8 +958,8 @@ function loadPlugin() {
   var pluginFileList = findFromDir(path.join(__dirname, "plugins/"), /.*\.z3p$/, true, false);
   for (var n in pluginFileList) {
     //? Timing issues, not sure why.
-    for (var x = 0; x <= 500; x++) { 
-      undefined;
+    for (var x = 0; x <= 350; x++) { 
+      wait.for.promise(new Promise(resolve => setTimeout(resolve, 1)));
     }
     try {
       var zip = new StreamZip({
