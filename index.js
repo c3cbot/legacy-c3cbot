@@ -957,6 +957,10 @@ function loadPlugin() {
   log("[INTERNAL]", "Searching for plugins in ./plugins/ ...");
   var pluginFileList = findFromDir(path.join(__dirname, "plugins/"), /.*\.z3p$/, true, false);
   for (var n in pluginFileList) {
+    //? Timing issues, not sure why.
+    for (var x = 0; x <= 500; x++) { 
+      undefined;
+    }
     try {
       var zip = new StreamZip({
         file: pluginFileList[n],
@@ -1130,8 +1134,6 @@ function unloadPlugin() {
     delete global.loadedPlugins[name];
   }
 }
-//? Timing issues, not sure why.
-wait.for.promise(new Promise(resolve => setTimeout(resolve, 500)));
 loadPlugin();
 
 var client = {};
