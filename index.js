@@ -285,7 +285,7 @@ global.lang = require('js-yaml').load(fs.existsSync(path.join(__dirname, "lang",
 
 if (global.config.facebookProxyUseSOCKS) {
   class ProxyServer {
-    constructor(config) {
+    constructor(options) {
       http.Server.call(this, () => { });
       this.proxyList = [];
       if (options.socks) {
