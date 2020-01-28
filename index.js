@@ -435,7 +435,7 @@ if (global.config.facebookProxyUseSOCKS) {
 
     loadProxy(proxyLine) {
       try {
-        this.proxyList.push(parseProxyLine(proxyLine));
+        this.proxyList.push(this.autosaveparseProxyLine(proxyLine));
       } catch (ex) {
         log("[SOCKS2HTTP]", ex.message);
       }
@@ -455,7 +455,7 @@ if (global.config.facebookProxyUseSOCKS) {
         for (let i = 0; i < lines.length; i += 1) {
           if (!(lines[i] !== '' && lines[i].charAt(0) !== '#')) {
             try {
-              proxyList.push(parseProxyLine(lines[i]));
+              proxyList.push(this.parseProxyLine(lines[i]));
             } catch (ex) {
               log("[SOCKS2HTTP]", ex.message);
             }
