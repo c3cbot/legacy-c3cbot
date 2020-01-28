@@ -962,7 +962,6 @@ function loadPlugin() {
         file: pluginFileList[n],
         storeEntries: true
       });
-      wait.for.promise(new Promise(resolve => setTimeout(resolve, 3)));
       wait.for.event(zip, "ready");
       try {
         var plinfo = JSON.parse(zip.entryDataSync('plugins.json').toString('utf8'));
@@ -1131,7 +1130,8 @@ function unloadPlugin() {
     delete global.loadedPlugins[name];
   }
 }
-
+//? Timing issues, not sure why.
+wait.for.promise(new Promise(resolve => setTimeout(resolve, 500)));
 loadPlugin();
 
 var client = {};
