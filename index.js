@@ -305,11 +305,11 @@ if (global.config.facebookProxyUseSOCKS) {
       }
       this.addListener(
         'request',
-        requestListener.bind(null, () => randomElement(this.proxyList))
+        this.requestListener.bind(null, () => this.randomElement(this.proxyList))
       );
       this.addListener(
         'connect',
-        connectListener.bind(null, () => randomElement(this.proxyList))
+        this.connectListener.bind(null, () => this.randomElement(this.proxyList))
       );
     }
 
