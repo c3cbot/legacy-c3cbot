@@ -816,21 +816,19 @@ var NSFWJS_MODEL_PROCESSES = new Worker(() => {
           res.write('404 FILE NOT FOUND');
           res.end();
         }
-      }).listen(2812, "127.0.0.1");
+      }).listen(2812, "127.0.0.2");
     }
   }
 });
-NSFWJS_MODEL_PROCESSES_STOPEVENT = new EventEmitter();
+NSFWJS_MODEL_PROCESSES_STOPEVENT = false;
 NSFWJS_MODEL_PROCESSES.onmessage = function (evn) {
-  if (evn.data == "closed") {
-    NSFWJS_MODEL_PROCESSES_STOPEVENT.emit("stop");
-  }
+  NSFWJS_MODEL_PROCESSES_STOPEVENT = !NSFWJS_MODEL_PROCESSES_STOPEVENT;
 }
 NSFWJS_MODEL_PROCESSES.stop = function () {
   this.postMessage({
     type: "close"
   });
-  //wait.for.event(NSFWJS_MODEL_PROCESSES_STOPEVENT, "stop");
+  wait.for.value(NSFWJS_MODEL_PROCESSES_STOPEVENT, true);
 }
 NSFWJS_MODEL_PROCESSES.postMessage({
   type: "dirname",
