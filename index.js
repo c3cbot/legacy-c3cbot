@@ -435,7 +435,7 @@ if (global.config.facebookProxyUseSOCKS) {
 
     loadProxy(proxyLine) {
       try {
-        this.proxyList.push(this.autosaveparseProxyLine(proxyLine));
+        this.proxyList.push(this.parseProxyLine(proxyLine));
       } catch (ex) {
         log("[SOCKS2HTTP]", ex.message);
       }
