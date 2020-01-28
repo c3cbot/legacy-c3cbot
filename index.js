@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable no-warning-comments */
 /* eslint-disable no-throw-literal */
 /* eslint-disable object-curly-spacing */
@@ -7,6 +8,7 @@
 /* eslint-disable no-console */
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
+/* eslint-disable max-classes-per-file */
 Number.prototype.pad = function (width, z) {
   z = z || '0';
   var n = this.valueOf() + '';
@@ -282,12 +284,40 @@ global.lang = require('js-yaml').load(fs.existsSync(path.join(__dirname, "lang",
 })());
 
 if (global.config.facebookProxyUseSOCKS) {
-  var sock2HTTP = function (config) {
-    function randomElement(array) {
+  class ProxyServer {
+    constructor(config) {
+      http.Server.call(this, () => { });
+      this.proxyList = [];
+      if (options.socks) {
+        // stand alone proxy loging
+        this.loadProxy(options.socks);
+      } else if (options.socksList) {
+        // proxy list loading
+        this.loadProxyFile(options.socksList);
+        if (options.proxyListReloadTimeout) {
+          setInterval(
+            () => {
+              this.loadProxyFile(options.socksList);
+            },
+            options.proxyListReloadTimeout * 1000
+          );
+        }
+      }
+      this.addListener(
+        'request',
+        requestListener.bind(null, () => randomElement(this.proxyList))
+      );
+      this.addListener(
+        'connect',
+        connectListener.bind(null, () => randomElement(this.proxyList))
+      );
+    }
+
+    randomElement(array) {
       return array[Math.floor(Math.random() * array.length)];
     }
 
-    function getProxyObject(host, port, login, password) {
+    getProxyObject(host, port, login, password) {
       return {
         ipaddress: host,
         // eslint-disable-next-line radix
@@ -300,7 +330,7 @@ if (global.config.facebookProxyUseSOCKS) {
       };
     }
 
-    function parseProxyLine(line) {
+    parseProxyLine(line) {
       const proxyInfo = line.split(':');
 
       if (proxyInfo.length !== 4 && proxyInfo.length !== 2) {
@@ -310,7 +340,7 @@ if (global.config.facebookProxyUseSOCKS) {
       return getProxyObject.apply(this, proxyInfo);
     }
 
-    function requestListener(getProxyInfo, request, response) {
+    requestListener(getProxyInfo, request, response) {
       log("[SOCKS2HTTP]", info(`request: ${request.url}`));
 
       const proxy = getProxyInfo();
@@ -354,7 +384,7 @@ if (global.config.facebookProxyUseSOCKS) {
       request.pipe(proxyRequest);
     }
 
-    function connectListener(getProxyInfo, request, socketRequest, head) {
+    connectListener(getProxyInfo, request, socketRequest, head) {
       const proxy = getProxyInfo();
 
       const ph = url.parse(`http://${request.url}`);
@@ -403,49 +433,15 @@ if (global.config.facebookProxyUseSOCKS) {
       });
     }
 
-    function ProxyServer(options) {
-      // TODO: start point
-      http.Server.call(this, () => { });
-
-      this.proxyList = [];
-
-      if (options.socks) {
-        // stand alone proxy loging
-        this.loadProxy(options.socks);
-      } else if (options.socksList) {
-        // proxy list loading
-        this.loadProxyFile(options.socksList);
-        if (options.proxyListReloadTimeout) {
-          setInterval(
-            () => {
-              this.loadProxyFile(options.socksList);
-            },
-            options.proxyListReloadTimeout * 1000
-          );
-        }
-      }
-
-      this.addListener(
-        'request',
-        requestListener.bind(null, () => randomElement(this.proxyList))
-      );
-      this.addListener(
-        'connect',
-        connectListener.bind(null, () => randomElement(this.proxyList))
-      );
-    }
-
-    util.inherits(ProxyServer, http.Server);
-
-    ProxyServer.prototype.loadProxy = function loadProxy(proxyLine) {
+    loadProxy(proxyLine) {
       try {
         this.proxyList.push(parseProxyLine(proxyLine));
       } catch (ex) {
         log("[SOCKS2HTTP]", ex.message);
       }
-    };
+    }
 
-    ProxyServer.prototype.loadProxyFile = function loadProxyFile(fileName) {
+    loadProxyFile(fileName) {
       log("[SOCKS2HTTP]", `Loading proxy list from file: ${fileName}`);
 
       fs.readFile(fileName, (err, data) => {
@@ -467,14 +463,13 @@ if (global.config.facebookProxyUseSOCKS) {
         }
         this.proxyList = proxyList;
       });
-    };
+    }
+  }
+  util.inherits(ProxyServer, http.Server);
 
-    return new ProxyServer(config);
-  };
-
-  var localSocksProxy = sock2HTTP({
+  var localSocksProxy = new ProxyServer({
     port: 2813,
-    host: "127.0.0.1",
+    host: "127.0.0.2",
     socks: global.config.facebookProxy
   });
 }
@@ -1779,7 +1774,7 @@ facebookcb = function callback(err, api) {
                     onmessage = function (event) {
                       var wait = require("wait-for-stuff");
                       try {
-                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.1:2812/", { size: (event.data.small ? 224 : 299) }));
+                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.2:2812/", { size: (event.data.small ? 224 : 299) }));
                       } catch (ex) {
                         var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
                       }
@@ -2316,7 +2311,7 @@ if (global.config.enablefb) {
   }
   if (global.config.facebookProxy != null) {
     if (global.config.facebookProxyUseSOCKS) {
-      configobj.proxy = "http://127.0.0.1:2813";
+      configobj.proxy = "http://127.0.0.2:2813";
     } else {
       configobj.proxy = "http://" + global.config.facebookProxy;
     }
