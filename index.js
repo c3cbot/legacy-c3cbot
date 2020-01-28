@@ -820,6 +820,8 @@ var NSFWJS_MODEL_PROCESSES = new Worker(() => {
     }
   }
 });
+//Timing issues, not sure why.
+wait.for.promise(new Promise(resolve => setTimeout(resolve, 300)));
 NSFWJS_MODEL_PROCESSES_STOPEVENT = false;
 NSFWJS_MODEL_PROCESSES.onmessage = function (evn) {
   NSFWJS_MODEL_PROCESSES_STOPEVENT = !NSFWJS_MODEL_PROCESSES_STOPEVENT;
