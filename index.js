@@ -1328,9 +1328,6 @@ global.commandMapping["togglethanos"] = {
 global.commandMapping["togglethanos"].args[global.config.language] = "";
 global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
 
-//Load plugin
-loadPlugin();
-
 var facebook = {};
 facebookcb = function callback(err, api) {
   if (err) {
@@ -2539,3 +2536,6 @@ process.on('SIGHUP', function () { signalHandler("SIGHUP"); }); //Windows Comman
 rl.on('SIGTERM', function () { process.emit('SIGTERM'); });
 rl.on('SIGINT', function () { process.emit('SIGINT'); });
 process.on('exit', shutdownHandler);
+
+//Load plugin
+loadPlugin();
