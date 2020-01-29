@@ -957,10 +957,6 @@ function loadPlugin() {
   log("[INTERNAL]", "Searching for plugins in ./plugins/ ...");
   var pluginFileList = findFromDir(path.join(__dirname, "plugins/"), /.*\.z3p$/, true, false);
   for (var n in pluginFileList) {
-    //? Timing issues, not sure why.
-    for (var x = 0; x <= 350; x++) { 
-      wait.for.promise(new Promise(resolve => setTimeout(resolve, 1)));
-    }
     try {
       var zip = new StreamZip({
         file: pluginFileList[n],
@@ -1134,7 +1130,6 @@ function unloadPlugin() {
     delete global.loadedPlugins[name];
   }
 }
-loadPlugin();
 
 var client = {};
 global.commandMapping["version"] = {
@@ -1332,6 +1327,9 @@ global.commandMapping["togglethanos"] = {
 }
 global.commandMapping["togglethanos"].args[global.config.language] = "";
 global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
+
+//Load plugin
+loadPlugin();
 
 var facebook = {};
 facebookcb = function callback(err, api) {
