@@ -1129,205 +1129,205 @@ function unloadPlugin() {
     log("[INTERNAL]", "Unloaded plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
     delete global.loadedPlugins[name];
   }
+
+  global.commandMapping["version"] = {
+    args: {},
+    desc: {},
+    scope: function (type, data) {
+      var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
+        headers: {
+          "User-Agent": global.config.fbuseragent
+        }
+      }).body.toString());
+      var latestrelease = githubdata[githubdata.length - 1];
+      var latestgithubversion = latestrelease.ref.replace("refs/tags/", "");
+      var codedata = JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
+        headers: {
+          "User-Agent": global.config.fbuseragent
+        }
+      }).body.toString());
+      var latestcodeversion = codedata.version;
+      return {
+        handler: "internal",
+        data: "Currently running on version " + version + "\r\nLatest GitHub version: " + latestgithubversion + "\r\nLatest code version: " + latestcodeversion
+      }
+    },
+    compatibly: 0,
+    handler: "INTERNAL"
+  }
+  global.commandMapping["version"].args[global.config.language] = "";
+  global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
+  
+  global.commandMapping["help"] = {
+    args: {},
+    desc: {},
+    scope: function (type, data) {
+      var page = 1;
+      page = parseInt(data.args[1]) || 1;
+      if (page < 1) page = 1;
+      var mts = "";
+      mts += global.lang["HELP_OUTPUT_PREFIX"];
+      var helpobj = global.commandMapping["help"];
+      helpobj.command = "help";
+      helpobj.args[global.config.language] = global.lang["HELP_ARGS"];
+      helpobj.desc[global.config.language] = global.lang["HELP_DESC"];
+      var hl = [helpobj];
+      for (var no in global.commandMapping) {
+        if (no !== "help") {
+          var tempx = global.commandMapping[no];
+          tempx.command = no;
+          hl.push(tempx);
+        }
+      }
+      if (type == "Discord") {
+        mts += "\r\n```HTTP"
+      }
+      for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
+        if (i < hl.length) {
+          mts += "\r\n" + (i + 1).toString() + ". /" + hl[i].command;
+          if (!!hl[i].args && hl[i].args != "") {
+            mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+          }
+          mts += ": " + hl[i].desc[global.config.language];
+        }
+      }
+      if (type == "Discord") {
+        mts += "\r\n```"
+      }
+      mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 5).ceil() + ')';
+      return {
+        handler: "internal",
+        data: mts
+      }
+    },
+    compatibly: 0,
+    handler: "INTERNAL"
+  }
+  global.commandMapping["help"].args[global.config.language] = global.lang["HELP_ARGS"];
+  global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
+  global.commandMapping["shutdown"] = {
+    args: {},
+    desc: {},
+    scope: function (type, data) {
+      if (data.admin && global.config.allowAdminUseRestartCommand) {
+        setTimeout(function () { process.exit(); }, 1000);
+        return {
+          handler: "internal",
+          data: "Shutting down..."
+        }
+      } else {
+        return {
+          handler: "internal",
+          data: global.lang["INSUFFICIENT_PERM"]
+        }
+      }
+    },
+    compatibly: 0,
+    handler: "INTERNAL"
+  }
+  global.commandMapping["shutdown"].args[global.config.language] = "";
+  global.commandMapping["shutdown"].desc[global.config.language] = global.lang["SHUTDOWN_DESC"];
+  
+  global.commandMapping["plugins"] = {
+    args: {},
+    desc: {},
+    scope: function (type, data) {
+      if (!data.admin && !global.config.allowUserUsePluginsCommand) {
+        return {
+          handler: "internal",
+          data: global.lang["INSUFFICIENT_PERM"]
+        }
+      }
+      var page = 1;
+      page = parseInt(data.args[1]) || 1;
+      if (page < 1) page = 1;
+      var mts = "";
+      mts += global.lang["PLUGINS_OUTPUT_PREFIX"];
+      var hl = [];
+      for (var no in global.loadedPlugins) {
+        var tempx = global.loadedPlugins[no];
+        tempx.name = no;
+        hl.push(tempx);
+      }
+      if (type == "Discord") {
+        mts += "\r\n```HTTP"
+      }
+      for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
+        if (i < hl.length) {
+          mts += "\r\n" + (i + 1).toString() + ". " + hl[i].name;
+          if (!!hl[i].version && hl[i].version != "") {
+            mts += " " + hl[i].version;
+          }
+          mts += " by " + hl[i].author;
+        }
+      }
+      if (type == "Discord") {
+        mts += "\r\n```"
+      }
+      mts += '\r\n(Page ' + page + '/' + (hl.length / 5).ceil() + ')';
+      return {
+        handler: "internal",
+        data: mts
+      }
+    },
+    compatibly: 0,
+    handler: "INTERNAL"
+  }
+  global.commandMapping["plugins"].args[global.config.language] = "";
+  global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
+  
+  global.commandMapping["reload"] = {
+    args: {},
+    desc: {},
+    scope: function (type, data) {
+      if (!data.admin && !global.config.allowUserUseReloadCommand) {
+        return {
+          handler: "internal",
+          data: global.lang["INSUFFICIENT_PERM"]
+        }
+      }
+      unloadPlugin();
+      loadPlugin();
+      return {
+        handler: "internal",
+        data: "Reloaded"
+      }
+    },
+    compatibly: 0,
+    handler: "INTERNAL"
+  }
+  global.commandMapping["reload"].args[global.config.language] = "";
+  global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
+  
+  global.commandMapping["togglethanos"] = {
+    args: {},
+    desc: {},
+    scope: function (type, data) {
+      if (type != "Facebook") {
+        return {
+          data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
+          handler: "internal"
+        }
+      }
+      var threadID = data.msgdata.threadID;
+      if (!global.data.thanosBlacklist[threadID]) {
+        global.data.thanosBlacklist[threadID] = true;
+      } else {
+        global.data.thanosBlacklist[threadID] = false;
+      }
+      return {
+        data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.thanosBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
+        handler: "internal"
+      }
+    },
+    compatibly: 1,
+    handler: "INTERNAL"
+  }
+  global.commandMapping["togglethanos"].args[global.config.language] = "";
+  global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
 }
 
 var client = {};
-global.commandMapping["version"] = {
-  args: {},
-  desc: {},
-  scope: function (type, data) {
-    var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
-      headers: {
-        "User-Agent": global.config.fbuseragent
-      }
-    }).body.toString());
-    var latestrelease = githubdata[githubdata.length - 1];
-    var latestgithubversion = latestrelease.ref.replace("refs/tags/", "");
-    var codedata = JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
-      headers: {
-        "User-Agent": global.config.fbuseragent
-      }
-    }).body.toString());
-    var latestcodeversion = codedata.version;
-    return {
-      handler: "internal",
-      data: "Currently running on version " + version + "\r\nLatest GitHub version: " + latestgithubversion + "\r\nLatest code version: " + latestcodeversion
-    }
-  },
-  compatibly: 0,
-  handler: "INTERNAL"
-}
-global.commandMapping["version"].args[global.config.language] = "";
-global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
-
-global.commandMapping["help"] = {
-  args: {},
-  desc: {},
-  scope: function (type, data) {
-    var page = 1;
-    page = parseInt(data.args[1]) || 1;
-    if (page < 1) page = 1;
-    var mts = "";
-    mts += global.lang["HELP_OUTPUT_PREFIX"];
-    var helpobj = global.commandMapping["help"];
-    helpobj.command = "help";
-    helpobj.args[global.config.language] = global.lang["HELP_ARGS"];
-    helpobj.desc[global.config.language] = global.lang["HELP_DESC"];
-    var hl = [helpobj];
-    for (var no in global.commandMapping) {
-      if (no !== "help") {
-        var tempx = global.commandMapping[no];
-        tempx.command = no;
-        hl.push(tempx);
-      }
-    }
-    if (type == "Discord") {
-      mts += "\r\n```HTTP"
-    }
-    for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
-      if (i < hl.length) {
-        mts += "\r\n" + (i + 1).toString() + ". /" + hl[i].command;
-        if (!!hl[i].args && hl[i].args != "") {
-          mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
-        }
-        mts += ": " + hl[i].desc[global.config.language];
-      }
-    }
-    if (type == "Discord") {
-      mts += "\r\n```"
-    }
-    mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 5).ceil() + ')';
-    return {
-      handler: "internal",
-      data: mts
-    }
-  },
-  compatibly: 0,
-  handler: "INTERNAL"
-}
-global.commandMapping["help"].args[global.config.language] = global.lang["HELP_ARGS"];
-global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
-global.commandMapping["shutdown"] = {
-  args: {},
-  desc: {},
-  scope: function (type, data) {
-    if (data.admin && global.config.allowAdminUseRestartCommand) {
-      setTimeout(function () { process.exit(); }, 1000);
-      return {
-        handler: "internal",
-        data: "Shutting down..."
-      }
-    } else {
-      return {
-        handler: "internal",
-        data: global.lang["INSUFFICIENT_PERM"]
-      }
-    }
-  },
-  compatibly: 0,
-  handler: "INTERNAL"
-}
-global.commandMapping["shutdown"].args[global.config.language] = "";
-global.commandMapping["shutdown"].desc[global.config.language] = global.lang["SHUTDOWN_DESC"];
-
-global.commandMapping["plugins"] = {
-  args: {},
-  desc: {},
-  scope: function (type, data) {
-    if (!data.admin && !global.config.allowUserUsePluginsCommand) {
-      return {
-        handler: "internal",
-        data: global.lang["INSUFFICIENT_PERM"]
-      }
-    }
-    var page = 1;
-    page = parseInt(data.args[1]) || 1;
-    if (page < 1) page = 1;
-    var mts = "";
-    mts += global.lang["PLUGINS_OUTPUT_PREFIX"];
-    var hl = [];
-    for (var no in global.loadedPlugins) {
-      var tempx = global.loadedPlugins[no];
-      tempx.name = no;
-      hl.push(tempx);
-    }
-    if (type == "Discord") {
-      mts += "\r\n```HTTP"
-    }
-    for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
-      if (i < hl.length) {
-        mts += "\r\n" + (i + 1).toString() + ". " + hl[i].name;
-        if (!!hl[i].version && hl[i].version != "") {
-          mts += " " + hl[i].version;
-        }
-        mts += " by " + hl[i].author;
-      }
-    }
-    if (type == "Discord") {
-      mts += "\r\n```"
-    }
-    mts += '\r\n(Page ' + page + '/' + (hl.length / 5).ceil() + ')';
-    return {
-      handler: "internal",
-      data: mts
-    }
-  },
-  compatibly: 0,
-  handler: "INTERNAL"
-}
-global.commandMapping["plugins"].args[global.config.language] = "";
-global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
-
-global.commandMapping["reload"] = {
-  args: {},
-  desc: {},
-  scope: function (type, data) {
-    if (!data.admin && !global.config.allowUserUseReloadCommand) {
-      return {
-        handler: "internal",
-        data: global.lang["INSUFFICIENT_PERM"]
-      }
-    }
-    unloadPlugin();
-    loadPlugin();
-    return {
-      handler: "internal",
-      data: "Reloaded"
-    }
-  },
-  compatibly: 0,
-  handler: "INTERNAL"
-}
-global.commandMapping["reload"].args[global.config.language] = "";
-global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
-
-global.commandMapping["togglethanos"] = {
-  args: {},
-  desc: {},
-  scope: function (type, data) {
-    if (type != "Facebook") {
-      return {
-        data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
-        handler: "internal"
-      }
-    }
-    var threadID = data.msgdata.threadID;
-    if (!global.data.thanosBlacklist[threadID]) {
-      global.data.thanosBlacklist[threadID] = true;
-    } else {
-      global.data.thanosBlacklist[threadID] = false;
-    }
-    return {
-      data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.thanosBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
-      handler: "internal"
-    }
-  },
-  compatibly: 1,
-  handler: "INTERNAL"
-}
-global.commandMapping["togglethanos"].args[global.config.language] = "";
-global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
-
 var facebook = {};
 facebookcb = function callback(err, api) {
   if (err) {
