@@ -410,8 +410,8 @@ if (global.config.facebookProxyUseSOCKS) {
       });
 
       Socks.createConnection(options, (error, _socket) => {
-        socket = _socket.socket;
         try {
+          socket = _socket.socket;
           socket.on('error', (err) => {
             log("[SOCKS2HTTP]", `${err.message}`);
             socketRequest.destroy(err);
@@ -422,6 +422,7 @@ if (global.config.facebookProxyUseSOCKS) {
           // error in SocksSocket creation
           log("[SOCKS2HTTP]", `${error.message} connection creating on ${proxy.ipaddress}:${proxy.port}`);
           socketRequest.write(`HTTP/${request.httpVersion} 500 Connection error\r\n\r\n`);
+          socketRequest.end();
           return;
         }
 
