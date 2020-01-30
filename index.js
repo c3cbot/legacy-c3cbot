@@ -1358,7 +1358,7 @@ facebookcb = function callback(err, api) {
       callingback = function () { }
     }
     if (!global.data.cacheName["FB-" + id] || global.data.cacheName["FB-" + id].startsWith("FETCHING-") || !!force) {
-      if (global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return;
+      if (typeof global.data.cacheName["FB-" + id] == "string" && global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return;
       global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now().toString();
       var res = wait.for.function(api.getUserInfo, id);
       (function (err, ret) {
