@@ -110,9 +110,9 @@ var syncrequest = require('sync-request');
 var wait = require('wait-for-stuff');
 var semver = require("semver");
 var childProcess = require("child_process");
-const Socks = require('socks');
+const Socks = require('socks').SocksClient;
 var url = require("url");
-const EventEmitter = require('events')
+var zlib = require("zlib");
 ////const onChange = require('on-change');
 const readline = require('readline');
 const rl = readline.createInterface({
@@ -305,11 +305,11 @@ if (global.config.facebookProxyUseSOCKS) {
       }
       this.addListener(
         'request',
-        this.requestListener.bind(null, () => this.randomElement(this.proxyList))
+        this.requestListener.bind(this, () => this.randomElement(this.proxyList))
       );
       this.addListener(
         'connect',
-        this.connectListener.bind(null, () => this.randomElement(this.proxyList))
+        this.connectListener.bind(this, () => this.randomElement(this.proxyList))
       );
     }
 
@@ -348,7 +348,7 @@ if (global.config.facebookProxyUseSOCKS) {
 
       const socksAgent = new Socks.Agent({
         proxy,
-        target: {
+        destination: {
           host: ph.hostname,
           port: ph.port
         }
@@ -388,11 +388,12 @@ if (global.config.facebookProxyUseSOCKS) {
       const proxy = getProxyInfo();
 
       const ph = url.parse(`http://${request.url}`);
-      const { hostname: host, port } = ph;
+      const host = ph.hostname;
+      const port = parseInt(ph.port);
 
       const options = {
         proxy,
-        target: {
+        destination: {
           host,
           port
         },
@@ -409,7 +410,13 @@ if (global.config.facebookProxyUseSOCKS) {
       });
 
       Socks.createConnection(options, (error, _socket) => {
-        socket = _socket;
+        socket = _socket.socket;
+        try {
+          socket.on('error', (err) => {
+            log("[SOCKS2HTTP]", `${err.message}`);
+            socketRequest.destroy(err);
+          });
+        } catch (ex) {}
 
         if (error) {
           // error in SocksSocket creation
@@ -417,11 +424,6 @@ if (global.config.facebookProxyUseSOCKS) {
           socketRequest.write(`HTTP/${request.httpVersion} 500 Connection error\r\n\r\n`);
           return;
         }
-
-        socket.on('error', (err) => {
-          log("[SOCKS2HTTP]", `${err.message}`);
-          socketRequest.destroy(err);
-        });
 
         // tunneling to the host
         socket.pipe(socketRequest);
@@ -468,10 +470,8 @@ if (global.config.facebookProxyUseSOCKS) {
   util.inherits(ProxyServer, http.Server);
 
   var localSocksProxy = new ProxyServer({
-    port: 2813,
-    host: "127.0.0.2",
     socks: global.config.facebookProxy
-  });
+  }).listen(2813, "127.0.0.1");
 }
 
 /**
@@ -799,9 +799,9 @@ var NSFWJS_MODEL_PROCESSES = new Worker(() => {
   var wait = require("wait-for-stuff");
   onmessage = function (evn) {
     if (evn.data.type == "close") {
-      wait.for.callback(self.NSFWJS_MODEL_SERVER.close);
-      self.postMessage("closed");
-      self.terminate();
+      self.NSFWJS_MODEL_SERVER.close(function () {
+        self.postMessage("closed");
+      });
     } else if (evn.data.type == "dirname") {
       var dirname = evn.data.data;
       var small = evn.data.small;
@@ -816,19 +816,20 @@ var NSFWJS_MODEL_PROCESSES = new Worker(() => {
           res.write('404 FILE NOT FOUND');
           res.end();
         }
-      }).listen(2812, "127.0.0.2");
+      }).listen(2812, "127.0.0.1");
     }
   }
 });
 NSFWJS_MODEL_PROCESSES_STOPEVENT = false;
 NSFWJS_MODEL_PROCESSES.onmessage = function (evn) {
   NSFWJS_MODEL_PROCESSES_STOPEVENT = !NSFWJS_MODEL_PROCESSES_STOPEVENT;
+  NSFWJS_MODEL_PROCESSES.terminate();
 }
 NSFWJS_MODEL_PROCESSES.stop = function () {
   this.postMessage({
     type: "close"
   });
-  wait.for.value(NSFWJS_MODEL_PROCESSES_STOPEVENT, true);
+  //wait.for.value(NSFWJS_MODEL_PROCESSES_STOPEVENT, true);
 }
 NSFWJS_MODEL_PROCESSES.postMessage({
   type: "dirname",
@@ -877,13 +878,13 @@ class CPULoad {
   }
 }
 /**
-   * Get load percentage of CPU (sync)
-   *
-   * @param   {number}  avgTime  Time between samples in milliseconds
-   *
-   * @return  {number}           Percentage of CPU load.
-   */
-CPULoad.prototype.getPercentage = function getPercentage(avgTime) {
+ * Get load percentage of CPU (sync)
+ *
+ * @param   {number}  avgTime  Time between samples in milliseconds
+ *
+ * @return  {number}           Percentage of CPU load.
+*/
+CPULoad.getPercentage = function getPercentage(avgTime) {
   return wait.for.promise(new Promise((resolve) => {
     this.samples = [];
     this.samples[1] = cpuAverage();
@@ -897,10 +898,10 @@ CPULoad.prototype.getPercentage = function getPercentage(avgTime) {
   }));
 }
 
-var titleClocking = setInterval(() => {
+var titleClocking = setInterval(async () => {
   var titleescape1 = String.fromCharCode(27) + ']0;';
   var titleescape2 = String.fromCharCode(7);
-  var cpupercent = CPULoad.getPercentage(1000);
+  var cpupercent = await (new CPULoad(1000));
   var title = global.config.botname + " v" + version + " | " + (cpupercent * 100).toFixed(0) + "% CPU" + " | " + ((os.totalmem() - os.freemem()) / 1024 / 1024).toFixed(0) + " MB" + "/" + (os.totalmem() / 1024 / 1024).toFixed(0) + " MB RAM" + " | BOT: " + (process.memoryUsage().rss / 1024 / 1024).toFixed(0) + " MB USED";
   process.title = title;
   // eslint-disable-next-line no-extra-boolean-cast
@@ -913,7 +914,7 @@ var titleClocking = setInterval(() => {
       }
     }
   }
-}, 2000);
+}, 3000);
 
 /**
  * "require" with data as string
@@ -1112,24 +1113,6 @@ function loadPlugin() {
       }
     }
   }
-}
-function unloadPlugin() {
-  for (var name in global.loadedPlugins) {
-    for (var cmd in global.commandMapping) {
-      if (global.commandMapping[cmd].handler == name) {
-        delete global.commandMapping[cmd];
-      }
-    }
-    for (var cmd in global.chatHook) {
-      if (global.chatHook[cmd].handler == name) {
-        delete global.chatHook[cmd];
-      }
-    }
-    delete global.plugins[pltemp1[name]["plugin_scope"]];
-    log("[INTERNAL]", "Unloaded plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
-    delete global.loadedPlugins[name];
-  }
-
   global.commandMapping["version"] = {
     args: {},
     desc: {},
@@ -1157,7 +1140,7 @@ function unloadPlugin() {
   }
   global.commandMapping["version"].args[global.config.language] = "";
   global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
-  
+
   global.commandMapping["help"] = {
     args: {},
     desc: {},
@@ -1227,7 +1210,7 @@ function unloadPlugin() {
   }
   global.commandMapping["shutdown"].args[global.config.language] = "";
   global.commandMapping["shutdown"].desc[global.config.language] = global.lang["SHUTDOWN_DESC"];
-  
+
   global.commandMapping["plugins"] = {
     args: {},
     desc: {},
@@ -1275,7 +1258,7 @@ function unloadPlugin() {
   }
   global.commandMapping["plugins"].args[global.config.language] = "";
   global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
-  
+
   global.commandMapping["reload"] = {
     args: {},
     desc: {},
@@ -1298,7 +1281,7 @@ function unloadPlugin() {
   }
   global.commandMapping["reload"].args[global.config.language] = "";
   global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
-  
+
   global.commandMapping["togglethanos"] = {
     args: {},
     desc: {},
@@ -1325,6 +1308,23 @@ function unloadPlugin() {
   }
   global.commandMapping["togglethanos"].args[global.config.language] = "";
   global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
+}
+function unloadPlugin() {
+  for (var name in global.loadedPlugins) {
+    for (var cmd in global.commandMapping) {
+      if (global.commandMapping[cmd].handler == name) {
+        delete global.commandMapping[cmd];
+      }
+    }
+    for (var cmd in global.chatHook) {
+      if (global.chatHook[cmd].handler == name) {
+        delete global.chatHook[cmd];
+      }
+    }
+    delete global.plugins[pltemp1[name]["plugin_scope"]];
+    log("[INTERNAL]", "Unloaded plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name].author);
+    delete global.loadedPlugins[name];
+  }
 }
 
 var client = {};
@@ -1790,7 +1790,7 @@ facebookcb = function callback(err, api) {
                     onmessage = function (event) {
                       var wait = require("wait-for-stuff");
                       try {
-                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.2:2812/", { size: (event.data.small ? 224 : 299) }));
+                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.1:2812/", { size: (event.data.small ? 224 : 299) }));
                       } catch (ex) {
                         var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
                       }
@@ -2327,7 +2327,7 @@ if (global.config.enablefb) {
   }
   if (global.config.facebookProxy != null) {
     if (global.config.facebookProxyUseSOCKS) {
-      configobj.proxy = "http://127.0.0.2:2813";
+      configobj.proxy = "http://127.0.0.1:2813";
     } else {
       configobj.proxy = "http://" + global.config.facebookProxy;
     }
@@ -2518,11 +2518,12 @@ var shutdownHandler = function (errorlevel) {
 
   //Stop local SOCK2HTTP
   if (typeof localSocksProxy != "undefined") {
-    wait.for.callback(localSocksProxy.close);
+    localSocksProxy.close();
     log("[INTERNAL]", "Closed local SOCKS2HTTP proxy.");
   }
-
+  
   log("[INTERNAL]", "Closing bot with code " + errorlevel + "..." + "\x1b[m\r\n");
+  rl.setPrompt("\x1b[m");
 }
 //Handle SIGINT and SIGTERM
 var signalHandler = function (signal) {
