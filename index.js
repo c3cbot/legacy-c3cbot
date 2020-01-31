@@ -946,6 +946,7 @@ function requireFromString(src, filename) {
 //Plugin Load
 ensureExists(path.join(__dirname, "deletedmsg/"));
 ensureExists(path.join(__dirname, "plugins/"));
+ensureExists(path.join(__dirname, "appstate/"));
 
 function checkPluginCompatibly(version) {
   version = version.toString();
@@ -2089,7 +2090,7 @@ if (global.config.enablefb) {
           var msg = JSON.parse(JSON.stringify(message));
           msg.splice(0, 1);
           log.apply(global, [px].concat([
-            "[Interface", 
+            "[Interface",
             configdata.interface + "]"
           ]).concat(msg));
         }
@@ -2108,15 +2109,13 @@ if (global.config.enablefb) {
           wraplog("[Facebook]", "Logged in.");
           delete facebook.api;
           facebook.api = api;
-          if (global.config.usefbappstate) {
+          if (configobj.usefbappstate) {
             try {
-              fs.writeFileSync(path.join(__dirname, "fbstate.json"), JSON.stringify(api.getAppState()));
+              fs.writeFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), JSON.stringify(api.getAppState()));
             } catch (ex) {
               wraplog("[INTERNAL]", ex);
             }
           }
-          global.config.fbemail = "<censored, security measures>";
-          global.config.fbpassword = "<censored, security measures>"
 
           function fetchName(id, force, callingback) {
             if (!callingback) {
@@ -2776,59 +2775,59 @@ if (global.config.enablefb) {
           wraplog("[Facebook]", "Started Facebook listener");
         }
         var temporaryAppState = {};
-    var fbloginobj = {};
-    fbloginobj.email = configdata.fbemail;
-    fbloginobj.password = configdata.fbpassword;
-    if (configdata.usefbappstate && fs.existsSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"))) {
-      fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), 'utf8'));
-    }
-    var configobj = {
-      userAgent: global.config.fbuseragent,
-      logLevel: global.config.DEBUG_FCA_LOGLEVEL,
-      selfListen: true,
-      listenEvents: true,
-      updatePresence: false,
-      autoMarkRead: true
-    }
-    if (global.config.facebookProxy != null) {
-      if (global.config.facebookProxyUseSOCKS) {
-        configobj.proxy = "http://127.0.0.1:2813";
-      } else {
-        configobj.proxy = "http://" + global.config.facebookProxy;
-      }
-    }
-    try {
-      wraplog("[Facebook]", "Logging in...");
-      var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
-      var forceReconnect = function forceReconnect(error) {
-        if (!error) {
-          wraplog("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (12 hours clock)");
+        var fbloginobj = {};
+        fbloginobj.email = configdata.fbemail;
+        fbloginobj.password = configdata.fbpassword;
+        if (configdata.usefbappstate && fs.existsSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"))) {
+          fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), 'utf8'));
         }
-        if (typeof facebook.listener == "function") {
-          facebook.listener();
-          wraplog("[Facebook]", "Stopped Facebook listener");
-          temporaryAppState = facebook.api.getAppState();
+        var configobj = {
+          userAgent: global.config.fbuseragent,
+          logLevel: global.config.DEBUG_FCA_LOGLEVEL,
+          selfListen: true,
+          listenEvents: true,
+          updatePresence: false,
+          autoMarkRead: true
+        }
+        if (global.config.facebookProxy != null) {
+          if (global.config.facebookProxyUseSOCKS) {
+            configobj.proxy = "http://127.0.0.1:2813";
+          } else {
+            configobj.proxy = "http://" + global.config.facebookProxy;
+          }
         }
         try {
-          clearInterval(facebook.removePendingClock);
-        } catch (ex) { }
-        fbinstance = undefined;
-        fbinstance = require("fca-unofficial")({
-          appState: temporaryAppState
-        }, configobj, facebookcb);
-        wraplog("[Facebook]", "New instance created.");
-        wraplog("[Facebook]", "Logging in...");
-        setTimeout(function (fr) {
-          if (facebook.error && !facebook.listener) {
-            wraplog("[Facebook]", "Detected error. Attempting to reconnect...");
-            fr(true);
+          wraplog("[Facebook]", "Logging in...");
+          var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
+          var forceReconnect = function forceReconnect(error) {
+            if (!error) {
+              wraplog("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (12 hours clock)");
+            }
+            if (typeof facebook.listener == "function") {
+              facebook.listener();
+              wraplog("[Facebook]", "Stopped Facebook listener");
+              temporaryAppState = facebook.api.getAppState();
+            }
+            try {
+              clearInterval(facebook.removePendingClock);
+            } catch (ex) { }
+            fbinstance = undefined;
+            fbinstance = require("fca-unofficial")({
+              appState: temporaryAppState
+            }, configobj, facebookcb);
+            wraplog("[Facebook]", "New instance created.");
+            wraplog("[Facebook]", "Logging in...");
+            setTimeout(function (fr) {
+              if (facebook.error && !facebook.listener) {
+                wraplog("[Facebook]", "Detected error. Attempting to reconnect...");
+                fr(true);
+              }
+            }, 30000, forceReconnect);
           }
-        }, 30000, forceReconnect);
-      }
-      setInterval(forceReconnect, 43200000);
-    } catch (ex) {
-      wraplog("[Facebook]", "Error found in codebase:", ex);
-    }
+          setInterval(forceReconnect, 43200000);
+        } catch (ex) {
+          wraplog("[Facebook]", "Error found in codebase:", ex);
+        }
       })(global.config.fbMultiAccount[n]);
     }
   }
