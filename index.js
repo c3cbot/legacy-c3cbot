@@ -2087,7 +2087,7 @@ if (global.config.enablefb) {
           } catch (ex) {
             px = "";
           }
-          var msg = JSON.parse(JSON.stringify(message));
+          var msg = message;
           msg.splice(0, 1);
           log.apply(global, [px].concat([
             "[Interface",
