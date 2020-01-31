@@ -2080,7 +2080,7 @@ if (global.config.enablefb) {
     for (var n in global.config.fbMultiAccount) {
       // eslint-disable-next-line no-loop-func
       (function wrapper(configdata) {
-        var wraplog = function log(...message) {
+        var wraplog = function wraplog(...message) {
           var px = "";
           try {
             px = message[0]
