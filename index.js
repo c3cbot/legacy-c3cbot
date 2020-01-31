@@ -219,6 +219,16 @@ var defaultconfig = {
   fblisten: [
     "0" //Replace 0 with FB Thread ID
   ],
+  fbUseMultiAccount: false,
+  fbMultiAccount: [
+    {
+      fbemail: "",
+      fbpassword: "",
+      fbuseragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36",
+      usefbappstate: true,
+      interface: 0
+    }
+  ],
   facebookProxy: null,
   facebookProxyUseSOCKS: false,
   enablediscord: false,
@@ -417,7 +427,7 @@ if (global.config.facebookProxyUseSOCKS) {
             log("[SOCKS2HTTP]", `${err.message}`);
             socketRequest.destroy(err);
           });
-        } catch (ex) {}
+        } catch (ex) { }
 
         if (error) {
           // error in SocksSocket creation
@@ -940,8 +950,8 @@ ensureExists(path.join(__dirname, "plugins/"));
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Plugin complied with version 0.3beta1=>0.3beta6 is allowed
-    var allowedVersion = ">=0.3.0-beta.1 <=0.3.0-beta.6";
+    //* Plugin complied with version 0.3beta1=>0.3beta7 is allowed
+    var allowedVersion = ">=0.3.0-beta.1 <=0.3.0-beta.7";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
@@ -1331,696 +1341,1509 @@ function unloadPlugin() {
 
 var client = {};
 var facebook = {};
-facebookcb = function callback(err, api) {
-  if (err) {
-    facebook.error = err;
-    log("[Facebook]", err);
-    log("[Facebook]", "Error saved to 'facebook.error'.");
-    return null;
-  } else {
-    facebook.error = null;
-  }
+var facebooks = {};
+if (global.config.enablefb) {
+  if (!global.config.fbUseMultiAccount) {
+    facebookcb = function callback(err, api) {
+      if (err) {
+        facebook.error = err;
+        log("[Facebook]", err);
+        log("[Facebook]", "Error saved to 'facebook.error'.");
+        return null;
+      } else {
+        facebook.error = null;
+      }
 
-  log("[Facebook]", "Logged in.");
-  delete facebook.api;
-  facebook.api = api;
-  if (global.config.usefbappstate) {
-    try {
-      fs.writeFileSync(path.join(__dirname, "fbstate.json"), JSON.stringify(api.getAppState()));
-    } catch (ex) {
-      log("[INTERNAL]", ex);
-    }
-  }
-  global.config.fbemail = "<censored, security measures>";
-  global.config.fbpassword = "<censored, security measures>"
-
-  function fetchName(id, force, callingback) {
-    if (!callingback) {
-      callingback = function () { }
-    }
-    if (!global.data.cacheName["FB-" + id] || global.data.cacheName["FB-" + id].startsWith("FETCHING-") || !!force) {
-      if (typeof global.data.cacheName["FB-" + id] == "string" && global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return;
-      global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now().toString();
-      var res = wait.for.function(api.getUserInfo, id);
-      (function (err, ret) {
-        if (err) return log("[Facebook] Failed to fetch names:", err);
-        log("[CACHENAME]", id + " => " + ret[id].name);
-        global.data.cacheName["FB-" + id] = ret[id].name;
+      log("[Facebook]", "Logged in.");
+      delete facebook.api;
+      facebook.api = api;
+      if (global.config.usefbappstate) {
         try {
-          callingback();
+          fs.writeFileSync(path.join(__dirname, "fbstate.json"), JSON.stringify(api.getAppState()));
         } catch (ex) {
           log("[INTERNAL]", ex);
         }
-      })(res[0], res[1]);
-    } else {
-      callingback();
-    }
-  }
-  facebook.api.fetchName = fetchName;
-
-  facebook.removePendingClock = setInterval(function (api, log, botname, connectedmsg) {
-    api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
-      if (err) {
-        return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
       }
-      for (var i in list) {
-        setTimeout(function (id) {
-          api[0].handleMessageRequest(id, true);
-          api[0].sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
-            if (err) {
-              return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
-            }
-          });
-          log("[Facebook]", "Bot added to", id);
-        }, i * 500, list[i].threadID);
-      }
-    });
-    api[0].markAsReadAll();
-  }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
+      global.config.fbemail = "<censored, security measures>";
+      global.config.fbpassword = "<censored, security measures>"
 
-  !global.data.messageList ? global.data.messageList = {} : "";
-  facebook.listener = api.listenMqtt(function callback(err, message) {
-    try {
-      if (message != undefined) {
-        var nointernalresolve = false;
-        switch (message.type) {
-          case "read":
-          case "read_receipt":
-          case "presence":
-          case "typ":
-            return;
+      function fetchName(id, force, callingback) {
+        if (!callingback) {
+          callingback = function () { }
         }
-        var receivetime = new Date();
-        for (var n in global.chatHook) {
-          if (global.chatHook[n].listenplatform & 1) {
-            var chhandling = global.chatHook[n];
-            if (chhandling.listentype == "everything") {
-              var admin = false;
-              for (var no in global.config.admins) {
-                if (global.config.admins[no] == "FB-" + (message.senderID || message.author)) {
-                  admin = true;
-                }
-              }
-              if (chhandling.resolverFunc("Facebook", {
-                time: receivetime,
-                msgdata: message,
-                api: api,
-                prefix: prefix,
-                admin: admin,
-                // eslint-disable-next-line no-loop-func
-                log: function logPlugin(...message) {
-                  log.apply(global, [
-                    "[PLUGIN]",
-                    "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
-                  ].concat(message));
-                },
-                // eslint-disable-next-line no-loop-func
-                return: function returndata(returndata) {
-                  if (!returndata) return undefined;
-                  if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                    var endTyping = api.sendTypingIndicator(message.threadID);
-                    setTimeout(function (api, returndata, endTyping, message) {
-                      api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                        if (err) {
-                          log("[Facebook] Errored while sending response:", err);
-                        }
-                      }, message.messageID);
-                      endTyping();
-                      setTimeout(function (api, message) {
-                        api.markAsRead(message.threadID);
-                      }, 500, api, message);
-                    }, returndata.data.length * 30, api, returndata, endTyping, message);
-                  } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                    if (!returndata.data.body) {
-                      returndata.data.body = "";
-                    }
-                    returndata.data.body = prefix + " " + returndata.data.body;
-                    var endTyping = api.sendTypingIndicator(message.threadID);
-                    setTimeout(function (api, returndata, endTyping, message, log) {
-                      api.sendMessage(returndata.data, message.threadID, function (err) {
-                        if (err) {
-                          log("[Facebook] Errored while sending response:", err);
-                        }
-                      }, message.messageID);
-                      endTyping();
-                      setTimeout(function (api, message) {
-                        api.markAsRead(message.threadID);
-                      }, 500, api, message);
-                    }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
-                  }
-                }
-              }) === true) {
-                nointernalresolve = true;
-              }
+        if (!global.data.cacheName["FB-" + id] || global.data.cacheName["FB-" + id].startsWith("FETCHING-") || !!force) {
+          if (typeof global.data.cacheName["FB-" + id] == "string" && global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return;
+          global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now().toString();
+          var res = wait.for.function(api.getUserInfo, id);
+          (function (err, ret) {
+            if (err) return log("[Facebook] Failed to fetch names:", err);
+            log("[CACHENAME]", id + " => " + ret[id].name);
+            global.data.cacheName["FB-" + id] = ret[id].name;
+            try {
+              callingback();
+            } catch (ex) {
+              log("[INTERNAL]", ex);
             }
+          })(res[0], res[1]);
+        } else {
+          callingback();
+        }
+      }
+      facebook.api.fetchName = fetchName;
+
+      facebook.removePendingClock = setInterval(function (api, log, botname, connectedmsg) {
+        api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
+          if (err) {
+            return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
           }
-        }
-        switch (message.type) {
-          case "message":
-            fetchName(message.senderID);
-            if (global.config.enableThanosTimeGems) {
-              global.data.messageList[message.messageID] = message;
-              for (var id in global.data.messageList) {
-                if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
-                  delete global.data.messageList[id];
+          for (var i in list) {
+            setTimeout(function (id) {
+              api[0].handleMessageRequest(id, true);
+              api[0].sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+                if (err) {
+                  return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+                }
+              });
+              log("[Facebook]", "Bot added to", id);
+            }, i * 500, list[i].threadID);
+          }
+        });
+        api[0].markAsReadAll();
+      }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
+
+      !global.data.messageList ? global.data.messageList = {} : "";
+      facebook.listener = api.listenMqtt(function callback(err, message) {
+        try {
+          if (message != undefined) {
+            var nointernalresolve = false;
+            switch (message.type) {
+              case "read":
+              case "read_receipt":
+              case "presence":
+              case "typ":
+                return;
+            }
+            var receivetime = new Date();
+            for (var n in global.chatHook) {
+              if (global.chatHook[n].listenplatform & 1) {
+                var chhandling = global.chatHook[n];
+                if (chhandling.listentype == "everything") {
+                  var admin = false;
+                  for (var no in global.config.admins) {
+                    if (global.config.admins[no] == "FB-" + (message.senderID || message.author)) {
+                      admin = true;
+                    }
+                  }
+                  if (chhandling.resolverFunc("Facebook", {
+                    time: receivetime,
+                    msgdata: message,
+                    api: api,
+                    prefix: prefix,
+                    admin: admin,
+                    // eslint-disable-next-line no-loop-func
+                    log: function logPlugin(...message) {
+                      log.apply(global, [
+                        "[PLUGIN]",
+                        "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                      ].concat(message));
+                    },
+                    // eslint-disable-next-line no-loop-func
+                    return: function returndata(returndata) {
+                      if (!returndata) return undefined;
+                      if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                        var endTyping = api.sendTypingIndicator(message.threadID);
+                        setTimeout(function (api, returndata, endTyping, message) {
+                          api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                            if (err) {
+                              log("[Facebook] Errored while sending response:", err);
+                            }
+                          }, message.messageID);
+                          endTyping();
+                          setTimeout(function (api, message) {
+                            api.markAsRead(message.threadID);
+                          }, 500, api, message);
+                        }, returndata.data.length * 30, api, returndata, endTyping, message);
+                      } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                        if (!returndata.data.body) {
+                          returndata.data.body = "";
+                        }
+                        returndata.data.body = prefix + " " + returndata.data.body;
+                        var endTyping = api.sendTypingIndicator(message.threadID);
+                        setTimeout(function (api, returndata, endTyping, message, log) {
+                          api.sendMessage(returndata.data, message.threadID, function (err) {
+                            if (err) {
+                              log("[Facebook] Errored while sending response:", err);
+                            }
+                          }, message.messageID);
+                          endTyping();
+                          setTimeout(function (api, message) {
+                            api.markAsRead(message.threadID);
+                          }, 500, api, message);
+                        }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                      }
+                    }
+                  }) === true) {
+                    nointernalresolve = true;
+                  }
                 }
               }
             }
-            api.markAsRead(message.threadID);
-            var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-              return !(el == null || el == "" || el == " ");
-            });
-            arg.map(xy => xy.replace(/["]/g, ""));
-            if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
-              api.getThreadInfo(message.threadID, function (err, data) {
-                var participants = data.participantIDs;
-                var character = "@";
-                var sendString = "";
-                var mentionObj = [];
-                var i = 0;
-                for (var n in participants) {
-                  sendString += character;
-                  mentionObj.push({
-                    tag: character,
-                    id: participants[n],
-                    fromIndex: i
-                  });
-                  i++;
-                }
-                api.sendMessage({
-                  body: sendString,
-                  mentions: mentionObj
-                }, message.threadID, function (err) {
-                  if (err) {
-                    log("[Facebook]", "@everyone errored:", err);
+            switch (message.type) {
+              case "message":
+                fetchName(message.senderID);
+                if (global.config.enableThanosTimeGems) {
+                  global.data.messageList[message.messageID] = message;
+                  for (var id in global.data.messageList) {
+                    if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
+                      delete global.data.messageList[id];
+                    }
                   }
-                }, message.messageID);
-              });
-            }
-            if (message.body.startsWith("/")) {
-              if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
-                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
+                }
+                api.markAsRead(message.threadID);
                 var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                   return !(el == null || el == "" || el == " ");
                 });
                 arg.map(xy => xy.replace(/["]/g, ""));
-                var toarg = arg;
-                if (global.commandMapping[arg[0].substr(1)] && !nointernalresolve) {
-                  if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                    api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
-                  } else {
-                    var argv = JSON.parse(JSON.stringify(arg));
-                    var admin = false;
-                    for (var no in global.config.admins) {
-                      if (global.config.admins[no] == "FB-" + message.senderID) {
-                        admin = true;
-                      }
-                    }
-                    var mentions = {};
-                    for (var y in message.mentions) {
-                      mentions["FB-" + y] = message.mentions[y];
-                    }
-                    try {
-                      if (!client) {
-                        client = undefined
-                      }
-                      var starttime = Date.now();
-                      new Promise(function (resolve, reject) {
-                        setTimeout(function () {
-                          resolve(global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                            args: argv,
-                            time: receivetime,
-                            msgdata: message,
-                            facebookapi: api,
-                            discordapi: client,
-                            prefix: prefix,
-                            admin: admin,
-                            mentions: mentions,
-                            log: function logPlugin(...message) {
-                              log.apply(global, [
-                                "[PLUGIN]",
-                                "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
-                              ].concat(message));
-                            },
-                            return: function returndata(returndata) {
-                              if (!returndata) return undefined;
-                              if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                                var endTyping = api.sendTypingIndicator(message.threadID);
-                                setTimeout(function (api, returndata, endTyping, message) {
-                                  api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                                    if (err) {
-                                      log("[Facebook] Errored while sending response:", err);
-                                    }
-                                  }, message.messageID);
-                                  endTyping();
-                                  setTimeout(function (api, message) {
-                                    api.markAsRead(message.threadID);
-                                  }, 500, api, message);
-                                }, returndata.data.length * 30, api, returndata, endTyping, message);
-                              } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                                if (!returndata.data.body) {
-                                  returndata.data.body = "";
-                                }
-                                returndata.data.body = prefix + " " + returndata.data.body;
-                                var endTyping = api.sendTypingIndicator(message.threadID);
-                                setTimeout(function (api, returndata, endTyping, message, log) {
-                                  api.sendMessage(returndata.data, message.threadID, function (err) {
-                                    if (err) {
-                                      log("[Facebook] Errored while sending response:", err);
-                                    }
-                                  }, message.messageID);
-                                  endTyping();
-                                  setTimeout(function (api, message) {
-                                    api.markAsRead(message.threadID);
-                                  }, 500, api, message);
-                                }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
-                              }
-                            }
-                          }));
-                        }, 50);
-                      }).then(function (returndata) {
-                        if (!returndata) return undefined;
-                        if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                          var endTyping = api.sendTypingIndicator(message.threadID);
-                          setTimeout(function (api, returndata, endTyping, message) {
-                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                              if (err) {
-                                log("[Facebook] Errored while sending response:", err);
-                              }
-                            }, message.messageID);
-                            endTyping();
-                            setTimeout(function (api, message) {
-                              api.markAsRead(message.threadID);
-                            }, 500, api, message);
-                          }, returndata.data.length * 30, api, returndata, endTyping, message);
-                        } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                          if (!returndata.data.body) {
-                            returndata.data.body = "";
-                          }
-                          returndata.data.body = prefix + " " + returndata.data.body;
-                          var endTyping = api.sendTypingIndicator(message.threadID);
-                          setTimeout(function (api, returndata, endTyping, message, log) {
-                            api.sendMessage(returndata.data, message.threadID, function (err) {
-                              if (err) {
-                                log("[Facebook] Errored while sending response:", err);
-                              }
-                            }, message.messageID);
-                            endTyping();
-                            setTimeout(function (api, message) {
-                              api.markAsRead(message.threadID);
-                            }, 500, api, message);
-                          }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
-                        }
-                        var endtime = Date.now();
-                        var calctime = new Date(endtime - starttime);
-                        if (calctime.getUTCSeconds() >= 10) {
-                          log("[INTERNAL]", "Timing Warning: Command \"", toarg.join(" "), "\" took", calctime.getUTCSeconds() + "." + calctime.getUTCMilliseconds() + "s to execute! (Maximum 10s)");
-                        }
-                      }).catch(ex => {
-                        throw ex;
+                if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
+                  api.getThreadInfo(message.threadID, function (err, data) {
+                    var participants = data.participantIDs;
+                    var character = "@";
+                    var sendString = "";
+                    var mentionObj = [];
+                    var i = 0;
+                    for (var n in participants) {
+                      sendString += character;
+                      mentionObj.push({
+                        tag: character,
+                        id: participants[n],
+                        fromIndex: i
                       });
-                    } catch (ex) {
-                      try {
-                        log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
-                      } catch (exp) {
-                        log("[INTERNAL]", toarg[0], "contain an error:", ex);
+                      i++;
+                    }
+                    api.sendMessage({
+                      body: sendString,
+                      mentions: mentionObj
+                    }, message.threadID, function (err) {
+                      if (err) {
+                        log("[Facebook]", "@everyone errored:", err);
                       }
+                    }, message.messageID);
+                  });
+                }
+                if (message.body.startsWith("/")) {
+                  if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
+                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
+                    var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                      return !(el == null || el == "" || el == " ");
+                    });
+                    arg.map(xy => xy.replace(/["]/g, ""));
+                    var toarg = arg;
+                    if (global.commandMapping[arg[0].substr(1)] && !nointernalresolve) {
+                      if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
+                        api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
+                      } else {
+                        var argv = JSON.parse(JSON.stringify(arg));
+                        var admin = false;
+                        for (var no in global.config.admins) {
+                          if (global.config.admins[no] == "FB-" + message.senderID) {
+                            admin = true;
+                          }
+                        }
+                        var mentions = {};
+                        for (var y in message.mentions) {
+                          mentions["FB-" + y] = message.mentions[y];
+                        }
+                        try {
+                          if (!client) {
+                            client = undefined
+                          }
+                          var starttime = Date.now();
+                          new Promise(function (resolve, reject) {
+                            setTimeout(function () {
+                              resolve(global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                                args: argv,
+                                time: receivetime,
+                                msgdata: message,
+                                facebookapi: api,
+                                discordapi: client,
+                                prefix: prefix,
+                                admin: admin,
+                                mentions: mentions,
+                                log: function logPlugin(...message) {
+                                  log.apply(global, [
+                                    "[PLUGIN]",
+                                    "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                                  ].concat(message));
+                                },
+                                return: function returndata(returndata) {
+                                  if (!returndata) return undefined;
+                                  if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                                    var endTyping = api.sendTypingIndicator(message.threadID);
+                                    setTimeout(function (api, returndata, endTyping, message) {
+                                      api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                                        if (err) {
+                                          log("[Facebook] Errored while sending response:", err);
+                                        }
+                                      }, message.messageID);
+                                      endTyping();
+                                      setTimeout(function (api, message) {
+                                        api.markAsRead(message.threadID);
+                                      }, 500, api, message);
+                                    }, returndata.data.length * 30, api, returndata, endTyping, message);
+                                  } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                                    if (!returndata.data.body) {
+                                      returndata.data.body = "";
+                                    }
+                                    returndata.data.body = prefix + " " + returndata.data.body;
+                                    var endTyping = api.sendTypingIndicator(message.threadID);
+                                    setTimeout(function (api, returndata, endTyping, message, log) {
+                                      api.sendMessage(returndata.data, message.threadID, function (err) {
+                                        if (err) {
+                                          log("[Facebook] Errored while sending response:", err);
+                                        }
+                                      }, message.messageID);
+                                      endTyping();
+                                      setTimeout(function (api, message) {
+                                        api.markAsRead(message.threadID);
+                                      }, 500, api, message);
+                                    }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                                  }
+                                }
+                              }));
+                            }, 50);
+                          }).then(function (returndata) {
+                            if (!returndata) return undefined;
+                            if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                              var endTyping = api.sendTypingIndicator(message.threadID);
+                              setTimeout(function (api, returndata, endTyping, message) {
+                                api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                                  if (err) {
+                                    log("[Facebook] Errored while sending response:", err);
+                                  }
+                                }, message.messageID);
+                                endTyping();
+                                setTimeout(function (api, message) {
+                                  api.markAsRead(message.threadID);
+                                }, 500, api, message);
+                              }, returndata.data.length * 30, api, returndata, endTyping, message);
+                            } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                              if (!returndata.data.body) {
+                                returndata.data.body = "";
+                              }
+                              returndata.data.body = prefix + " " + returndata.data.body;
+                              var endTyping = api.sendTypingIndicator(message.threadID);
+                              setTimeout(function (api, returndata, endTyping, message, log) {
+                                api.sendMessage(returndata.data, message.threadID, function (err) {
+                                  if (err) {
+                                    log("[Facebook] Errored while sending response:", err);
+                                  }
+                                }, message.messageID);
+                                endTyping();
+                                setTimeout(function (api, message) {
+                                  api.markAsRead(message.threadID);
+                                }, 500, api, message);
+                              }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                            }
+                            var endtime = Date.now();
+                            var calctime = new Date(endtime - starttime);
+                            if (calctime.getUTCSeconds() >= 10) {
+                              log("[INTERNAL]", "Timing Warning: Command \"", toarg.join(" "), "\" took", calctime.getUTCSeconds() + "." + calctime.getUTCMilliseconds() + "s to execute! (Maximum 10s)");
+                            }
+                          }).catch(ex => {
+                            throw ex;
+                          });
+                        } catch (ex) {
+                          try {
+                            log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
+                          } catch (exp) {
+                            log("[INTERNAL]", toarg[0], "contain an error:", ex);
+                          }
+                        }
+                      }
+                    } else {
+                      api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
+                    }
+                  } else {
+                    var str = "";
+                    for (var n in message.attachments) {
+                      var type = message.attachments[n].type;
+                      type = type[0].toLocaleUpperCase() + type.substr(1);
+                      str += "\r\n  <";
+                      str += type;
+                      str += " ";
+                      switch (message.attachments[n].type) {
+                        case "audio":
+                        case "video":
+                          var dr = new Date(message.attachments[n].duration);
+                          str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                          str += " ";
+                          if (message.attachments[n].type == "audio") break;
+                        // eslint-disable-next-line no-fallthrough
+                        case "photo":
+                        case "animated_image":
+                        case "sticker":
+                          str += message.attachments[n].width;
+                          str += "x";
+                          str += message.attachments[n].height;
+                          str += " ";
+                      }
+                      str += "| ";
+                      str += message.attachments[n].url;
+                      str += ">";
+                    }
+                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
+                  }
+                } else {
+                  var str = "";
+                  for (var n in message.attachments) {
+                    var type = message.attachments[n].type;
+                    type = type[0].toLocaleUpperCase() + type.substr(1);
+                    str += "\r\n  <";
+                    str += type;
+                    str += " ";
+                    switch (message.attachments[n].type) {
+                      case "audio":
+                      case "video":
+                        var dr = new Date(message.attachments[n].duration);
+                        str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                        str += " ";
+                        if (message.attachments[n].type == "audio") break;
+                      // eslint-disable-next-line no-fallthrough
+                      case "photo":
+                      case "animated_image":
+                      case "sticker":
+                        str += message.attachments[n].width;
+                        str += "x";
+                        str += message.attachments[n].height;
+                        str += " ";
+                    }
+                    str += "| ";
+                    str += message.attachments[n].url;
+                    str += ">";
+                  }
+                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
+                }
+                break;
+              case "event":
+                log("[Facebook]", message);
+                try {
+                  if (message.logMessageType == "log:subscribe") {
+                    var containBot = false;
+                    var botID = api.getCurrentUserID();
+                    for (var n in message.logMessageData.addedParticipants) {
+                      if (message.logMessageData.addedParticipants[n].userFbId == botID) {
+                        containBot = true;
+                      }
+                    }
+                    if (containBot) {
+                      api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
+                      log("[Facebook]", message.author, "added Bot to", message.threadID);
+                    }
+                  }
+                } catch (ex) {
+                  log("[Facebook]", ex);
+                }
+                break;
+              case "message_reaction":
+                log("[Facebook]", message);
+                break;
+              case "message_unsend":
+                if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
+                  if (!global.data.thanosBlacklist[message.threadID]) {
+                    (function () {
+                      var removedMessage = global.data.messageList[message.messageID];
+                      var attachmentArray = [];
+                      for (var n in removedMessage.attachments) {
+                        switch (removedMessage.attachments[n].type) {
+                          case "file":
+                            attachmentArray.push({
+                              type: removedMessage.attachments[n].type,
+                              data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                              name: removedMessage.attachments[n].filename
+                            });
+                            break;
+                          case "photo":
+                            attachmentArray.push({
+                              type: removedMessage.attachments[n].type,
+                              data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                              name: removedMessage.attachments[n].filename + ".png"
+                            });
+                            break;
+                          case "audio":
+                            attachmentArray.push({
+                              type: removedMessage.attachments[n].type,
+                              data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                              name: removedMessage.attachments[n].filename + ".mp3"
+                            });
+                            break;
+                          case "video":
+                            attachmentArray.push({
+                              type: removedMessage.attachments[n].type,
+                              data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                              name: removedMessage.attachments[n].filename + ".mp4"
+                            });
+                            break;
+                          case "animated_image":
+                            attachmentArray.push({
+                              type: removedMessage.attachments[n].type,
+                              data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                              name: removedMessage.attachments[n].filename + ".gif"
+                            });
+                            break;
+                          case "sticker":
+                            attachmentArray.push({
+                              type: removedMessage.attachments[n].type,
+                              data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                              name: removedMessage.attachments[n].ID + ".png"
+                            });
+                            break;
+                        }
+                      }
+                      var att = [];
+                      var bannedatt = [];
+                      var worker = new Worker(() => {
+                        onmessage = function (event) {
+                          var wait = require("wait-for-stuff");
+                          try {
+                            var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.1:2812/", { size: (event.data.small ? 224 : 299) }));
+                          } catch (ex) {
+                            var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
+                          }
+                          var data = event.data;
+                          try {
+                            var cl = wait.for.promise(NSFWJS.classify({
+                              data: new Uint8Array(data.data),
+                              width: data.width,
+                              height: data.height
+                            }, 5));
+                            postMessage({
+                              class: cl,
+                              id: data.id
+                            });
+                          } catch (ex) {
+                            postMessage({
+                              error: ex.toString(),
+                              id: data.id
+                            });
+                          }
+                        }
+                      }, [], { silent: true });
+                      worker.onmessage = function (event) {
+                        var data = event.data;
+                        Object.assign(global.nsfwjsdata[data.id], data);
+                        global.nsfwjsdata[data.id].complete = true;
+                        if (data.error) {
+                          log("[Facebook]", "Error in image classifier:", data.error);
+                        }
+                      }
+                      var idlist = [];
+                      for (var n in attachmentArray) {
+                        var imagesx = new streamBuffers.ReadableStreamBuffer({
+                          frequency: 10,
+                          chunkSize: 2048
+                        });
+                        imagesx.path = attachmentArray[n].name;
+                        imagesx.put(attachmentArray[n].data);
+                        imagesx.stop();
+                        if ((attachmentArray[n].type == "photo" ||
+                          attachmentArray[n].type == "animated_image") &&
+                          !global.data.thanosBlacklist[message.threadID]) {
+                          var image = new Image();
+                          image.src = attachmentArray[n].data;
+                          var cvs = new Canvas(image.width, image.height);
+                          var ctx = cvs.getContext("2d");
+                          ctx.drawImage(image, 0, 0);
+                          var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
+
+                          var id = Date.now().toString() + "-" + random(0, 99).toString() + random(0, 99).toString() + Math.random().toString() + Math.random().toString();
+                          global.nsfwjsdata[id] = {};
+                          global.nsfwjsdata[id].complete = false;
+                          worker.postMessage({
+                            id: id,
+                            data: Array.from(imgdata1.data),
+                            width: imgdata1.width,
+                            height: imgdata1.height,
+                            small: global.config.nsfwjsSmallModel
+                          });
+                        } else {
+                          att.push(imagesx);
+                        }
+                      }
+                      for (var id in idlist) {
+                        // eslint-disable-next-line no-loop-func
+                        wait.for.condition(() => global.nsfwjsdata[id].complete);
+                        var classing = global.nsfwjsdata[id].class;
+                        try {
+                          var classify = classing[0].className;
+                          var percentage = classing[0].probability * 100;
+                        } catch (ex) { }
+                        switch (classify) {
+                          case "Neutral":
+                          case "Drawing":
+                          case "Sexy":
+                            att.push(imagesx);
+                          // eslint-disable-next-line no-fallthrough
+                          case "Hentai":
+                          case "Porn":
+                            bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
+                            log("[Facebook]", "Removed image classified as:", classify);
+                            break;
+                          default:
+                            log("[Facebook]", "Invalid image classification:", classify, classing);
+                            att.push(imagesx);
+                        }
+                      }
+                      worker.terminate();
+                      var btext = "";
+                      if (bannedatt.length != 0) {
+                        btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
+                      }
+                      api.sendMessage({
+                        body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
+                        mentions: [{
+                          tag: "@" + global.data.cacheName["FB-" + message.senderID],
+                          id: message.senderID,
+                          fromIndex: 0
+                        }],
+                        attachment: att
+                      }, message.threadID, function (err) {
+                        if (err) {
+                          log("[Facebook] Errored while sending Anti-Unsend response:", err);
+                        } else {
+                          api.markAsRead(message.threadID);
+                        }
+                      });
+                      log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                    })();
+                  } else {
+                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
+                  }
+                  fs.writeFileSync(path.join(__dirname, "deletedmsg/") + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
+                  for (var id in global.data.messageList) {
+                    if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
+                      delete global.data.messageList[id];
                     }
                   }
                 } else {
-                  api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
+                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + ". (" + message.messageID + ")");
                 }
-              } else {
-                var str = "";
-                for (var n in message.attachments) {
-                  var type = message.attachments[n].type;
-                  type = type[0].toLocaleUpperCase() + type.substr(1);
-                  str += "\r\n  <";
-                  str += type;
-                  str += " ";
-                  switch (message.attachments[n].type) {
-                    case "audio":
-                    case "video":
-                      var dr = new Date(message.attachments[n].duration);
-                      str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
-                      str += " ";
-                      if (message.attachments[n].type == "audio") break;
-                    // eslint-disable-next-line no-fallthrough
-                    case "photo":
-                    case "animated_image":
-                    case "sticker":
-                      str += message.attachments[n].width;
-                      str += "x";
-                      str += message.attachments[n].height;
-                      str += " ";
-                  }
-                  str += "| ";
-                  str += message.attachments[n].url;
-                  str += ">";
-                }
-                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
-              }
-            } else {
-              var str = "";
-              for (var n in message.attachments) {
-                var type = message.attachments[n].type;
-                type = type[0].toLocaleUpperCase() + type.substr(1);
-                str += "\r\n  <";
-                str += type;
-                str += " ";
-                switch (message.attachments[n].type) {
-                  case "audio":
-                  case "video":
-                    var dr = new Date(message.attachments[n].duration);
-                    str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
-                    str += " ";
-                    if (message.attachments[n].type == "audio") break;
-                  // eslint-disable-next-line no-fallthrough
-                  case "photo":
-                  case "animated_image":
-                  case "sticker":
-                    str += message.attachments[n].width;
-                    str += "x";
-                    str += message.attachments[n].height;
-                    str += " ";
-                }
-                str += "| ";
-                str += message.attachments[n].url;
-                str += ">";
-              }
-              log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
-            }
-            break;
-          case "event":
-            log("[Facebook]", message);
-            try {
-              if (message.logMessageType == "log:subscribe") {
-                var containBot = false;
-                var botID = api.getCurrentUserID();
-                for (var n in message.logMessageData.addedParticipants) {
-                  if (message.logMessageData.addedParticipants[n].userFbId == botID) {
-                    containBot = true;
-                  }
-                }
-                if (containBot) {
-                  api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
-                  log("[Facebook]", message.author, "added Bot to", message.threadID);
-                }
-              }
-            } catch (ex) {
-              log("[Facebook]", ex);
-            }
-            break;
-          case "message_reaction":
-            log("[Facebook]", message);
-            break;
-          case "message_unsend":
-            if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
-              if (!global.data.thanosBlacklist[message.threadID]) {
-                (function () {
-                  var removedMessage = global.data.messageList[message.messageID];
-                  var attachmentArray = [];
-                  for (var n in removedMessage.attachments) {
-                    switch (removedMessage.attachments[n].type) {
-                      case "file":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename
-                        });
-                        break;
-                      case "photo":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".png"
-                        });
-                        break;
-                      case "audio":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".mp3"
-                        });
-                        break;
-                      case "video":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".mp4"
-                        });
-                        break;
-                      case "animated_image":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].filename + ".gif"
-                        });
-                        break;
-                      case "sticker":
-                        attachmentArray.push({
-                          type: removedMessage.attachments[n].type,
-                          data: syncrequest("GET", removedMessage.attachments[n].url).body,
-                          name: removedMessage.attachments[n].ID + ".png"
-                        });
-                        break;
+                break;
+              case "message_reply":
+                if (global.config.enableThanosTimeGems) {
+                  global.data.messageList[message.messageID] = message;
+                  for (var id in global.data.messageList) {
+                    if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
+                      delete global.data.messageList[id];
                     }
                   }
-                  var att = [];
-                  var bannedatt = [];
-                  var worker = new Worker(() => {
-                    onmessage = function (event) {
-                      var wait = require("wait-for-stuff");
-                      try {
-                        var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.1:2812/", { size: (event.data.small ? 224 : 299) }));
-                      } catch (ex) {
-                        var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
-                      }
-                      var data = event.data;
-                      try {
-                        var cl = wait.for.promise(NSFWJS.classify({
-                          data: new Uint8Array(data.data),
-                          width: data.width,
-                          height: data.height
-                        }, 5));
-                        postMessage({
-                          class: cl,
-                          id: data.id
-                        });
-                      } catch (ex) {
-                        postMessage({
-                          error: ex.toString(),
-                          id: data.id
-                        });
-                      }
-                    }
-                  }, [], { silent: true });
-                  worker.onmessage = function (event) {
-                    var data = event.data;
-                    Object.assign(global.nsfwjsdata[data.id], data);
-                    global.nsfwjsdata[data.id].complete = true;
-                    if (data.error) {
-                      log("[Facebook]", "Error in image classifier:", data.error);
+                }
+                if (message.messageReply) {
+                  for (var xzxz in message.messageReply.attachments) {
+                    if (message.messageReply.attachments[xzxz].error) {
+                      fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
                     }
                   }
-                  var idlist = [];
-                  for (var n in attachmentArray) {
-                    var imagesx = new streamBuffers.ReadableStreamBuffer({
-                      frequency: 10,
-                      chunkSize: 2048
-                    });
-                    imagesx.path = attachmentArray[n].name;
-                    imagesx.put(attachmentArray[n].data);
-                    imagesx.stop();
-                    if ((attachmentArray[n].type == "photo" ||
-                      attachmentArray[n].type == "animated_image") &&
-                      !global.data.thanosBlacklist[message.threadID]) {
-                      var image = new Image();
-                      image.src = attachmentArray[n].data;
-                      var cvs = new Canvas(image.width, image.height);
-                      var ctx = cvs.getContext("2d");
-                      ctx.drawImage(image, 0, 0);
-                      var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
-
-                      var id = Date.now().toString() + "-" + random(0, 99).toString() + random(0, 99).toString() + Math.random().toString() + Math.random().toString();
-                      global.nsfwjsdata[id] = {};
-                      global.nsfwjsdata[id].complete = false;
-                      worker.postMessage({
-                        id: id,
-                        data: Array.from(imgdata1.data),
-                        width: imgdata1.width,
-                        height: imgdata1.height,
-                        small: global.config.nsfwjsSmallModel
+                }
+                api.markAsRead(message.threadID);
+                var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                  return !(el == null || el == "" || el == " ");
+                });
+                arg.map(xy => xy.replace(/["]/g, ""));
+                if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
+                  api.getThreadInfo(message.threadID, function (err, data) {
+                    var participants = data.participantIDs;
+                    var character = "@";
+                    var sendString = "";
+                    var mentionObj = [];
+                    var i = 0;
+                    for (var n in participants) {
+                      sendString += character;
+                      mentionObj.push({
+                        tag: character,
+                        id: participants[n],
+                        fromIndex: i
                       });
-                    } else {
-                      att.push(imagesx);
+                      i++;
                     }
-                  }
-                  for (var id in idlist) {
-                    // eslint-disable-next-line no-loop-func
-                    wait.for.condition(() => global.nsfwjsdata[id].complete);
-                    var classing = global.nsfwjsdata[id].class;
-                    try {
-                      var classify = classing[0].className;
-                      var percentage = classing[0].probability * 100;
-                    } catch (ex) { }
-                    switch (classify) {
-                      case "Neutral":
-                      case "Drawing":
-                      case "Sexy":
-                        att.push(imagesx);
+                    api.sendMessage({
+                      body: sendString,
+                      mentions: mentionObj
+                    }, message.threadID, function (err) {
+                      if (err) {
+                        log("[Facebook] @everyone errored:", err);
+                      }
+                    }, message.messageID);
+                  });
+                }
+
+                try {
+                  var str = "";
+                  for (var n in message.attachments) {
+                    var type = message.attachments[n].type;
+                    type = type[0].toLocaleUpperCase() + type.substr(1);
+                    str += "\r\n  <";
+                    str += type;
+                    str += " ";
+                    switch (message.attachments[n].type) {
+                      case "audio":
+                      case "video":
+                        var dr = new Date(message.attachments[n].duration);
+                        str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                        str += " ";
+                        if (message.attachments[n].type == "audio") break;
                       // eslint-disable-next-line no-fallthrough
-                      case "Hentai":
-                      case "Porn":
-                        bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
-                        log("[Facebook]", "Removed image classified as:", classify);
-                        break;
-                      default:
-                        log("[Facebook]", "Invalid image classification:", classify, classing);
-                        att.push(imagesx);
+                      case "photo":
+                      case "animated_image":
+                      case "sticker":
+                        str += message.attachments[n].width;
+                        str += "x";
+                        str += message.attachments[n].height;
+                        str += " ";
                     }
+                    str += "| ";
+                    str += message.attachments[n].url;
+                    str += ">";
                   }
-                  worker.terminate();
-                  var btext = "";
-                  if (bannedatt.length != 0) {
-                    btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
-                  }
-                  api.sendMessage({
-                    body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
-                    mentions: [{
-                      tag: "@" + global.data.cacheName["FB-" + message.senderID],
-                      id: message.senderID,
-                      fromIndex: 0
-                    }],
-                    attachment: att
-                  }, message.threadID, function (err) {
-                    if (err) {
-                      log("[Facebook] Errored while sending Anti-Unsend response:", err);
-                    } else {
-                      api.markAsRead(message.threadID);
-                    }
-                  });
-                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
-                })();
-              } else {
-                log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
-              }
-              fs.writeFileSync(path.join(__dirname, "deletedmsg/") + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
-              for (var id in global.data.messageList) {
-                if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
-                  delete global.data.messageList[id];
+                  log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", message.body, str);
+                } catch (ex) {
+                  log("[Facebook] ERROR on replymsg", message);
                 }
-              }
-            } else {
-              log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + ". (" + message.messageID + ")");
+                break;
+              default:
+                break;
             }
-            break;
-          case "message_reply":
-            if (global.config.enableThanosTimeGems) {
-              global.data.messageList[message.messageID] = message;
-              for (var id in global.data.messageList) {
-                if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
-                  delete global.data.messageList[id];
-                }
-              }
-            }
-            if (message.messageReply) {
-              for (var xzxz in message.messageReply.attachments) {
-                if (message.messageReply.attachments[xzxz].error) {
-                  fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
-                }
-              }
-            }
-            api.markAsRead(message.threadID);
-            var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-              return !(el == null || el == "" || el == " ");
-            });
-            arg.map(xy => xy.replace(/["]/g, ""));
-            if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
-              api.getThreadInfo(message.threadID, function (err, data) {
-                var participants = data.participantIDs;
-                var character = "@";
-                var sendString = "";
-                var mentionObj = [];
-                var i = 0;
-                for (var n in participants) {
-                  sendString += character;
-                  mentionObj.push({
-                    tag: character,
-                    id: participants[n],
-                    fromIndex: i
-                  });
-                  i++;
-                }
-                api.sendMessage({
-                  body: sendString,
-                  mentions: mentionObj
-                }, message.threadID, function (err) {
-                  if (err) {
-                    log("[Facebook] @everyone errored:", err);
-                  }
-                }, message.messageID);
-              });
-            }
-
-            try {
-              var str = "";
-              for (var n in message.attachments) {
-                var type = message.attachments[n].type;
-                type = type[0].toLocaleUpperCase() + type.substr(1);
-                str += "\r\n  <";
-                str += type;
-                str += " ";
-                switch (message.attachments[n].type) {
-                  case "audio":
-                  case "video":
-                    var dr = new Date(message.attachments[n].duration);
-                    str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
-                    str += " ";
-                    if (message.attachments[n].type == "audio") break;
-                  // eslint-disable-next-line no-fallthrough
-                  case "photo":
-                  case "animated_image":
-                  case "sticker":
-                    str += message.attachments[n].width;
-                    str += "x";
-                    str += message.attachments[n].height;
-                    str += " ";
-                }
-                str += "| ";
-                str += message.attachments[n].url;
-                str += ">";
-              }
-              log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", message.body, str);
-            } catch (ex) {
-              log("[Facebook] ERROR on replymsg", message);
-            }
-            break;
-          default:
-            break;
+          } else {
+            log("[Facebook]", "Detected undefined!", err);
+          }
+        } catch (ex) {
+          log("[Facebook]", ex, message);
         }
-      } else {
-        log("[Facebook]", "Detected undefined!", err);
-      }
-    } catch (ex) {
-      log("[Facebook]", ex, message);
+      });
+      log("[Facebook]", "Started Facebook listener");
     }
-  });
-  log("[Facebook]", "Started Facebook listener");
+    var temporaryAppState = {};
+    var fbloginobj = {};
+    fbloginobj.email = global.config.fbemail;
+    fbloginobj.password = global.config.fbpassword;
+    if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "fbstate.json"))) {
+      fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8'));
+    }
+    var configobj = {
+      userAgent: global.config.fbuseragent,
+      logLevel: global.config.DEBUG_FCA_LOGLEVEL,
+      selfListen: true,
+      listenEvents: true,
+      updatePresence: false,
+      autoMarkRead: true
+    }
+    if (global.config.facebookProxy != null) {
+      if (global.config.facebookProxyUseSOCKS) {
+        configobj.proxy = "http://127.0.0.1:2813";
+      } else {
+        configobj.proxy = "http://" + global.config.facebookProxy;
+      }
+    }
+    try {
+      log("[Facebook]", "Logging in...");
+      var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
+      forceReconnect = function forceReconnect(error) {
+        if (!error) {
+          log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (12 hours clock)");
+        }
+        if (typeof facebook.listener == "function") {
+          facebook.listener();
+          log("[Facebook]", "Stopped Facebook listener");
+          temporaryAppState = facebook.api.getAppState();
+        }
+        try {
+          clearInterval(facebook.removePendingClock);
+        } catch (ex) { }
+        fbinstance = undefined;
+        fbinstance = require("fca-unofficial")({
+          appState: temporaryAppState
+        }, configobj, facebookcb);
+        log("[Facebook]", "New instance created.");
+        log("[Facebook]", "Logging in...");
+        setTimeout(function (fr) {
+          if (facebook.error && !facebook.listener) {
+            log("[Facebook]", "Detected error. Attempting to reconnect...");
+            fr(true);
+          }
+        }, 30000, forceReconnect);
+      }
+      setInterval(forceReconnect, 43200000);
+    } catch (ex) {
+      log("[Facebook]", "Error found in codebase:", ex);
+    }
+  } else {
+    for (var n in global.config.fbMultiAccount) {
+      // eslint-disable-next-line no-loop-func
+      (function wrapper(configdata) {
+        var wraplog = function log(...message) {
+          var px = "";
+          try {
+            px = message[0]
+          } catch (ex) {
+            px = "";
+          }
+          var msg = JSON.parse(JSON.stringify(message));
+          msg.splice(0, 1);
+          log.apply(global, [px].concat([
+            "[Interface", 
+            configdata.interface + "]"
+          ]).concat(msg));
+        }
+        // eslint-disable-next-line no-multi-assign
+        var facebook = facebooks[configdata.interface] = {};
+        var facebookcb = function callback(err, api) {
+          if (err) {
+            facebook.error = err;
+            wraplog("[Facebook]", err);
+            wraplog("[Facebook]", "Error saved to 'facebook.error'.");
+            return null;
+          } else {
+            facebook.error = null;
+          }
+
+          wraplog("[Facebook]", "Logged in.");
+          delete facebook.api;
+          facebook.api = api;
+          if (global.config.usefbappstate) {
+            try {
+              fs.writeFileSync(path.join(__dirname, "fbstate.json"), JSON.stringify(api.getAppState()));
+            } catch (ex) {
+              wraplog("[INTERNAL]", ex);
+            }
+          }
+          global.config.fbemail = "<censored, security measures>";
+          global.config.fbpassword = "<censored, security measures>"
+
+          function fetchName(id, force, callingback) {
+            if (!callingback) {
+              callingback = function () { }
+            }
+            if (!global.data.cacheName["FB-" + id] || global.data.cacheName["FB-" + id].startsWith("FETCHING-") || !!force) {
+              if (typeof global.data.cacheName["FB-" + id] == "string" && global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return;
+              global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now().toString();
+              var res = wait.for.function(api.getUserInfo, id);
+              (function (err, ret) {
+                if (err) return wraplog("[Facebook] Failed to fetch names:", err);
+                wraplog("[CACHENAME]", id + " => " + ret[id].name);
+                global.data.cacheName["FB-" + id] = ret[id].name;
+                try {
+                  callingback();
+                } catch (ex) {
+                  wraplog("[INTERNAL]", ex);
+                }
+              })(res[0], res[1]);
+            } else {
+              callingback();
+            }
+          }
+          facebook.api.fetchName = fetchName;
+
+          facebook.removePendingClock = setInterval(function (api, log, botname, connectedmsg) {
+            api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
+              if (err) {
+                return wraplog("[Facebook]", "Remove Pending Messages encountered an error:", err);
+              }
+              for (var i in list) {
+                setTimeout(function (id) {
+                  api[0].handleMessageRequest(id, true);
+                  api[0].sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+                    if (err) {
+                      return wraplog("[Facebook]", "Remove Pending Messages encountered an error:", err);
+                    }
+                  });
+                  wraplog("[Facebook]", "Bot added to", id);
+                }, i * 500, list[i].threadID);
+              }
+            });
+            api[0].markAsReadAll();
+          }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
+
+          !global.data.messageList ? global.data.messageList = {} : "";
+          facebook.listener = api.listenMqtt(function callback(err, message) {
+            try {
+              if (message != undefined) {
+                var nointernalresolve = false;
+                switch (message.type) {
+                  case "read":
+                  case "read_receipt":
+                  case "presence":
+                  case "typ":
+                    return;
+                }
+                var receivetime = new Date();
+                for (var n in global.chatHook) {
+                  if (global.chatHook[n].listenplatform & 1) {
+                    var chhandling = global.chatHook[n];
+                    if (chhandling.listentype == "everything") {
+                      var admin = false;
+                      for (var no in global.config.admins) {
+                        if (global.config.admins[no] == "FB-" + (message.senderID || message.author)) {
+                          admin = true;
+                        }
+                      }
+                      if (chhandling.resolverFunc("Facebook", {
+                        time: receivetime,
+                        msgdata: message,
+                        api: api,
+                        facebooks: facebooks,
+                        prefix: prefix,
+                        admin: admin,
+                        interface: configdata.interface,
+                        // eslint-disable-next-line no-loop-func
+                        log: function logPlugin(...message) {
+                          log.apply(global, [
+                            "[PLUGIN]",
+                            "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                          ].concat(message));
+                        },
+                        // eslint-disable-next-line no-loop-func
+                        return: function returndata(returndata) {
+                          if (!returndata) return undefined;
+                          if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                            var endTyping = api.sendTypingIndicator(message.threadID);
+                            setTimeout(function (api, returndata, endTyping, message) {
+                              api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                                if (err) {
+                                  wraplog("[Facebook] Errored while sending response:", err);
+                                }
+                              }, message.messageID);
+                              endTyping();
+                              setTimeout(function (api, message) {
+                                api.markAsRead(message.threadID);
+                              }, 500, api, message);
+                            }, returndata.data.length * 30, api, returndata, endTyping, message);
+                          } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                            if (!returndata.data.body) {
+                              returndata.data.body = "";
+                            }
+                            returndata.data.body = prefix + " " + returndata.data.body;
+                            var endTyping = api.sendTypingIndicator(message.threadID);
+                            setTimeout(function (api, returndata, endTyping, message, log) {
+                              api.sendMessage(returndata.data, message.threadID, function (err) {
+                                if (err) {
+                                  wraplog("[Facebook] Errored while sending response:", err);
+                                }
+                              }, message.messageID);
+                              endTyping();
+                              setTimeout(function (api, message) {
+                                api.markAsRead(message.threadID);
+                              }, 500, api, message);
+                            }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                          }
+                        }
+                      }) === true) {
+                        nointernalresolve = true;
+                      }
+                    }
+                  }
+                }
+                switch (message.type) {
+                  case "message":
+                    fetchName(message.senderID);
+                    if (global.config.enableThanosTimeGems) {
+                      global.data.messageList[message.messageID] = message;
+                      for (var id in global.data.messageList) {
+                        if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
+                          delete global.data.messageList[id];
+                        }
+                      }
+                    }
+                    api.markAsRead(message.threadID);
+                    var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                      return !(el == null || el == "" || el == " ");
+                    });
+                    arg.map(xy => xy.replace(/["]/g, ""));
+                    if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
+                      api.getThreadInfo(message.threadID, function (err, data) {
+                        var participants = data.participantIDs;
+                        var character = "@";
+                        var sendString = "";
+                        var mentionObj = [];
+                        var i = 0;
+                        for (var n in participants) {
+                          sendString += character;
+                          mentionObj.push({
+                            tag: character,
+                            id: participants[n],
+                            fromIndex: i
+                          });
+                          i++;
+                        }
+                        api.sendMessage({
+                          body: sendString,
+                          mentions: mentionObj
+                        }, message.threadID, function (err) {
+                          if (err) {
+                            wraplog("[Facebook]", "@everyone errored:", err);
+                          }
+                        }, message.messageID);
+                      });
+                    }
+                    if (message.body.startsWith("/")) {
+                      if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
+                        wraplog("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
+                        var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                          return !(el == null || el == "" || el == " ");
+                        });
+                        arg.map(xy => xy.replace(/["]/g, ""));
+                        var toarg = arg;
+                        if (global.commandMapping[arg[0].substr(1)] && !nointernalresolve) {
+                          if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
+                            api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
+                          } else {
+                            var argv = JSON.parse(JSON.stringify(arg));
+                            var admin = false;
+                            for (var no in global.config.admins) {
+                              if (global.config.admins[no] == "FB-" + message.senderID) {
+                                admin = true;
+                              }
+                            }
+                            var mentions = {};
+                            for (var y in message.mentions) {
+                              mentions["FB-" + y] = message.mentions[y];
+                            }
+                            try {
+                              if (!client) {
+                                client = undefined
+                              }
+                              var starttime = Date.now();
+                              new Promise(function (resolve, reject) {
+                                setTimeout(function () {
+                                  resolve(global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                                    args: argv,
+                                    time: receivetime,
+                                    msgdata: message,
+                                    facebookapi: api,
+                                    facebooks: facebooks,
+                                    discordapi: client,
+                                    prefix: prefix,
+                                    admin: admin,
+                                    mentions: mentions,
+                                    log: function logPlugin(...message) {
+                                      log.apply(global, [
+                                        "[PLUGIN]",
+                                        "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                                      ].concat(message));
+                                    },
+                                    return: function returndata(returndata) {
+                                      if (!returndata) return undefined;
+                                      if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                                        var endTyping = api.sendTypingIndicator(message.threadID);
+                                        setTimeout(function (api, returndata, endTyping, message) {
+                                          api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                                            if (err) {
+                                              wraplog("[Facebook] Errored while sending response:", err);
+                                            }
+                                          }, message.messageID);
+                                          endTyping();
+                                          setTimeout(function (api, message) {
+                                            api.markAsRead(message.threadID);
+                                          }, 500, api, message);
+                                        }, returndata.data.length * 30, api, returndata, endTyping, message);
+                                      } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                                        if (!returndata.data.body) {
+                                          returndata.data.body = "";
+                                        }
+                                        returndata.data.body = prefix + " " + returndata.data.body;
+                                        var endTyping = api.sendTypingIndicator(message.threadID);
+                                        setTimeout(function (api, returndata, endTyping, message, log) {
+                                          api.sendMessage(returndata.data, message.threadID, function (err) {
+                                            if (err) {
+                                              wraplog("[Facebook] Errored while sending response:", err);
+                                            }
+                                          }, message.messageID);
+                                          endTyping();
+                                          setTimeout(function (api, message) {
+                                            api.markAsRead(message.threadID);
+                                          }, 500, api, message);
+                                        }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                                      }
+                                    }
+                                  }));
+                                }, 50);
+                              }).then(function (returndata) {
+                                if (!returndata) return undefined;
+                                if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                                  var endTyping = api.sendTypingIndicator(message.threadID);
+                                  setTimeout(function (api, returndata, endTyping, message) {
+                                    api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                                      if (err) {
+                                        wraplog("[Facebook] Errored while sending response:", err);
+                                      }
+                                    }, message.messageID);
+                                    endTyping();
+                                    setTimeout(function (api, message) {
+                                      api.markAsRead(message.threadID);
+                                    }, 500, api, message);
+                                  }, returndata.data.length * 30, api, returndata, endTyping, message);
+                                } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                                  if (!returndata.data.body) {
+                                    returndata.data.body = "";
+                                  }
+                                  returndata.data.body = prefix + " " + returndata.data.body;
+                                  var endTyping = api.sendTypingIndicator(message.threadID);
+                                  setTimeout(function (api, returndata, endTyping, message, log) {
+                                    api.sendMessage(returndata.data, message.threadID, function (err) {
+                                      if (err) {
+                                        wraplog("[Facebook] Errored while sending response:", err);
+                                      }
+                                    }, message.messageID);
+                                    endTyping();
+                                    setTimeout(function (api, message) {
+                                      api.markAsRead(message.threadID);
+                                    }, 500, api, message);
+                                  }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                                }
+                                var endtime = Date.now();
+                                var calctime = new Date(endtime - starttime);
+                                if (calctime.getUTCSeconds() >= 10) {
+                                  wraplog("[INTERNAL]", "Timing Warning: Command \"", toarg.join(" "), "\" took", calctime.getUTCSeconds() + "." + calctime.getUTCMilliseconds() + "s to execute! (Maximum 10s)");
+                                }
+                              }).catch(ex => {
+                                throw ex;
+                              });
+                            } catch (ex) {
+                              try {
+                                wraplog("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
+                              } catch (exp) {
+                                wraplog("[INTERNAL]", toarg[0], "contain an error:", ex);
+                              }
+                            }
+                          }
+                        } else {
+                          api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
+                        }
+                      } else {
+                        var str = "";
+                        for (var n in message.attachments) {
+                          var type = message.attachments[n].type;
+                          type = type[0].toLocaleUpperCase() + type.substr(1);
+                          str += "\r\n  <";
+                          str += type;
+                          str += " ";
+                          switch (message.attachments[n].type) {
+                            case "audio":
+                            case "video":
+                              var dr = new Date(message.attachments[n].duration);
+                              str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                              str += " ";
+                              if (message.attachments[n].type == "audio") break;
+                            // eslint-disable-next-line no-fallthrough
+                            case "photo":
+                            case "animated_image":
+                            case "sticker":
+                              str += message.attachments[n].width;
+                              str += "x";
+                              str += message.attachments[n].height;
+                              str += " ";
+                          }
+                          str += "| ";
+                          str += message.attachments[n].url;
+                          str += ">";
+                        }
+                        wraplog("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
+                      }
+                    } else {
+                      var str = "";
+                      for (var n in message.attachments) {
+                        var type = message.attachments[n].type;
+                        type = type[0].toLocaleUpperCase() + type.substr(1);
+                        str += "\r\n  <";
+                        str += type;
+                        str += " ";
+                        switch (message.attachments[n].type) {
+                          case "audio":
+                          case "video":
+                            var dr = new Date(message.attachments[n].duration);
+                            str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                            str += " ";
+                            if (message.attachments[n].type == "audio") break;
+                          // eslint-disable-next-line no-fallthrough
+                          case "photo":
+                          case "animated_image":
+                          case "sticker":
+                            str += message.attachments[n].width;
+                            str += "x";
+                            str += message.attachments[n].height;
+                            str += " ";
+                        }
+                        str += "| ";
+                        str += message.attachments[n].url;
+                        str += ">";
+                      }
+                      wraplog("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", (message.senderID == message.threadID ? "DMed:" : "messaged in thread " + message.threadID + ":"), message.body, str);
+                    }
+                    break;
+                  case "event":
+                    wraplog("[Facebook]", message);
+                    try {
+                      if (message.logMessageType == "log:subscribe") {
+                        var containBot = false;
+                        var botID = api.getCurrentUserID();
+                        for (var n in message.logMessageData.addedParticipants) {
+                          if (message.logMessageData.addedParticipants[n].userFbId == botID) {
+                            containBot = true;
+                          }
+                        }
+                        if (containBot) {
+                          api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
+                          wraplog("[Facebook]", message.author, "added Bot to", message.threadID);
+                        }
+                      }
+                    } catch (ex) {
+                      wraplog("[Facebook]", ex);
+                    }
+                    break;
+                  case "message_reaction":
+                    wraplog("[Facebook]", message);
+                    break;
+                  case "message_unsend":
+                    if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID)) {
+                      if (!global.data.thanosBlacklist[message.threadID]) {
+                        (function () {
+                          var removedMessage = global.data.messageList[message.messageID];
+                          var attachmentArray = [];
+                          for (var n in removedMessage.attachments) {
+                            switch (removedMessage.attachments[n].type) {
+                              case "file":
+                                attachmentArray.push({
+                                  type: removedMessage.attachments[n].type,
+                                  data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                  name: removedMessage.attachments[n].filename
+                                });
+                                break;
+                              case "photo":
+                                attachmentArray.push({
+                                  type: removedMessage.attachments[n].type,
+                                  data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                  name: removedMessage.attachments[n].filename + ".png"
+                                });
+                                break;
+                              case "audio":
+                                attachmentArray.push({
+                                  type: removedMessage.attachments[n].type,
+                                  data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                  name: removedMessage.attachments[n].filename + ".mp3"
+                                });
+                                break;
+                              case "video":
+                                attachmentArray.push({
+                                  type: removedMessage.attachments[n].type,
+                                  data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                  name: removedMessage.attachments[n].filename + ".mp4"
+                                });
+                                break;
+                              case "animated_image":
+                                attachmentArray.push({
+                                  type: removedMessage.attachments[n].type,
+                                  data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                  name: removedMessage.attachments[n].filename + ".gif"
+                                });
+                                break;
+                              case "sticker":
+                                attachmentArray.push({
+                                  type: removedMessage.attachments[n].type,
+                                  data: syncrequest("GET", removedMessage.attachments[n].url).body,
+                                  name: removedMessage.attachments[n].ID + ".png"
+                                });
+                                break;
+                            }
+                          }
+                          var att = [];
+                          var bannedatt = [];
+                          var worker = new Worker(() => {
+                            onmessage = function (event) {
+                              var wait = require("wait-for-stuff");
+                              try {
+                                var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.1:2812/", { size: (event.data.small ? 224 : 299) }));
+                              } catch (ex) {
+                                var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
+                              }
+                              var data = event.data;
+                              try {
+                                var cl = wait.for.promise(NSFWJS.classify({
+                                  data: new Uint8Array(data.data),
+                                  width: data.width,
+                                  height: data.height
+                                }, 5));
+                                postMessage({
+                                  class: cl,
+                                  id: data.id
+                                });
+                              } catch (ex) {
+                                postMessage({
+                                  error: ex.toString(),
+                                  id: data.id
+                                });
+                              }
+                            }
+                          }, [], { silent: true });
+                          worker.onmessage = function (event) {
+                            var data = event.data;
+                            Object.assign(global.nsfwjsdata[data.id], data);
+                            global.nsfwjsdata[data.id].complete = true;
+                            if (data.error) {
+                              wraplog("[Facebook]", "Error in image classifier:", data.error);
+                            }
+                          }
+                          var idlist = [];
+                          for (var n in attachmentArray) {
+                            var imagesx = new streamBuffers.ReadableStreamBuffer({
+                              frequency: 10,
+                              chunkSize: 2048
+                            });
+                            imagesx.path = attachmentArray[n].name;
+                            imagesx.put(attachmentArray[n].data);
+                            imagesx.stop();
+                            if ((attachmentArray[n].type == "photo" ||
+                              attachmentArray[n].type == "animated_image") &&
+                              !global.data.thanosBlacklist[message.threadID]) {
+                              var image = new Image();
+                              image.src = attachmentArray[n].data;
+                              var cvs = new Canvas(image.width, image.height);
+                              var ctx = cvs.getContext("2d");
+                              ctx.drawImage(image, 0, 0);
+                              var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
+
+                              var id = Date.now().toString() + "-" + random(0, 99).toString() + random(0, 99).toString() + Math.random().toString() + Math.random().toString();
+                              global.nsfwjsdata[id] = {};
+                              global.nsfwjsdata[id].complete = false;
+                              worker.postMessage({
+                                id: id,
+                                data: Array.from(imgdata1.data),
+                                width: imgdata1.width,
+                                height: imgdata1.height,
+                                small: global.config.nsfwjsSmallModel
+                              });
+                            } else {
+                              att.push(imagesx);
+                            }
+                          }
+                          for (var id in idlist) {
+                            // eslint-disable-next-line no-loop-func
+                            wait.for.condition(() => global.nsfwjsdata[id].complete);
+                            var classing = global.nsfwjsdata[id].class;
+                            try {
+                              var classify = classing[0].className;
+                              var percentage = classing[0].probability * 100;
+                            } catch (ex) { }
+                            switch (classify) {
+                              case "Neutral":
+                              case "Drawing":
+                              case "Sexy":
+                                att.push(imagesx);
+                              // eslint-disable-next-line no-fallthrough
+                              case "Hentai":
+                              case "Porn":
+                                bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
+                                wraplog("[Facebook]", "Removed image classified as:", classify);
+                                break;
+                              default:
+                                wraplog("[Facebook]", "Invalid image classification:", classify, classing);
+                                att.push(imagesx);
+                            }
+                          }
+                          worker.terminate();
+                          var btext = "";
+                          if (bannedatt.length != 0) {
+                            btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
+                          }
+                          api.sendMessage({
+                            body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
+                            mentions: [{
+                              tag: "@" + global.data.cacheName["FB-" + message.senderID],
+                              id: message.senderID,
+                              fromIndex: 0
+                            }],
+                            attachment: att
+                          }, message.threadID, function (err) {
+                            if (err) {
+                              wraplog("[Facebook] Errored while sending Anti-Unsend response:", err);
+                            } else {
+                              api.markAsRead(message.threadID);
+                            }
+                          });
+                          wraplog("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                        })();
+                      } else {
+                        wraplog("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
+                      }
+                      fs.writeFileSync(path.join(__dirname, "deletedmsg/") + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
+                      for (var id in global.data.messageList) {
+                        if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
+                          delete global.data.messageList[id];
+                        }
+                      }
+                    } else {
+                      wraplog("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + ". (" + message.messageID + ")");
+                    }
+                    break;
+                  case "message_reply":
+                    if (global.config.enableThanosTimeGems) {
+                      global.data.messageList[message.messageID] = message;
+                      for (var id in global.data.messageList) {
+                        if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date()).getTime()) {
+                          delete global.data.messageList[id];
+                        }
+                      }
+                    }
+                    if (message.messageReply) {
+                      for (var xzxz in message.messageReply.attachments) {
+                        if (message.messageReply.attachments[xzxz].error) {
+                          fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
+                        }
+                      }
+                    }
+                    api.markAsRead(message.threadID);
+                    var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
+                      return !(el == null || el == "" || el == " ");
+                    });
+                    arg.map(xy => xy.replace(/["]/g, ""));
+                    if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
+                      api.getThreadInfo(message.threadID, function (err, data) {
+                        var participants = data.participantIDs;
+                        var character = "@";
+                        var sendString = "";
+                        var mentionObj = [];
+                        var i = 0;
+                        for (var n in participants) {
+                          sendString += character;
+                          mentionObj.push({
+                            tag: character,
+                            id: participants[n],
+                            fromIndex: i
+                          });
+                          i++;
+                        }
+                        api.sendMessage({
+                          body: sendString,
+                          mentions: mentionObj
+                        }, message.threadID, function (err) {
+                          if (err) {
+                            wraplog("[Facebook] @everyone errored:", err);
+                          }
+                        }, message.messageID);
+                      });
+                    }
+
+                    try {
+                      var str = "";
+                      for (var n in message.attachments) {
+                        var type = message.attachments[n].type;
+                        type = type[0].toLocaleUpperCase() + type.substr(1);
+                        str += "\r\n  <";
+                        str += type;
+                        str += " ";
+                        switch (message.attachments[n].type) {
+                          case "audio":
+                          case "video":
+                            var dr = new Date(message.attachments[n].duration);
+                            str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                            str += " ";
+                            if (message.attachments[n].type == "audio") break;
+                          // eslint-disable-next-line no-fallthrough
+                          case "photo":
+                          case "animated_image":
+                          case "sticker":
+                            str += message.attachments[n].width;
+                            str += "x";
+                            str += message.attachments[n].height;
+                            str += " ";
+                        }
+                        str += "| ";
+                        str += message.attachments[n].url;
+                        str += ">";
+                      }
+                      wraplog("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", message.body, str);
+                    } catch (ex) {
+                      wraplog("[Facebook] ERROR on replymsg", message);
+                    }
+                    break;
+                  default:
+                    break;
+                }
+              } else {
+                wraplog("[Facebook]", "Detected undefined!", err);
+              }
+            } catch (ex) {
+              wraplog("[Facebook]", ex, message);
+            }
+          });
+          wraplog("[Facebook]", "Started Facebook listener");
+        }
+        var temporaryAppState = {};
+    var fbloginobj = {};
+    fbloginobj.email = configdata.fbemail;
+    fbloginobj.password = configdata.fbpassword;
+    if (configdata.usefbappstate && fs.existsSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"))) {
+      fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), 'utf8'));
+    }
+    var configobj = {
+      userAgent: global.config.fbuseragent,
+      logLevel: global.config.DEBUG_FCA_LOGLEVEL,
+      selfListen: true,
+      listenEvents: true,
+      updatePresence: false,
+      autoMarkRead: true
+    }
+    if (global.config.facebookProxy != null) {
+      if (global.config.facebookProxyUseSOCKS) {
+        configobj.proxy = "http://127.0.0.1:2813";
+      } else {
+        configobj.proxy = "http://" + global.config.facebookProxy;
+      }
+    }
+    try {
+      wraplog("[Facebook]", "Logging in...");
+      var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
+      var forceReconnect = function forceReconnect(error) {
+        if (!error) {
+          wraplog("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (12 hours clock)");
+        }
+        if (typeof facebook.listener == "function") {
+          facebook.listener();
+          wraplog("[Facebook]", "Stopped Facebook listener");
+          temporaryAppState = facebook.api.getAppState();
+        }
+        try {
+          clearInterval(facebook.removePendingClock);
+        } catch (ex) { }
+        fbinstance = undefined;
+        fbinstance = require("fca-unofficial")({
+          appState: temporaryAppState
+        }, configobj, facebookcb);
+        wraplog("[Facebook]", "New instance created.");
+        wraplog("[Facebook]", "Logging in...");
+        setTimeout(function (fr) {
+          if (facebook.error && !facebook.listener) {
+            wraplog("[Facebook]", "Detected error. Attempting to reconnect...");
+            fr(true);
+          }
+        }, 30000, forceReconnect);
+      }
+      setInterval(forceReconnect, 43200000);
+    } catch (ex) {
+      wraplog("[Facebook]", "Error found in codebase:", ex);
+    }
+      })(global.config.fbMultiAccount[n]);
+    }
+  }
 }
 
-consoles = function consoles() {
-  rl.question('console@c3c:js# ', (message) => {
-    log("[INTERNAL]", "CONSOLE issued javascript code:", message);
-    try {
-      log("[JAVASCRIPT]", eval(message));
-    } catch (ex) {
-      log("[JAVASCRIPT]", ex);
-    }
-    consoles();
-  });
-}
-consoles();
+rl.on('line', (message) => {
+  log("[INTERNAL]", "CONSOLE issued javascript code:", message);
+  try {
+    log("[JAVASCRIPT]", eval(message));
+  } catch (ex) {
+    log("[JAVASCRIPT]", ex);
+  }
+});
+rl.setPrompt("console@c3c:js# ");
+rl.prompt();
 
 if (global.config.enableSSHRemoteConsole) {
   var ssh2 = require('ssh2');
@@ -2254,7 +3077,7 @@ if (global.config.enableSSHRemoteConsole) {
         });
 
         //SSH Shell
-        session.once('shell', function (accept, reject) {
+        session.once('shell', function (accept, _reject) {
           log("[SSH]", conninfo.ip + ":" + conninfo.port, "requested a shell (Remote Console).");
           global.sshstream[conninfo.ip + ":" + conninfo.port] = accept();
           global.sshstream[conninfo.ip + ":" + conninfo.port].write('\u001B[2J\u001B[0;0f');
@@ -2272,21 +3095,16 @@ if (global.config.enableSSHRemoteConsole) {
             prompt: ""
           });
           global.sshcurrsession[conninfo.ip + ":" + conninfo.port] = sshrl;
-          var consolessh = function consolessh() {
-            // eslint-disable-next-line no-extra-boolean-cast
-            if (!!global.sshcurrsession[conninfo.ip + ":" + conninfo.port]) {
-              sshrl.question('ssh@c3c:js# ', (message) => {
-                log("[INTERNAL]", conninfo.ip + ":" + conninfo.port, "issued javascript code:", message);
-                try {
-                  log("[SSH-JAVASCRIPT]", eval(message));
-                } catch (ex) {
-                  log("[SSH-JAVASCRIPT]", ex);
-                }
-                consolessh();
-              });
+          sshrl.on('line', (message) => {
+            log("[INTERNAL]", conninfo.ip + ":" + conninfo.port, "issued javascript code:", message);
+            try {
+              log("[SSH-JAVASCRIPT]", eval(message));
+            } catch (ex) {
+              log("[SSH-JAVASCRIPT]", ex);
             }
-          }
-          consolessh();
+          });
+          sshrl.setPrompt("ssh@c3c:js# ");
+          sshrl.prompt();
 
           // process.stdout.pipe(stream, {end: false});
           // stream.pipe(process.stdin, {end: false});
@@ -2310,63 +3128,6 @@ if (global.config.enableSSHRemoteConsole) {
 
 !global.data.cacheName ? global.data.cacheName = {} : "";
 !global.data.thanosBlacklist ? global.data.thanosBlacklist = {} : "";
-
-if (global.config.enablefb) {
-  var temporaryAppState = {};
-  var fbloginobj = {};
-  fbloginobj.email = global.config.fbemail;
-  fbloginobj.password = global.config.fbpassword;
-  if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "fbstate.json"))) {
-    fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8'));
-  }
-  var configobj = {
-    userAgent: global.config.fbuseragent,
-    logLevel: global.config.DEBUG_FCA_LOGLEVEL,
-    selfListen: true,
-    listenEvents: true,
-    updatePresence: false,
-    autoMarkRead: true
-  }
-  if (global.config.facebookProxy != null) {
-    if (global.config.facebookProxyUseSOCKS) {
-      configobj.proxy = "http://127.0.0.1:2813";
-    } else {
-      configobj.proxy = "http://" + global.config.facebookProxy;
-    }
-  }
-  try {
-    log("[Facebook]", "Logging in...");
-    var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
-    forceReconnect = function forceReconnect(error) {
-      if (!error) {
-        log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (6 hours clock)");
-      }
-      if (typeof facebook.listener == "function") {
-        facebook.listener();
-        log("[Facebook]", "Stopped Facebook listener");
-        temporaryAppState = facebook.api.getAppState();
-      }
-      try {
-        clearInterval(facebook.removePendingClock);
-      } catch (ex) { }
-      fbinstance = undefined;
-      fbinstance = require("fca-unofficial")({
-        appState: temporaryAppState
-      }, configobj, facebookcb);
-      log("[Facebook]", "New instance created.");
-      log("[Facebook]", "Logging in...");
-      setTimeout(function (fr) {
-        if (facebook.error && !facebook.listener) {
-          log("[Facebook]", "Detected error. Attempting to reconnect...");
-          fr(true);
-        }
-      }, 30000, forceReconnect);
-    }
-    setInterval(forceReconnect, 21600000);
-  } catch (ex) {
-    log("[Facebook]", "Error found in codebase:", ex);
-  }
-}
 
 if (global.config.enablediscord) {
   const Discord = require('discord.js');
@@ -2523,7 +3284,7 @@ var shutdownHandler = function (errorlevel) {
     localSocksProxy.close();
     log("[INTERNAL]", "Closed local SOCKS2HTTP proxy.");
   }
-  
+
   log("[INTERNAL]", "Closing bot with code " + errorlevel + "..." + "\x1b[m\r\n");
   rl.setPrompt("\x1b[m");
 }
