@@ -2782,7 +2782,7 @@ if (global.config.enablefb) {
           fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), 'utf8'));
         }
         var configobj = {
-          userAgent: global.config.fbuseragent,
+          userAgent: configdata.fbuseragent,
           logLevel: global.config.DEBUG_FCA_LOGLEVEL,
           selfListen: true,
           listenEvents: true,
