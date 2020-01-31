@@ -2109,7 +2109,7 @@ if (global.config.enablefb) {
           wraplog("[Facebook]", "Logged in.");
           delete facebook.api;
           facebook.api = api;
-          if (configobj.usefbappstate) {
+          if (configdata.usefbappstate) {
             try {
               fs.writeFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), JSON.stringify(api.getAppState()));
             } catch (ex) {
