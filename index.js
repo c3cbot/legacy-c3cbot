@@ -1452,7 +1452,7 @@ if (global.config.enablefb) {
                     return: function returndata(returndata) {
                       if (!returndata) return undefined;
                       if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                        var endTyping = api.sendTypingIndicator(message.threadID);
+                        var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                         setTimeout(function (api, returndata, endTyping, message) {
                           api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
                             if (err) {
@@ -1469,7 +1469,7 @@ if (global.config.enablefb) {
                           returndata.data.body = "";
                         }
                         returndata.data.body = prefix + " " + returndata.data.body;
-                        var endTyping = api.sendTypingIndicator(message.threadID);
+                        var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                         setTimeout(function (api, returndata, endTyping, message, log) {
                           api.sendMessage(returndata.data, message.threadID, function (err) {
                             if (err) {
@@ -1579,7 +1579,7 @@ if (global.config.enablefb) {
                                 return: function returndata(returndata) {
                                   if (!returndata) return undefined;
                                   if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                                    var endTyping = api.sendTypingIndicator(message.threadID);
+                                    var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                                     setTimeout(function (api, returndata, endTyping, message) {
                                       api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
                                         if (err) {
@@ -1596,7 +1596,7 @@ if (global.config.enablefb) {
                                       returndata.data.body = "";
                                     }
                                     returndata.data.body = prefix + " " + returndata.data.body;
-                                    var endTyping = api.sendTypingIndicator(message.threadID);
+                                    var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                                     setTimeout(function (api, returndata, endTyping, message, log) {
                                       api.sendMessage(returndata.data, message.threadID, function (err) {
                                         if (err) {
@@ -1615,7 +1615,7 @@ if (global.config.enablefb) {
                           }).then(function (returndata) {
                             if (!returndata) return undefined;
                             if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                              var endTyping = api.sendTypingIndicator(message.threadID);
+                              var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                               setTimeout(function (api, returndata, endTyping, message) {
                                 api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
                                   if (err) {
@@ -1632,7 +1632,7 @@ if (global.config.enablefb) {
                                 returndata.data.body = "";
                               }
                               returndata.data.body = prefix + " " + returndata.data.body;
-                              var endTyping = api.sendTypingIndicator(message.threadID);
+                              var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                               setTimeout(function (api, returndata, endTyping, message, log) {
                                 api.sendMessage(returndata.data, message.threadID, function (err) {
                                   if (err) {
@@ -2201,7 +2201,7 @@ if (global.config.enablefb) {
                         return: function returndata(returndata) {
                           if (!returndata) return undefined;
                           if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                            var endTyping = api.sendTypingIndicator(message.threadID);
+                            var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                             setTimeout(function (api, returndata, endTyping, message) {
                               api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
                                 if (err) {
@@ -2218,7 +2218,7 @@ if (global.config.enablefb) {
                               returndata.data.body = "";
                             }
                             returndata.data.body = prefix + " " + returndata.data.body;
-                            var endTyping = api.sendTypingIndicator(message.threadID);
+                            var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                             setTimeout(function (api, returndata, endTyping, message, log) {
                               api.sendMessage(returndata.data, message.threadID, function (err) {
                                 if (err) {
@@ -2329,7 +2329,7 @@ if (global.config.enablefb) {
                                     return: function returndata(returndata) {
                                       if (!returndata) return undefined;
                                       if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                                        var endTyping = api.sendTypingIndicator(message.threadID);
+                                        var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                                         setTimeout(function (api, returndata, endTyping, message) {
                                           api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
                                             if (err) {
@@ -2346,7 +2346,7 @@ if (global.config.enablefb) {
                                           returndata.data.body = "";
                                         }
                                         returndata.data.body = prefix + " " + returndata.data.body;
-                                        var endTyping = api.sendTypingIndicator(message.threadID);
+                                        var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                                         setTimeout(function (api, returndata, endTyping, message, log) {
                                           api.sendMessage(returndata.data, message.threadID, function (err) {
                                             if (err) {
@@ -2365,7 +2365,7 @@ if (global.config.enablefb) {
                               }).then(function (returndata) {
                                 if (!returndata) return undefined;
                                 if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                                  var endTyping = api.sendTypingIndicator(message.threadID);
+                                  var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                                   setTimeout(function (api, returndata, endTyping, message) {
                                     api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
                                       if (err) {
@@ -2382,7 +2382,7 @@ if (global.config.enablefb) {
                                     returndata.data.body = "";
                                   }
                                   returndata.data.body = prefix + " " + returndata.data.body;
-                                  var endTyping = api.sendTypingIndicator(message.threadID);
+                                  var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
                                   setTimeout(function (api, returndata, endTyping, message, log) {
                                     api.sendMessage(returndata.data, message.threadID, function (err) {
                                       if (err) {
