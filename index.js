@@ -2294,7 +2294,7 @@ if (global.config.enablefb) {
                         var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                           return !(el == null || el == "" || el == " ");
                         });
-                        arg.map(xy => xy.replace(/["]/g, ""));
+                        arg = arg.map(xy => xy.replace(/["]/g, ""));
                         var toarg = arg;
                         if (global.commandMapping[arg[0].substr(1)]) {
                           if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
