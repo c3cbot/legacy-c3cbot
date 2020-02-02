@@ -1615,7 +1615,7 @@ if (global.config.enablefb) {
                               } catch (ex) {
                                 returndata = {
                                   handler: "internal",
-                                  data: "plerr: " + ex.message
+                                  data: "plerr: " + ex.stack
                                 }
                               }
                               resolve(returndata);
@@ -2372,7 +2372,7 @@ if (global.config.enablefb) {
                                   } catch (ex) {
                                     returndata = {
                                       handler: "internal",
-                                      data: "plerr: " + ex.message
+                                      data: "plerr: " + ex.stack
                                     }
                                   }
                                   resolve(returndata);
