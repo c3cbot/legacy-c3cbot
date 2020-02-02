@@ -1561,56 +1561,64 @@ if (global.config.enablefb) {
                           var starttime = Date.now();
                           new Promise(function (resolve, reject) {
                             setTimeout(function () {
-                              resolve(global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                                args: argv,
-                                time: receivetime,
-                                msgdata: message,
-                                facebookapi: api,
-                                discordapi: client,
-                                prefix: prefix,
-                                admin: admin,
-                                mentions: mentions,
-                                log: function logPlugin(...message) {
-                                  log.apply(global, [
-                                    "[PLUGIN]",
-                                    "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
-                                  ].concat(message));
-                                },
-                                return: function returndata(returndata) {
-                                  if (!returndata) return undefined;
-                                  if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                                    var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
-                                    setTimeout(function (api, returndata, endTyping, message) {
-                                      api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                                        if (err) {
-                                          log("[Facebook] Errored while sending response:", err);
-                                        }
-                                      }, message.messageID, message.isGroup);
-                                      endTyping();
-                                      setTimeout(function (api, message) {
-                                        api.markAsRead(message.threadID);
-                                      }, 500, api, message);
-                                    }, returndata.data.length * 30, api, returndata, endTyping, message);
-                                  } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                                    if (!returndata.data.body) {
-                                      returndata.data.body = "";
+                              try {
+                                var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                                  args: argv,
+                                  time: receivetime,
+                                  msgdata: message,
+                                  facebookapi: api,
+                                  discordapi: client,
+                                  prefix: prefix,
+                                  admin: admin,
+                                  mentions: mentions,
+                                  log: function logPlugin(...message) {
+                                    log.apply(global, [
+                                      "[PLUGIN]",
+                                      "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                                    ].concat(message));
+                                  },
+                                  return: function returndata(returndata) {
+                                    if (!returndata) return undefined;
+                                    if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                                      var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
+                                      setTimeout(function (api, returndata, endTyping, message) {
+                                        api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                                          if (err) {
+                                            log("[Facebook] Errored while sending response:", err);
+                                          }
+                                        }, message.messageID, message.isGroup);
+                                        endTyping();
+                                        setTimeout(function (api, message) {
+                                          api.markAsRead(message.threadID);
+                                        }, 500, api, message);
+                                      }, returndata.data.length * 30, api, returndata, endTyping, message);
+                                    } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                                      if (!returndata.data.body) {
+                                        returndata.data.body = "";
+                                      }
+                                      returndata.data.body = prefix + " " + returndata.data.body;
+                                      var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
+                                      setTimeout(function (api, returndata, endTyping, message, log) {
+                                        api.sendMessage(returndata.data, message.threadID, function (err) {
+                                          if (err) {
+                                            log("[Facebook] Errored while sending response:", err);
+                                          }
+                                        }, message.messageID, message.isGroup);
+                                        endTyping();
+                                        setTimeout(function (api, message) {
+                                          api.markAsRead(message.threadID);
+                                        }, 500, api, message);
+                                      }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                                     }
-                                    returndata.data.body = prefix + " " + returndata.data.body;
-                                    var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
-                                    setTimeout(function (api, returndata, endTyping, message, log) {
-                                      api.sendMessage(returndata.data, message.threadID, function (err) {
-                                        if (err) {
-                                          log("[Facebook] Errored while sending response:", err);
-                                        }
-                                      }, message.messageID, message.isGroup);
-                                      endTyping();
-                                      setTimeout(function (api, message) {
-                                        api.markAsRead(message.threadID);
-                                      }, 500, api, message);
-                                    }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                                   }
+                                });
+                              } catch (ex) {
+                                returndata = {
+                                  handler: "internal",
+                                  data: "plerr: " + ex.message
                                 }
-                              }));
+                              }
+                              resolve(returndata);
                             }, 50);
                           }).then(function (returndata) {
                             if (!returndata) return undefined;
@@ -2310,57 +2318,64 @@ if (global.config.enablefb) {
                               var starttime = Date.now();
                               new Promise(function (resolve, reject) {
                                 setTimeout(function () {
-                                  resolve(global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                                    args: argv,
-                                    time: receivetime,
-                                    msgdata: message,
-                                    facebookapi: api,
-                                    facebooks: facebooks,
-                                    discordapi: client,
-                                    prefix: prefix,
-                                    admin: admin,
-                                    mentions: mentions,
-                                    log: function logPlugin(...message) {
-                                      log.apply(global, [
-                                        "[PLUGIN]",
-                                        "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
-                                      ].concat(message));
-                                    },
-                                    return: function returndata(returndata) {
-                                      if (!returndata) return undefined;
-                                      if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                                        var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
-                                        setTimeout(function (api, returndata, endTyping, message) {
-                                          api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                                            if (err) {
-                                              wraplog("[Facebook] Errored while sending response:", err);
-                                            }
-                                          }, message.messageID, message.isGroup);
-                                          endTyping();
-                                          setTimeout(function (api, message) {
-                                            api.markAsRead(message.threadID);
-                                          }, 500, api, message);
-                                        }, returndata.data.length * 30, api, returndata, endTyping, message);
-                                      } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                                        if (!returndata.data.body) {
-                                          returndata.data.body = "";
+                                  try {
+                                    var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                                      args: argv,
+                                      time: receivetime,
+                                      msgdata: message,
+                                      facebookapi: api,
+                                      discordapi: client,
+                                      prefix: prefix,
+                                      admin: admin,
+                                      mentions: mentions,
+                                      log: function logPlugin(...message) {
+                                        log.apply(global, [
+                                          "[PLUGIN]",
+                                          "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                                        ].concat(message));
+                                      },
+                                      return: function returndata(returndata) {
+                                        if (!returndata) return undefined;
+                                        if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                                          var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
+                                          setTimeout(function (api, returndata, endTyping, message) {
+                                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                                              if (err) {
+                                                log("[Facebook] Errored while sending response:", err);
+                                              }
+                                            }, message.messageID, message.isGroup);
+                                            endTyping();
+                                            setTimeout(function (api, message) {
+                                              api.markAsRead(message.threadID);
+                                            }, 500, api, message);
+                                          }, returndata.data.length * 30, api, returndata, endTyping, message);
+                                        } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                                          if (!returndata.data.body) {
+                                            returndata.data.body = "";
+                                          }
+                                          returndata.data.body = prefix + " " + returndata.data.body;
+                                          var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
+                                          setTimeout(function (api, returndata, endTyping, message, log) {
+                                            api.sendMessage(returndata.data, message.threadID, function (err) {
+                                              if (err) {
+                                                log("[Facebook] Errored while sending response:", err);
+                                              }
+                                            }, message.messageID, message.isGroup);
+                                            endTyping();
+                                            setTimeout(function (api, message) {
+                                              api.markAsRead(message.threadID);
+                                            }, 500, api, message);
+                                          }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                                         }
-                                        returndata.data.body = prefix + " " + returndata.data.body;
-                                        var endTyping = api.sendTypingIndicator(message.threadID, function(){}, message.isGroup);
-                                        setTimeout(function (api, returndata, endTyping, message, log) {
-                                          api.sendMessage(returndata.data, message.threadID, function (err) {
-                                            if (err) {
-                                              wraplog("[Facebook] Errored while sending response:", err);
-                                            }
-                                          }, message.messageID, message.isGroup);
-                                          endTyping();
-                                          setTimeout(function (api, message) {
-                                            api.markAsRead(message.threadID);
-                                          }, 500, api, message);
-                                        }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                                       }
+                                    });
+                                  } catch (ex) {
+                                    returndata = {
+                                      handler: "internal",
+                                      data: "plerr: " + ex.message
                                     }
-                                  }));
+                                  }
+                                  resolve(returndata);
                                 }, 50);
                               }).then(function (returndata) {
                                 if (!returndata) return undefined;
