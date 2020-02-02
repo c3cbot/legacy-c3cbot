@@ -2288,7 +2288,7 @@ if (global.config.enablefb) {
                         }, message.messageID, message.isGroup);
                       });
                     }
-                    if (message.body.startsWith("/")) {
+                    if (message.body.startsWith("/") && !nointernalresolve) {
                       if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
                         wraplog("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
                         var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
@@ -2296,7 +2296,7 @@ if (global.config.enablefb) {
                         });
                         arg.map(xy => xy.replace(/["]/g, ""));
                         var toarg = arg;
-                        if (global.commandMapping[arg[0].substr(1)] && !nointernalresolve) {
+                        if (global.commandMapping[arg[0].substr(1)]) {
                           if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
                             api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID, message.isGroup);
                           } else {
