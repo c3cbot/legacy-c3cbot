@@ -1458,7 +1458,7 @@ if (global.config.enablefb) {
                             if (err) {
                               log("[Facebook] Errored while sending response:", err);
                             }
-                          }, message.messageID);
+                          }, message.messageID, message.isGroup);
                           endTyping();
                           setTimeout(function (api, message) {
                             api.markAsRead(message.threadID);
@@ -1475,7 +1475,7 @@ if (global.config.enablefb) {
                             if (err) {
                               log("[Facebook] Errored while sending response:", err);
                             }
-                          }, message.messageID);
+                          }, message.messageID, message.isGroup);
                           endTyping();
                           setTimeout(function (api, message) {
                             api.markAsRead(message.threadID);
@@ -1528,7 +1528,7 @@ if (global.config.enablefb) {
                       if (err) {
                         log("[Facebook]", "@everyone errored:", err);
                       }
-                    }, message.messageID);
+                    }, message.messageID, message.isGroup);
                   });
                 }
                 if (message.body.startsWith("/")) {
@@ -1541,7 +1541,7 @@ if (global.config.enablefb) {
                     var toarg = arg;
                     if (global.commandMapping[arg[0].substr(1)] && !nointernalresolve) {
                       if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                        api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
+                        api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID, message.isGroup);
                       } else {
                         var argv = JSON.parse(JSON.stringify(arg));
                         var admin = false;
@@ -1585,7 +1585,7 @@ if (global.config.enablefb) {
                                         if (err) {
                                           log("[Facebook] Errored while sending response:", err);
                                         }
-                                      }, message.messageID);
+                                      }, message.messageID, message.isGroup);
                                       endTyping();
                                       setTimeout(function (api, message) {
                                         api.markAsRead(message.threadID);
@@ -1602,7 +1602,7 @@ if (global.config.enablefb) {
                                         if (err) {
                                           log("[Facebook] Errored while sending response:", err);
                                         }
-                                      }, message.messageID);
+                                      }, message.messageID, message.isGroup);
                                       endTyping();
                                       setTimeout(function (api, message) {
                                         api.markAsRead(message.threadID);
@@ -1621,7 +1621,7 @@ if (global.config.enablefb) {
                                   if (err) {
                                     log("[Facebook] Errored while sending response:", err);
                                   }
-                                }, message.messageID);
+                                }, message.messageID, message.isGroup);
                                 endTyping();
                                 setTimeout(function (api, message) {
                                   api.markAsRead(message.threadID);
@@ -1638,7 +1638,7 @@ if (global.config.enablefb) {
                                   if (err) {
                                     log("[Facebook] Errored while sending response:", err);
                                   }
-                                }, message.messageID);
+                                }, message.messageID, message.isGroup);
                                 endTyping();
                                 setTimeout(function (api, message) {
                                   api.markAsRead(message.threadID);
@@ -1662,7 +1662,7 @@ if (global.config.enablefb) {
                         }
                       }
                     } else {
-                      api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
+                      api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID, message.isGroup);
                     }
                   } else {
                     var str = "";
@@ -1737,7 +1737,7 @@ if (global.config.enablefb) {
                       }
                     }
                     if (containBot) {
-                      api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
+                      api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID, message.isGroup);
                       log("[Facebook]", message.author, "added Bot to", message.threadID);
                     }
                   }
@@ -1913,7 +1913,7 @@ if (global.config.enablefb) {
                         } else {
                           api.markAsRead(message.threadID);
                         }
-                      });
+                      }, null, message.isGroup);
                       log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
                     })();
                   } else {
@@ -1973,7 +1973,7 @@ if (global.config.enablefb) {
                       if (err) {
                         log("[Facebook] @everyone errored:", err);
                       }
-                    }, message.messageID);
+                    }, message.messageID, message.isGroup);
                   });
                 }
 
@@ -2207,7 +2207,7 @@ if (global.config.enablefb) {
                                 if (err) {
                                   wraplog("[Facebook] Errored while sending response:", err);
                                 }
-                              }, message.messageID);
+                              }, message.messageID, message.isGroup);
                               endTyping();
                               setTimeout(function (api, message) {
                                 api.markAsRead(message.threadID);
@@ -2224,7 +2224,7 @@ if (global.config.enablefb) {
                                 if (err) {
                                   wraplog("[Facebook] Errored while sending response:", err);
                                 }
-                              }, message.messageID);
+                              }, message.messageID, message.isGroup);
                               endTyping();
                               setTimeout(function (api, message) {
                                 api.markAsRead(message.threadID);
@@ -2277,7 +2277,7 @@ if (global.config.enablefb) {
                           if (err) {
                             wraplog("[Facebook]", "@everyone errored:", err);
                           }
-                        }, message.messageID);
+                        }, message.messageID, message.isGroup);
                       });
                     }
                     if (message.body.startsWith("/")) {
@@ -2290,7 +2290,7 @@ if (global.config.enablefb) {
                         var toarg = arg;
                         if (global.commandMapping[arg[0].substr(1)] && !nointernalresolve) {
                           if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-                            api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID);
+                            api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID, message.isGroup);
                           } else {
                             var argv = JSON.parse(JSON.stringify(arg));
                             var admin = false;
@@ -2335,7 +2335,7 @@ if (global.config.enablefb) {
                                             if (err) {
                                               wraplog("[Facebook] Errored while sending response:", err);
                                             }
-                                          }, message.messageID);
+                                          }, message.messageID, message.isGroup);
                                           endTyping();
                                           setTimeout(function (api, message) {
                                             api.markAsRead(message.threadID);
@@ -2352,7 +2352,7 @@ if (global.config.enablefb) {
                                             if (err) {
                                               wraplog("[Facebook] Errored while sending response:", err);
                                             }
-                                          }, message.messageID);
+                                          }, message.messageID, message.isGroup);
                                           endTyping();
                                           setTimeout(function (api, message) {
                                             api.markAsRead(message.threadID);
@@ -2371,7 +2371,7 @@ if (global.config.enablefb) {
                                       if (err) {
                                         wraplog("[Facebook] Errored while sending response:", err);
                                       }
-                                    }, message.messageID);
+                                    }, message.messageID, message.isGroup);
                                     endTyping();
                                     setTimeout(function (api, message) {
                                       api.markAsRead(message.threadID);
@@ -2388,7 +2388,7 @@ if (global.config.enablefb) {
                                       if (err) {
                                         wraplog("[Facebook] Errored while sending response:", err);
                                       }
-                                    }, message.messageID);
+                                    }, message.messageID, message.isGroup);
                                     endTyping();
                                     setTimeout(function (api, message) {
                                       api.markAsRead(message.threadID);
@@ -2412,7 +2412,7 @@ if (global.config.enablefb) {
                             }
                           }
                         } else {
-                          api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID);
+                          api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID, message.isGroup);
                         }
                       } else {
                         var str = "";
@@ -2487,7 +2487,7 @@ if (global.config.enablefb) {
                           }
                         }
                         if (containBot) {
-                          api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID);
+                          api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID, message.isGroup);
                           wraplog("[Facebook]", message.author, "added Bot to", message.threadID);
                         }
                       }
@@ -2663,7 +2663,7 @@ if (global.config.enablefb) {
                             } else {
                               api.markAsRead(message.threadID);
                             }
-                          });
+                          }, null, message.isGroup);
                           wraplog("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
                         })();
                       } else {
@@ -2723,7 +2723,7 @@ if (global.config.enablefb) {
                           if (err) {
                             wraplog("[Facebook] @everyone errored:", err);
                           }
-                        }, message.messageID);
+                        }, message.messageID, message.isGroup);
                       });
                     }
 
