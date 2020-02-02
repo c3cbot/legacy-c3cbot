@@ -2109,12 +2109,10 @@ if (global.config.enablefb) {
           wraplog("[Facebook]", "Logged in.");
           delete facebook.api;
           facebook.api = api;
-          if (configdata.usefbappstate) {
-            try {
-              fs.writeFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), JSON.stringify(api.getAppState()));
-            } catch (ex) {
-              wraplog("[INTERNAL]", ex);
-            }
+          try {
+            fs.writeFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), JSON.stringify(api.getAppState()));
+          } catch (ex) {
+            wraplog("[INTERNAL]", ex);
           }
 
           function fetchName(id, force, callingback) {
@@ -2806,14 +2804,13 @@ if (global.config.enablefb) {
             if (typeof facebook.listener == "function") {
               facebook.listener();
               wraplog("[Facebook]", "Stopped Facebook listener");
-              temporaryAppState = facebook.api.getAppState();
             }
             try {
               clearInterval(facebook.removePendingClock);
             } catch (ex) { }
             fbinstance = undefined;
             fbinstance = require("fca-unofficial")({
-              appState: temporaryAppState
+              appState: JSON.parse(fs.readFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), 'utf8'))
             }, configobj, facebookcb);
             wraplog("[Facebook]", "New instance created.");
             wraplog("[Facebook]", "Logging in...");
