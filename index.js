@@ -2852,6 +2852,7 @@ if (global.config.enablefb) {
         } catch (ex) {
           wraplog("[Facebook]", "Error found in codebase:", ex);
         }
+        wait.for.promise(new Promise(resolve => setTimeout(resolve, 200)));
       })(global.config.fbMultiAccount[n]);
     }
   }
