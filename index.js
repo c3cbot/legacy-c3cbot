@@ -2108,7 +2108,7 @@ if (global.config.enablefb) {
         }
         // eslint-disable-next-line no-multi-assign
         var facebook = facebooks[configdata.interface] = {};
-        facebook.facebookcb = function callback(err, api) {
+        facebook.facebookcb = function (err, api) {
           if (err) {
             facebook.error = err;
             wraplog("[Facebook]", err);
