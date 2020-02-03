@@ -1500,6 +1500,10 @@ if (global.config.enablefb) {
                     }
                   }
                 }
+                if (message.isGroup) {
+                  !global.data.facebookChatGroupList ? global.data.facebookChatGroupList = [] : "";
+                  if (global.data.facebookChatGroupList.indexOf(message.threadID) == -1) global.data.facebookChatGroupList.push(message.threadID);
+                }
                 api.markAsRead(message.threadID);
                 var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                   return !(el == null || el == "" || el == " ");
@@ -2256,6 +2260,10 @@ if (global.config.enablefb) {
                           delete global.data.messageList[id];
                         }
                       }
+                    }
+                    if (message.isGroup) {
+                      !global.data.facebookChatGroupList ? global.data.facebookChatGroupList = [] : "";
+                      if (global.data.facebookChatGroupList.indexOf(message.threadID) == -1) global.data.facebookChatGroupList.push(message.threadID);
                     }
                     api.markAsRead(message.threadID);
                     var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
