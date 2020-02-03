@@ -2820,6 +2820,7 @@ if (global.config.enablefb) {
         try {
           wraplog("[Facebook]", "Logging in...");
           var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebook.facebookcb);
+          delete require.cache[require.resolve("fca-unofficial")];
           var forceReconnect = function forceReconnect(error) {
             if (!error) {
               wraplog("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (12 hours clock)");
@@ -2832,9 +2833,11 @@ if (global.config.enablefb) {
               clearInterval(facebook.removePendingClock);
             } catch (ex) { }
             fbinstance = undefined;
+            delete require.cache[require.resolve("fca-unofficial")];
             fbinstance = require("fca-unofficial")({
               appState: JSON.parse(fs.readFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), 'utf8'))
             }, configobj, facebook.facebookcb);
+            delete require.cache[require.resolve("fca-unofficial")];
             wraplog("[Facebook]", "New instance created.");
             wraplog("[Facebook]", "Logging in...");
             setTimeout(function (fr) {
@@ -2844,6 +2847,7 @@ if (global.config.enablefb) {
               }
             }, 30000, forceReconnect);
           }
+          facebook.forceReconnect = forceReconnect;
           setInterval(forceReconnect, 43200000);
         } catch (ex) {
           wraplog("[Facebook]", "Error found in codebase:", ex);
