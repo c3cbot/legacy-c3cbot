@@ -2172,7 +2172,7 @@ if (global.config.enablefb) {
           }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
 
           !global.data.messageList ? global.data.messageList = {} : "";
-          facebook.listener = api.listenMqtt(function callback(err, message) {
+          facebook.cblistener = function callback(err, message) {
             try {
               if (message != undefined) {
                 var nointernalresolve = false;
@@ -2792,7 +2792,8 @@ if (global.config.enablefb) {
             } catch (ex) {
               wraplog("[Facebook]", ex, message);
             }
-          });
+          }
+          facebook.listener = api.listenMqtt(facebook.cblistener);
           wraplog("[Facebook]", "Started Facebook listener");
         }
         var fbloginobj = {};
