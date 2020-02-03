@@ -2108,7 +2108,7 @@ if (global.config.enablefb) {
         }
         // eslint-disable-next-line no-multi-assign
         var facebook = facebooks[configdata.interface] = {};
-        var facebookcb = function callback(err, api) {
+        facebook.facebookcb = function callback(err, api) {
           if (err) {
             facebook.error = err;
             wraplog("[Facebook]", err);
@@ -2795,7 +2795,6 @@ if (global.config.enablefb) {
           });
           wraplog("[Facebook]", "Started Facebook listener");
         }
-        var temporaryAppState = {};
         var fbloginobj = {};
         fbloginobj.email = configdata.fbemail;
         fbloginobj.password = configdata.fbpassword;
@@ -2819,7 +2818,7 @@ if (global.config.enablefb) {
         }
         try {
           wraplog("[Facebook]", "Logging in...");
-          var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
+          var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebook.facebookcb);
           var forceReconnect = function forceReconnect(error) {
             if (!error) {
               wraplog("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (12 hours clock)");
@@ -2834,7 +2833,7 @@ if (global.config.enablefb) {
             fbinstance = undefined;
             fbinstance = require("fca-unofficial")({
               appState: JSON.parse(fs.readFileSync(path.join(__dirname, "appstate", configdata.interface + "-" + "fbstate.json"), 'utf8'))
-            }, configobj, facebookcb);
+            }, configobj, facebook.facebookcb);
             wraplog("[Facebook]", "New instance created.");
             wraplog("[Facebook]", "Logging in...");
             setTimeout(function (fr) {
