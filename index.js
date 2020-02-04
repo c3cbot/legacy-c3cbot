@@ -1107,7 +1107,7 @@ function loadPlugin() {
             log: function logPlugin(...message) {
               log.apply(global, [
                 "[PLUGIN]",
-                "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                "[" + plname + "]"
               ].concat(message));
             }
           })
@@ -1439,7 +1439,7 @@ if (global.config.enablefb) {
                   log: function logPlugin(...message) {
                     log.apply(global, [
                       "[PLUGIN]",
-                      "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                      "[" + chhandling.handler + "]"
                     ].concat(message));
                   },
                   // eslint-disable-next-line no-loop-func
@@ -1568,7 +1568,7 @@ if (global.config.enablefb) {
                                 log: function logPlugin(...message) {
                                   log.apply(global, [
                                     "[PLUGIN]",
-                                    "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                                    "[" + global.commandMapping[arg[0].substr(1)].handler + "]"
                                   ].concat(message));
                                 },
                                 return: function returndata(returndata) {
@@ -2393,8 +2393,7 @@ if (global.config.enablediscord) {
         var currenttime = new Date();
         var arg = message.content.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
           return !(el == null || el == "" || el == " ");
-        });
-        arg.map(xy => xy.replace(/["]/g, ""));
+        }).map(xy => xy.replace(/"/g, ""));
         if (global.commandMapping[arg[0].substr(1)]) {
           if (!(global.commandMapping[arg[0].substr(1)].compatibly & 2) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
             message.reply("\r\n" + prefix + " " + global.lang["UNSUPPORTED_INTERFACE"]);
@@ -2421,7 +2420,7 @@ if (global.config.enablediscord) {
                 facebook.api = {};
               }
               var returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
-                args: arg,
+                args: JSON.parse(JSON.stringify(arg)),
                 time: currenttime,
                 msgdata: message,
                 prefix: prefix,
@@ -2432,7 +2431,7 @@ if (global.config.enablediscord) {
                 log: function logPlugin(...message) {
                   log.apply(global, [
                     "[PLUGIN]",
-                    "[" + global.commandMapping[toarg[0].substr(1)].handler + "]"
+                    "[" + global.commandMapping[arg[0].substr(1)].handler + "]"
                   ].concat(message));
                 },
                 return: function returndata(returndata) {
