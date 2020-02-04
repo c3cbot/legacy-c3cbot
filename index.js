@@ -1500,7 +1500,7 @@ if (global.config.enablefb) {
               }
               api.markAsRead(message.threadID);
               var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                return !(el == null || el == "" || el == " " || !str.replace(/\s/g, '').length);
+                return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '').length);
               }).map(function (z) {
                 return z.replace(/"/g, "")
               });
