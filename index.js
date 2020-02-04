@@ -1530,15 +1530,10 @@ if (global.config.enablefb) {
                   }, message.messageID, message.isGroup);
                 });
               }
-              if (message.body.startsWith("/")) {
+              if (message.body.startsWith("/") && !nointernalresolve) {
                 if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
                   log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
-                  var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
-                    return !(el == null || el == "" || el == " ");
-                  });
-                  arg.map(xy => xy.replace(/["]/g, ""));
-                  var toarg = arg;
-                  if (global.commandMapping[arg[0].substr(1)] && !nointernalresolve) {
+                  if (global.commandMapping[arg[0].substr(1)]) {
                     if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
                       api.sendMessage(prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID, function () { }, message.messageID, message.isGroup);
                     } else {
@@ -1662,9 +1657,9 @@ if (global.config.enablefb) {
                         });
                       } catch (ex) {
                         try {
-                          log("[INTERNAL]", global.commandMapping[toarg[0].substr(1)].handler, "contain an error:", ex);
+                          log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex);
                         } catch (exp) {
-                          log("[INTERNAL]", toarg[0], "contain an error:", ex);
+                          log("[INTERNAL]", arg[0], "contain an error:", ex);
                         }
                       }
                     }
