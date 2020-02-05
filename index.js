@@ -1336,6 +1336,9 @@ function unloadPlugin() {
   }
 }
 
+//Load plugin
+loadPlugin();
+
 var client = {};
 var facebook = {};
 if (global.config.enablefb) {
@@ -2554,6 +2557,3 @@ process.on('SIGHUP', function () { signalHandler("SIGHUP"); }); //Windows Comman
 rl.on('SIGTERM', function () { process.emit('SIGTERM'); });
 rl.on('SIGINT', function () { process.emit('SIGINT'); });
 process.on('exit', shutdownHandler);
-
-//Load plugin
-loadPlugin();
