@@ -1554,7 +1554,7 @@ if (global.config.enablefb) {
                         }
                         var starttime = Date.now();
                         var timingwarning = setInterval(function () {
-                          var calctime = Date.now() - starttime / 1000;
+                          var calctime = (Date.now() - starttime) / 1000;
                           if (calctime >= 10) {
                             log("[INTERNAL]", "Timing Warning: Command \"", arg.join(" "), "\" is taking over", calctime.toFixed(3) + "s to execute and still not done.");
                           }
@@ -1657,7 +1657,7 @@ if (global.config.enablefb) {
                             }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                           }
                           var endtime = Date.now();
-                          var calctime = endtime - starttime / 1000;
+                          var calctime = (endtime - starttime) / 1000;
                           if (calctime >= 10) {
                             log("[INTERNAL]", "Timing Warning: Command \"", arg.join(" "), "\" took", calctime.toFixed(3) + "s to execute!");
                           }
