@@ -1556,12 +1556,12 @@ if (global.config.enablefb) {
                           client = undefined
                         }
                         var starttime = Date.now();
-                        var timingwarning = setInterval(function () {
+                        /* var timingwarning = setInterval(function () {
                           var calctime = (Date.now() - starttime) / 1000;
                           if (calctime >= 10) {
                             log("[INTERNAL]", "Timing Warning: Command \"", arg.join(" "), "\" is taking over", calctime.toFixed(3) + "s to execute and still not done.");
                           }
-                        }, 10000);
+                        }, 10000); */
                         new Promise(function (resolve, reject) {
                           setTimeout(function () {
                             try {
@@ -1661,9 +1661,6 @@ if (global.config.enablefb) {
                           if (calctime >= 10) {
                             log("[INTERNAL]", "Timing Warning: Command \"", arg.join(" "), "\" took", calctime.toFixed(3) + "s to execute!");
                           }
-                          try {
-                            clearInterval(timingwarning);
-                          } catch (ex) {}
                         }).catch(ex => {
                           throw ex;
                         });
