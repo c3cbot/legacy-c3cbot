@@ -1877,6 +1877,7 @@ if (global.config.enablefb) {
                           height: imgdata1.height,
                           small: global.config.nsfwjsSmallModel
                         });
+                        idlist.push(id);
                       } else {
                         att.push(imagesx);
                       }
