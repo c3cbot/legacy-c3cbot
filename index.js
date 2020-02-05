@@ -1884,8 +1884,8 @@ if (global.config.enablefb) {
                     }
                     for (var id in idlist) {
                       // eslint-disable-next-line no-loop-func
-                      wait.for.condition(() => global.nsfwjsdata[id].complete);
-                      var classing = global.nsfwjsdata[id].class;
+                      wait.for.condition(() => global.nsfwjsdata[idlist[id]].complete);
+                      var classing = global.nsfwjsdata[idlist[id]].class;
                       try {
                         var classify = classing[0].className;
                         var percentage = classing[0].probability * 100;
