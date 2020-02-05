@@ -1651,9 +1651,6 @@ if (global.config.enablefb) {
                               setTimeout(function (api, message) {
                                 api.markAsRead(message.threadID);
                               }, 500, api, message);
-                              try {
-                                clearInterval(timingwarning);
-                              } catch (ex) {}
                             }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                           }
                           var endtime = Date.now();
@@ -1661,6 +1658,9 @@ if (global.config.enablefb) {
                           if (calctime >= 10) {
                             log("[INTERNAL]", "Timing Warning: Command \"", arg.join(" "), "\" took", calctime.toFixed(3) + "s to execute!");
                           }
+                          try {
+                            clearInterval(timingwarning);
+                          } catch (ex) {}
                         }).catch(ex => {
                           throw ex;
                         });
