@@ -1,7 +1,7 @@
 # C3C
 <a href="https://discord.gg/2A4bYJu"><img alt="discord" src="https://img.shields.io/discord/591223706643070976.svg?style=flat-square&label=discord"></a> <img alt="size" src="https://img.shields.io/github/repo-size/lequanglam/c3c.svg?style=flat-square&label=size"> <img alt="code-version" src="https://img.shields.io/badge/dynamic/json?color=red&label=code%20version&prefix=v&query=%24.version&url=https%3A%2F%2Fraw.githubusercontent.com%2Flequanglam%2Fc3c%2Fmaster%2Fpackage.json&style=flat-square"> <a href="https://github.com/lequanglam/c3c/releases"> <img alt="github-version" src="https://img.shields.io/github/v/release/lequanglam/c3c?include_prereleases&label=github%20version&style=flat-square"></a> <a href="https://github.com/lequanglam/c3c/commits"> <img alt="commits" src="https://img.shields.io/github/commit-activity/m/lequanglam/c3c.svg?label=commit&style=flat-square"></a> <a href="https://travis-ci.org/lequanglam/c3c"><img alt="code checking" src="https://img.shields.io/travis/lequanglam/c3c/master?label=code%20check&style=flat-square"></a>
 
-A bot that can be customized using plugins. Currently supports Facebook Messenger (using facebook-chat-api) and Discord (using discord.js)
+A bot that can be customized using plugins. Currently supports Facebook Messenger (using fca-unofficial, a repo forked from facebook-chat-api and maintained by me) and Discord (using discord.js)
 
 ## Install
 Install Node.JS (only version 10, 12 and 13 will not work! {thank you, V8, for making me do this}) and Git if you don't have one. If you're using Windows, you need to open command prompt and type this command:
@@ -28,7 +28,11 @@ After that, you can run that command again and bot will go live.
 - Economy (`/plugins/Economy.z3p`) => Create an economy.
 - Economy-Income (`/plugin/Economy-Income.z3p`) => Add a way to earn money. Extends `Economy`
 - Economy-Gambling (`/plugins/Economy-Gambling.z3p`) => Add some gambling games to bot. Extends `Economy`
-- YT2MP3 (`/plugins/YT2MP3.z3p`) => Convert youtube links to MP3
+- YT2MP3 (`/plugins/YT2MP3.z3p`) => Convert youtube links to MP3.
+- DenyCommand (`/plugins/DenyCommand.z3p`) => Allow admins (operators) to disable some commands.
+- eXPerienceChat (`/plugins/eXPerienceChat.z3p`) => Add XP ranking system.
+## Libraries (as plugins)
+- LibBetterRandom (`/plugins/LibBetterRandom.z3p`) => Implent Mersenne Twister random algorithim for other plugins to be used. Currently used by `Economy-Income` and `Economy-Gambling`
 
 ## Localize
 This bot currently supporting 2 language: `en_US` (English) and `vi_VN` (Tiếng Việt). You can change languages in `config.json`.
