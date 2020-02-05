@@ -1553,6 +1553,12 @@ if (global.config.enablefb) {
                           client = undefined
                         }
                         var starttime = Date.now();
+                        var timingwarning = setInterval(function () {
+                          var calctime = Date.now() - starttime / 1000;
+                          if (calctime >= 10) {
+                            log("[INTERNAL]", "Timing Warning: Command \"", arg.join(" "), "\" is taking over", calctime.toFixed(3) + "s to execute and still not done.");
+                          }
+                        }, 10000);
                         new Promise(function (resolve, reject) {
                           setTimeout(function () {
                             try {
@@ -1645,12 +1651,15 @@ if (global.config.enablefb) {
                               setTimeout(function (api, message) {
                                 api.markAsRead(message.threadID);
                               }, 500, api, message);
+                              try {
+                                clearInterval(timingwarning);
+                              } catch (ex) {}
                             }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                           }
                           var endtime = Date.now();
-                          var calctime = new Date(endtime - starttime);
-                          if (calctime.getUTCSeconds() >= 10) {
-                            log("[INTERNAL]", "Timing Warning: Command \"", toarg.join(" "), "\" took", calctime.getUTCSeconds() + "." + calctime.getUTCMilliseconds() + "s to execute! (Maximum 10s)");
+                          var calctime = endtime - starttime / 1000;
+                          if (calctime >= 10) {
+                            log("[INTERNAL]", "Timing Warning: Command \"", arg.join(" "), "\" took", calctime.toFixed(3) + "s to execute!");
                           }
                         }).catch(ex => {
                           throw ex;
