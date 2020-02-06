@@ -1,3 +1,4 @@
+/* eslint-disable array-element-newline */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-warning-comments */
 /* eslint-disable no-throw-literal */
