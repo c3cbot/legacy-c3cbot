@@ -1302,14 +1302,31 @@ function loadPlugin() {
         }
       }
       var threadID = data.msgdata.threadID;
-      if (!global.data.thanosBlacklist[threadID]) {
-        global.data.thanosBlacklist[threadID] = true;
+      var allowRun = false;
+      if (!data.admin) {
+        var threadInfo = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
+        var adminIDs = threadInfo.adminIDs;
+        if (adminIDs.indexOf(data.msgdata.senderID) != -1) {
+          allowRun = true;
+        }
       } else {
-        global.data.thanosBlacklist[threadID] = false;
+        allowRun = true;
       }
-      return {
-        data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.thanosBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
-        handler: "internal"
+      if (allowRun) {
+        if (!global.data.thanosBlacklist[threadID]) {
+          global.data.thanosBlacklist[threadID] = true;
+        } else {
+          global.data.thanosBlacklist[threadID] = false;
+        }
+        return {
+          data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.thanosBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
+          handler: "internal"
+        }
+      } else {
+        return {
+          data: global.lang["INSUFFICIENT_PERM"],
+          handler: "internal"
+        }
       }
     },
     compatibly: 1,
@@ -1427,10 +1444,8 @@ if (global.config.enablefb) {
               var chhandling = global.chatHook[n];
               if (chhandling.listentype == "everything") {
                 var admin = false;
-                for (var no in global.config.admins) {
-                  if (global.config.admins[no] == "FB-" + (message.senderID || message.author)) {
-                    admin = true;
-                  }
+                if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
+                  admin = true;
                 }
                 if (chhandling.resolverFunc("Facebook", {
                   time: receivetime,
@@ -1542,10 +1557,8 @@ if (global.config.enablefb) {
                     } else {
                       var argv = JSON.parse(JSON.stringify(arg));
                       var admin = false;
-                      for (var no in global.config.admins) {
-                        if (global.config.admins[no] == "FB-" + message.senderID) {
-                          admin = true;
-                        }
+                      if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
+                        admin = true;
                       }
                       var mentions = {};
                       for (var y in message.mentions) {
@@ -1620,37 +1633,38 @@ if (global.config.enablefb) {
                           }
                         }
 
-                        if (!returndata) return undefined;
-                        if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                          var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message.isGroup);
-                          setTimeout(function (api, returndata, endTyping, message) {
-                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                              if (err) {
-                                log("[Facebook] Errored while sending response:", err);
-                              }
-                            }, message.messageID, message.isGroup);
-                            endTyping();
-                            setTimeout(function (api, message) {
-                              api.markAsRead(message.threadID);
-                            }, 500, api, message);
-                          }, returndata.data.length * 30, api, returndata, endTyping, message);
-                        } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                          if (!returndata.data.body) {
-                            returndata.data.body = "";
+                        if (typeof returndata == "object") {
+                          if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                            var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message.isGroup);
+                            setTimeout(function (api, returndata, endTyping, message) {
+                              api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                                if (err) {
+                                  log("[Facebook] Errored while sending response:", err);
+                                }
+                              }, message.messageID, message.isGroup);
+                              endTyping();
+                              setTimeout(function (api, message) {
+                                api.markAsRead(message.threadID);
+                              }, 500, api, message);
+                            }, returndata.data.length * 30, api, returndata, endTyping, message);
+                          } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                            if (!returndata.data.body) {
+                              returndata.data.body = "";
+                            }
+                            returndata.data.body = prefix + " " + returndata.data.body;
+                            var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message.isGroup);
+                            setTimeout(function (api, returndata, endTyping, message, log) {
+                              api.sendMessage(returndata.data, message.threadID, function (err) {
+                                if (err) {
+                                  log("[Facebook] Errored while sending response:", err);
+                                }
+                              }, message.messageID, message.isGroup);
+                              endTyping();
+                              setTimeout(function (api, message) {
+                                api.markAsRead(message.threadID);
+                              }, 500, api, message);
+                            }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                           }
-                          returndata.data.body = prefix + " " + returndata.data.body;
-                          var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message.isGroup);
-                          setTimeout(function (api, returndata, endTyping, message, log) {
-                            api.sendMessage(returndata.data, message.threadID, function (err) {
-                              if (err) {
-                                log("[Facebook] Errored while sending response:", err);
-                              }
-                            }, message.messageID, message.isGroup);
-                            endTyping();
-                            setTimeout(function (api, message) {
-                              api.markAsRead(message.threadID);
-                            }, 500, api, message);
-                          }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                         }
                         var endtime = Date.now();
                         var calctime = (endtime - starttime) / 1000;
@@ -1664,6 +1678,9 @@ if (global.config.enablefb) {
                         } catch (exp) {
                           log("[INTERNAL]", arg[0], "contain an error:", ex);
                         }
+                        try {
+                          clearInterval(timingwarning);
+                        } catch (ex) { }
                       }
                     }
                   } else {
