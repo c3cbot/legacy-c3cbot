@@ -942,7 +942,6 @@ function requireFromString(src, filename) {
 //Plugin Load
 ensureExists(path.join(__dirname, "deletedmsg/"));
 ensureExists(path.join(__dirname, "plugins/"));
-ensureExists(path.join(__dirname, "appstate/"));
 
 function checkPluginCompatibly(version) {
   version = version.toString();
@@ -1304,7 +1303,7 @@ function loadPlugin() {
       var threadID = data.msgdata.threadID;
       var allowRun = false;
       if (!data.admin) {
-        var threadInfo = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
+        var [err, threadInfo] = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
         var adminIDs = threadInfo.adminIDs;
         if (adminIDs.indexOf(data.msgdata.senderID) != -1) {
           allowRun = true;
