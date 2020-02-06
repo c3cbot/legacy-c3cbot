@@ -248,7 +248,8 @@ var defaultconfig = {
   sshRemoteConsolePort: 2004,
   sshUsername: "admin",
   sshPassword: "c3cbot@ADMIN",
-  nsfwjsSmallModel: true //! DO NOT SET THIS TO FALSE UNLESS YOU HAVE A BEEFY SERVER!
+  nsfwjsSmallModel: true, //! DO NOT SET THIS TO FALSE UNLESS YOU HAVE A BEEFY SERVER!
+  commandPrefix: "/"
 }
 
 //Load config
@@ -1548,7 +1549,7 @@ if (global.config.enablefb) {
                   }, message.messageID, message.isGroup);
                 });
               }
-              if (message.body.startsWith("/") && !nointernalresolve) {
+              if (message.body.startsWith(global.config.commandPrefix) && !nointernalresolve) {
                 if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)) {
                   log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "issued command in", message.threadID + ":", message.body);
                   if (global.commandMapping[arg[0].substr(1)]) {
@@ -2408,7 +2409,7 @@ if (global.config.enablediscord) {
   });
 
   discordMessageHandler = function (message) {
-    if (message.content.startsWith("/")) {
+    if (message.content.startsWith(global.config.commandPrefix)) {
       if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) || (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) && message.author.tag != client.user.tag && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, ("DC-" + message.author.id))) {
         log("[Discord]", message.author.id, "(" + message.author.tag + ")", "issued command in", message.channel.id + " (" + message.channel.name + "):", message.content, (message.attachments.size > 0 ? message.attachments : ""));
         var currenttime = new Date();
