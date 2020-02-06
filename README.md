@@ -5,7 +5,7 @@
 A bot that can be customized using plugins. Currently supports Facebook Messenger (using fca-unofficial, a repo forked from facebook-chat-api and maintained by me) and Discord (using discord.js)
 
 ## Install
-Install Node.JS (version 10 only; 12 and 13 will not work! {thank you, V8, for making me do this}) and Git if you don't have one. If you're using Windows, you need to open command prompt and type this command:
+Install Node.JS (version 10 only; download link <a href="#Download">here</a>) and Git if you don't have one. If you're using Windows, you need to open command prompt and type this command:
 ```bash
 npm install -g windows-build-tools
 ```
@@ -88,6 +88,15 @@ If you don't want the bot create a `config.json` file for you, then here is the 
     "nsfwjsSmallModel": true
 }
 ```
+
+<span name="Download"></span>
+## Node.JS 10 download link
+- Windows x64: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-x64.msi
+- Windows x86: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-x86.msi
+- MacOS: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-darwin-x64.tar.gz
+- Linux x64: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-linux-x64.tar.gz
+- Linux ARM64: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-linux-arm64.tar.gz
+- Source code: https://nodejs.org/dist/latest-v10.x/node-v10.19.0.tar.gz (for unsupported operating system)
 
 ## Donation
 <tt>Bitcoin:  1TTCLqLHSNegudfS7Ub7dUEGxUurGs8uH</tt><br>
