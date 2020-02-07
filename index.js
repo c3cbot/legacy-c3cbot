@@ -1195,7 +1195,7 @@ function loadPlugin() {
         if (type == "Discord") {
           mts += "\r\n```HTTP"
         }
-        for (i = 20 * (page - 1); i < 20 * (page - 1) + 20; i++) {
+        for (i = 15 * (page - 1); i < 15 * (page - 1) + 15; i++) {
           if (i < hl.length) {
             mts += "\r\n" + (i + 1).toString() + ". " + global.config.commandPrefix + hl[i].command;
             if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i].args[global.config.language].toString().replace(/ /g).length != 0) {
@@ -1207,8 +1207,8 @@ function loadPlugin() {
         if (type == "Discord") {
           mts += "\r\n```"
         }
-        mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 20).ceil() + ')';
-        mts += global.lang["HELP_MORE_INFO"].replace("{0}", global.config.commandPrefix);
+        mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 15).ceil() + ')';
+        mts += "\r\n" + global.lang["HELP_MORE_INFO"].replace("{0}", global.config.commandPrefix);
         return {
           handler: "internal",
           data: mts
