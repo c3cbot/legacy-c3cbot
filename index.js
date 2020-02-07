@@ -1408,7 +1408,11 @@ if (global.config.enablefb) {
     facebook.api.fetchName = fetchName;
 
     facebook.removePendingClock = setInterval(function (api, log, botname, connectedmsg) {
-      api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
+      api[0].getThreadList(10, null, [
+        "PENDING",
+        "ARCHIVED",
+        "OTHER"
+      ], function (err, list) {
         if (err) {
           return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
         }
