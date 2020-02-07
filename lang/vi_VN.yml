@@ -16,3 +16,6 @@ TOGGLETHANOS_DESC: "Bật/tắt Thanos Time Gem."
 TOGGLETHANOS_MSG: "{0} Thanos Time Gem tại thread này."
 ENABLED: Đã bật
 DISABLED: Đã tắt
+HELP_MORE_INFO: "Gõ `{0}help [lệnh]` để biết thêm chi tiết về lệnh đó."
+HELP_ARG_INFO: "\r\n<>: yêu cầu có\r\n[]: không yêu cầu có"
+HELP_CMD_NOT_FOUND: "Không tìm thấy lệnh"

@@ -1155,42 +1155,63 @@ function loadPlugin() {
     args: {},
     desc: {},
     scope: function (type, data) {
-      var page = 1;
-      page = parseInt(data.args[1]) || 1;
-      if (page < 1) page = 1;
-      var mts = "";
-      mts += global.lang["HELP_OUTPUT_PREFIX"];
-      var helpobj = global.commandMapping["help"];
-      helpobj.command = "help";
-      helpobj.args[global.config.language] = global.lang["HELP_ARGS"];
-      helpobj.desc[global.config.language] = global.lang["HELP_DESC"];
-      var hl = [helpobj];
-      for (var no in global.commandMapping) {
-        if (no !== "help") {
-          var tempx = global.commandMapping[no];
-          tempx.command = no;
-          hl.push(tempx);
-        }
-      }
-      if (type == "Discord") {
-        mts += "\r\n```HTTP"
-      }
-      for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
-        if (i < hl.length) {
-          mts += "\r\n" + (i + 1).toString() + ". /" + hl[i].command;
-          if (!!hl[i].args && hl[i].args != "") {
+      if (isNaN(parseInt(data.args[1])) && data.args.length != 1) {
+        var cmd = data.args[1];
+        if (global.commandMapping.hasOwnProperty(cmd)) {
+          var mts = global.config.commandPrefix + cmd;
+          if (global.commandMapping[cmd].args && global.commandMapping[cmd].args.replace(/ /g).length != 0) {
             mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
           }
-          mts += ": " + hl[i].desc[global.config.language];
+          mts += "\r\n" + hl[i].desc[global.config.language];
+          mts += "\r\n" + global.lang["HELP_ARG_INFO"];
+          return {
+            handler: "internal",
+            data: mts
+          }
+        } else {
+          return {
+            handler: "internal",
+            data: global.config.commandPrefix + cmd + "\r\n" + global.lang["HELP_CMD_NOT_FOUND"]
+          }
         }
-      }
-      if (type == "Discord") {
-        mts += "\r\n```"
-      }
-      mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 5).ceil() + ')';
-      return {
-        handler: "internal",
-        data: mts
+      } else {
+        var page = 1;
+        page = parseInt(data.args[1]) || 1;
+        if (page < 1) page = 1;
+        var mts = "";
+        mts += global.lang["HELP_OUTPUT_PREFIX"];
+        var helpobj = global.commandMapping["help"];
+        helpobj.command = "help";
+        helpobj.args[global.config.language] = global.lang["HELP_ARGS"];
+        helpobj.desc[global.config.language] = global.lang["HELP_DESC"];
+        var hl = [helpobj];
+        for (var no in global.commandMapping) {
+          if (no !== "help") {
+            var tempx = global.commandMapping[no];
+            tempx.command = no;
+            hl.push(tempx);
+          }
+        }
+        if (type == "Discord") {
+          mts += "\r\n```HTTP"
+        }
+        for (i = 20 * (page - 1); i < 20 * (page - 1) + 20; i++) {
+          if (i < hl.length) {
+            mts += "\r\n" + (i + 1).toString() + ". " + global.config.commandPrefix + hl[i].command;
+            if (!!hl[i].args && hl[i].args.replace(/ /g).length != 0) {
+              mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+            }
+            //mts += ": " + hl[i].desc[global.config.language];
+          }
+        }
+        if (type == "Discord") {
+          mts += "\r\n```"
+        }
+        mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 5).ceil() + ')';
+        return {
+          handler: "internal",
+          data: mts
+        }
       }
     },
     compatibly: 0,
