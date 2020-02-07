@@ -1306,7 +1306,7 @@ function loadPlugin() {
       var allowRun = false;
       if (!data.admin) {
         var [err, threadInfo] = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
-        var adminIDs = threadInfo.adminIDs;
+        var adminIDs = threadInfo.adminIDs.map(x => x.toString());
         if (adminIDs.indexOf(data.msgdata.senderID) != -1) {
           allowRun = true;
         }
