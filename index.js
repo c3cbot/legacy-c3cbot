@@ -1159,7 +1159,7 @@ function loadPlugin() {
         var cmd = data.args[1];
         if (global.commandMapping.hasOwnProperty(cmd)) {
           var mts = global.config.commandPrefix + cmd;
-          if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i].args[global.config.language].toString().replace(/ /g).length != 0) {
+          if (typeof global.commandMapping[cmd].args == "object" && typeof global.commandMapping[cmd].args[global.config.language] != "undefined" && global.commandMapping[cmd].args[global.config.language].toString().replace(/ /g).length != 0) {
             mts += " " + (global.commandMapping[cmd].args[global.config.language] ? global.commandMapping[cmd].args[global.config.language] : "");
           }
           mts += "\r\n" + global.commandMapping[cmd].desc[global.config.language];
