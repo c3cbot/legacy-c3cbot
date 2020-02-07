@@ -1863,7 +1863,7 @@ if (global.config.enablefb) {
                       }
                     }
                     var att = [];
-                    var bannedatt = [];
+                    var promiselist = [];
                     var worker = new Worker(() => {
                       onmessage = function (event) {
                         var wait = require("wait-for-stuff");
@@ -1895,6 +1895,7 @@ if (global.config.enablefb) {
                       var data = event.data;
                       Object.assign(global.nsfwjsdata[data.id], data);
                       global.nsfwjsdata[data.id].complete = true;
+                      global.nsfwjsdata[data.id].resolve(data);
                       if (data.error) {
                         log("[Facebook]", "Error in image classifier:", data.error);
                       }
@@ -1928,56 +1929,65 @@ if (global.config.enablefb) {
                           height: imgdata1.height,
                           small: global.config.nsfwjsSmallModel
                         });
+                        // eslint-disable-next-line no-loop-func
+                        global.nsfwjsdata[id].promise = new Promise(resolve => {
+                          global.nsfwjsdata[id].resolve = resolve;
+                        });
+                        global.nsfwjsdata[id].imagesx = imagesx;
                         idlist.push(id);
                       } else {
                         att.push(imagesx);
                       }
                     }
                     for (var id in idlist) {
-                      // eslint-disable-next-line no-loop-func
-                      wait.for.condition(() => global.nsfwjsdata[idlist[id]].complete);
-                      var classing = global.nsfwjsdata[idlist[id]].class;
-                      try {
-                        var classify = classing[0].className;
-                        var percentage = classing[0].probability * 100;
-                      } catch (ex) { }
-                      switch (classify) {
-                        case "Neutral":
-                        case "Drawing":
-                        case "Sexy":
-                          att.push(imagesx);
-                        // eslint-disable-next-line no-fallthrough
-                        case "Hentai":
-                        case "Porn":
-                          bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
-                          log("[Facebook]", "Removed image classified as:", classify);
-                          break;
-                        default:
-                          log("[Facebook]", "Invalid image classification:", classify, classing);
-                          att.push(imagesx);
-                      }
+                      promiselist.push(global.nsfwjsdata[id].promise);
                     }
-                    worker.terminate();
-                    var btext = "";
-                    if (bannedatt.length != 0) {
-                      btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
-                    }
-                    api.sendMessage({
-                      body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
-                      mentions: [{
-                        tag: "@" + global.data.cacheName["FB-" + message.senderID],
-                        id: message.senderID,
-                        fromIndex: 0
-                      }],
-                      attachment: att
-                    }, message.threadID, function (err) {
-                      if (err) {
-                        log("[Facebook] Errored while sending Anti-Unsend response:", err);
-                      } else {
-                        api.markAsRead(message.threadID);
+                    Promise.all(promiselist).then(function (arrdata) {
+                      var bannedatt = [];
+                      for (var n in arrdata) {
+                        var classing = global.nsfwjsdata[arrdata[n].id].class;
+                        try {
+                          var classify = classing[0].className;
+                          var percentage = classing[0].probability * 100;
+                        } catch (ex) { }
+                        switch (classify) {
+                          case "Neutral":
+                          case "Drawing":
+                          case "Sexy":
+                            att.push(global.nsfwjsdata[arrdata[n].id].imagesx);
+                          // eslint-disable-next-line no-fallthrough
+                          case "Hentai":
+                          case "Porn":
+                            bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
+                            log("[Facebook]", "Removed image classified as:", classify);
+                            break;
+                          default:
+                            log("[Facebook]", "Invalid image classification:", classify, classing);
+                            att.push(imagesx);
+                        }
                       }
-                    }, null, message.isGroup);
-                    log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                      worker.terminate();
+                      var btext = "";
+                      if (bannedatt.length != 0) {
+                        btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1).substr(1, JSON.stringify(bannedatt, null, 1).length - 2).replace(/"/g, "");
+                      }
+                      api.sendMessage({
+                        body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" + global.data.cacheName["FB-" + message.senderID]).replace("{1}", removedMessage.body) + btext,
+                        mentions: [{
+                          tag: "@" + global.data.cacheName["FB-" + message.senderID],
+                          id: message.senderID,
+                          fromIndex: 0
+                        }],
+                        attachment: att
+                      }, message.threadID, function (err) {
+                        if (err) {
+                          log("[Facebook] Errored while sending Anti-Unsend response:", err);
+                        } else {
+                          api.markAsRead(message.threadID);
+                        }
+                      }, null, message.isGroup);
+                      log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
+                    });
                   })();
                 } else {
                   log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
