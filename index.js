@@ -1408,11 +1408,23 @@ if (global.config.enablefb) {
     facebook.api.fetchName = fetchName;
 
     facebook.removePendingClock = setInterval(function (api, log, botname, connectedmsg) {
-      api[0].getThreadList(10, null, [
-        "PENDING",
-        "ARCHIVED",
-        "OTHER"
-      ], function (err, list) {
+      api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
+        if (err) {
+          return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+        }
+        for (var i in list) {
+          setTimeout(function (id) {
+            api[0].handleMessageRequest(id, true);
+            api[0].sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+              if (err) {
+                return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+              }
+            });
+            log("[Facebook]", "Bot added to", id);
+          }, i * 500, list[i].threadID);
+        }
+      });
+      api[0].getThreadList(10, null, ["OTHER"], function (err, list) {
         if (err) {
           return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
         }
@@ -1429,7 +1441,7 @@ if (global.config.enablefb) {
         }
       });
       api[0].markAsReadAll();
-    }, 40000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
+    }, 60000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
 
     !global.data.messageList ? global.data.messageList = {} : "";
     facebook.listener = api.listenMqtt(function callback(err, message) {
