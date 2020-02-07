@@ -1207,7 +1207,8 @@ function loadPlugin() {
         if (type == "Discord") {
           mts += "\r\n```"
         }
-        mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 5).ceil() + ')';
+        mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 20).ceil() + ')';
+        mts += global.lang["HELP_MORE_INFO"].replace("{0}", global.config.commandPrefix);
         return {
           handler: "internal",
           data: mts
