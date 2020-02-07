@@ -1442,7 +1442,7 @@ if (global.config.enablefb) {
         }
       });
       api[0].markAsReadAll();
-    }, 60000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE);
+    }, 60000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix));
 
     !global.data.messageList ? global.data.messageList = {} : "";
     facebook.listener = api.listenMqtt(function callback(err, message) {
@@ -1702,7 +1702,7 @@ if (global.config.enablefb) {
                       }
                     }
                   } else {
-                    api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"], message.threadID, function () { }, message.messageID, message.isGroup);
+                    api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix), message.threadID, function () { }, message.messageID, message.isGroup);
                   }
                 } else {
                   var str = "";
@@ -1777,7 +1777,7 @@ if (global.config.enablefb) {
                     }
                   }
                   if (containBot) {
-                    api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE, message.threadID, message.isGroup);
+                    api.sendMessage(global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix), message.threadID, message.isGroup);
                     log("[Facebook]", message.author, "added Bot to", message.threadID);
                   }
                 }
