@@ -1198,7 +1198,7 @@ function loadPlugin() {
         for (i = 20 * (page - 1); i < 20 * (page - 1) + 20; i++) {
           if (i < hl.length) {
             mts += "\r\n" + (i + 1).toString() + ". " + global.config.commandPrefix + hl[i].command;
-            if (typeof hl[i].args != "undefined" && hl[i].args.replace(/ /g).length != 0) {
+            if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i].args[global.config.language].toString().replace(/ /g).length != 0) {
               mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
             }
             //mts += ": " + hl[i].desc[global.config.language];
