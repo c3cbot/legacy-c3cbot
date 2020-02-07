@@ -1159,10 +1159,10 @@ function loadPlugin() {
         var cmd = data.args[1];
         if (global.commandMapping.hasOwnProperty(cmd)) {
           var mts = global.config.commandPrefix + cmd;
-          if (global.commandMapping[cmd].args && global.commandMapping[cmd].args.replace(/ /g).length != 0) {
-            mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+          if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i].args[global.config.language].toString().replace(/ /g).length != 0) {
+            mts += " " + (global.commandMapping[cmd].args[global.config.language] ? global.commandMapping[cmd].args[global.config.language] : "");
           }
-          mts += "\r\n" + hl[i].desc[global.config.language];
+          mts += "\r\n" + global.commandMapping[cmd].desc[global.config.language];
           mts += "\r\n" + global.lang["HELP_ARG_INFO"];
           return {
             handler: "internal",
