@@ -1940,7 +1940,7 @@ if (global.config.enablefb) {
                       }
                     }
                     for (var id in idlist) {
-                      promiselist.push(global.nsfwjsdata[id].promise);
+                      promiselist.push(global.nsfwjsdata[idlist[id]].promise);
                     }
                     Promise.all(promiselist).then(function (arrdata) {
                       var bannedatt = [];
