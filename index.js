@@ -2518,10 +2518,11 @@ if (global.config.enablediscord) {
               });
               if (!returndata) return undefined;
               if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                message.reply("\r\n" + prefix + " " + (returndata.data || ""));
+                message.reply("\r\n" + prefix + " " + (returndata.data || ""), { split: true });
               } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
                 var body = returndata.data.body || "";
                 delete returndata.data.body;
+                returndata.data.split = true;
                 message.reply("\r\n" + prefix + " " + body, returndata.data);
               }
             } catch (ex) {
