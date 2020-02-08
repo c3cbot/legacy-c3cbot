@@ -1430,15 +1430,15 @@ if (global.config.enablefb) {
     }
     facebook.api.fetchName = fetchName;
 
-    facebook.removePendingClock = setInterval(function (api, log, botname, connectedmsg) {
-      api[0].getThreadList(10, null, ["PENDING"], function (err, list) {
+    facebook.removePendingClock = setInterval(function (log, botname, connectedmsg) {
+      api.getThreadList(10, null, ["PENDING"], function (err, list) {
         if (err) {
           return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
         }
         for (var i in list) {
           setTimeout(function (id) {
-            api[0].handleMessageRequest(id, true);
-            api[0].sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+            api.handleMessageRequest(id, true);
+            api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
               if (err) {
                 return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
               }
@@ -1447,14 +1447,14 @@ if (global.config.enablefb) {
           }, i * 500, list[i].threadID);
         }
       });
-      api[0].getThreadList(10, null, ["OTHER"], function (err, list) {
+      api.getThreadList(10, null, ["OTHER"], function (err, list) {
         if (err) {
           return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
         }
         for (var i in list) {
           setTimeout(function (id) {
-            api[0].handleMessageRequest(id, true);
-            api[0].sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+            api.handleMessageRequest(id, true);
+            api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
               if (err) {
                 return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
               }
@@ -1463,8 +1463,8 @@ if (global.config.enablefb) {
           }, i * 500, list[i].threadID);
         }
       });
-      api[0].markAsReadAll();
-    }, 60000, [api], log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix));
+      api.markAsReadAll();
+    }, 60000, log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix));
 
     !global.data.messageList ? global.data.messageList = {} : "";
     facebook.listener = api.listenMqtt(function callback(err, message) {
@@ -2508,9 +2508,9 @@ if (global.config.enablediscord) {
                 return: function returndata(returndata) {
                   if (!returndata) return undefined;
                   if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                    message.reply("\r\n" + prefix + " " + returndata.data);
+                    message.reply("\r\n" + prefix + " " + (returndata.data || ""));
                   } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                    var body = returndata.data.body;
+                    var body = returndata.data.body || "";
                     delete returndata.data.body;
                     message.reply("\r\n" + prefix + " " + body, returndata.data);
                   }
@@ -2518,9 +2518,9 @@ if (global.config.enablediscord) {
               });
               if (!returndata) return undefined;
               if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                message.reply("\r\n" + prefix + " " + returndata.data);
+                message.reply("\r\n" + prefix + " " + (returndata.data || ""));
               } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                var body = returndata.data.body;
+                var body = returndata.data.body || "";
                 delete returndata.data.body;
                 message.reply("\r\n" + prefix + " " + body, returndata.data);
               }
