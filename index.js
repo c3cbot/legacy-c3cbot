@@ -2133,6 +2133,8 @@ if (global.config.enablefb) {
         clearInterval(facebook.removePendingClock);
       } catch (ex) { }
       fbinstance = undefined;
+      delete require.cache[require.resolve("fca-unofficial")];
+      delete require.cache[require.resolve("mqtt")];
       fbinstance = require("fca-unofficial")({
         appState: temporaryAppState
       }, configobj, facebookcb);
