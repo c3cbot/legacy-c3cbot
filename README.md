@@ -5,11 +5,12 @@
 A bot that can be customized using plugins. Currently supports Facebook Messenger (using fca-unofficial, a repo forked from facebook-chat-api and maintained by me) and Discord (using discord.js)
 
 ## Install
-Install Node.JS (version 10 only; download link <a href="#Download">here</a>) and Git if you don't have one. If you're using Windows, you need to open command prompt and type this command:
+Install Node.JS (version 10 only; download link <a href="#Download">here</a>) and Git if you don't have one. 
+If you're using Windows, you need to open command prompt and type this command:
 ```bash
 npm install -g windows-build-tools
 ```
-After that, download latest releases. Extract it then go to the directory where it extracted, then type: 
+Download latest version (version 0.3.0, as of 09/02/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.0.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted, then type: 
 ```bash
 npm install
 ``` 
