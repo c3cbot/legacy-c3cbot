@@ -1490,7 +1490,8 @@ if (global.config.enablefb) {
                 if (chhandling.resolverFunc("Facebook", {
                   time: receivetime,
                   msgdata: message,
-                  api: api,
+                  facebookapi: api,
+                  discordapi: client,
                   prefix: prefix,
                   admin: admin,
                   // eslint-disable-next-line no-loop-func
@@ -2460,7 +2461,49 @@ if (global.config.enablediscord) {
   });
 
   discordMessageHandler = function (message) {
-    if (message.content.startsWith(global.config.commandPrefix)) {
+    var nointernalresolve = false;
+    var receivetime = new Date();
+    for (var n in global.chatHook) {
+      if (global.chatHook[n].listenplatform & 2) {
+        var chhandling = global.chatHook[n];
+        if (chhandling.listentype == "everything") {
+          var admin = false;
+          if (global.config.admins.indexOf("DC-" + message.author.id) != -1) {
+            admin = true;
+          }
+          if (chhandling.resolverFunc("Discord", {
+            time: receivetime,
+            msgdata: message,
+            discordapi: client,
+            // eslint-disable-next-line no-nested-ternary
+            facebookapi: (typeof facebook == "object" ? (typeof facebook.api == "object" ? facebook.api : {}) : {}),
+            prefix: prefix,
+            admin: admin,
+            // eslint-disable-next-line no-loop-func
+            log: function logPlugin(...message) {
+              log.apply(global, [
+                "[PLUGIN]",
+                "[" + chhandling.handler + "]"
+              ].concat(message));
+            },
+            // eslint-disable-next-line no-loop-func
+            return: function returndata(returndata) {
+              if (!returndata) return undefined;
+              if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                message.reply("\r\n" + prefix + " " + (returndata.data || ""));
+              } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                var body = returndata.data.body || "";
+                delete returndata.data.body;
+                message.reply("\r\n" + prefix + " " + body, returndata.data);
+              }
+            }
+          }) === true) {
+            nointernalresolve = true;
+          }
+        }
+      }
+    }
+    if (message.content.startsWith(global.config.commandPrefix) && !nointernalresolve) {
       if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) || (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) && message.author.tag != client.user.tag && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, ("DC-" + message.author.id))) {
         log("[Discord]", message.author.id, "(" + message.author.tag + ")", "issued command in", message.channel.id + " (" + message.channel.name + "):", message.content, (message.attachments.size > 0 ? message.attachments : ""));
         var currenttime = new Date();
@@ -2518,21 +2561,22 @@ if (global.config.enablediscord) {
                   }
                 }
               });
-              if (!returndata) return undefined;
-              if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                message.reply("\r\n" + prefix + " " + (returndata.data || ""), { split: true });
-              } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                var body = returndata.data.body || "";
-                delete returndata.data.body;
-                returndata.data.split = true;
-                message.reply("\r\n" + prefix + " " + body, returndata.data);
+              if (typeof returndata == "object") {
+                if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                  message.reply("\r\n" + prefix + " " + (returndata.data || ""), { split: true });
+                } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                  var body = returndata.data.body || "";
+                  delete returndata.data.body;
+                  returndata.data.split = true;
+                  message.reply("\r\n" + prefix + " " + body, returndata.data);
+                }
               }
             } catch (ex) {
               log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
             }
           }
         } else {
-          message.reply("\r\n" + prefix + " " + global.lang["UNKNOWN_CMD"]);
+          message.reply("\r\n" + prefix + " " + global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix));
         }
       } else {
         log("[Discord]", message.author.id, "(" + message.author.tag + ")", (message.channel instanceof Discord.DMChannel ? "DMed:" : "messaged in channel " + message.channel.id + " (" + message.channel.name + "):"), message.content, (message.attachments.size > 0 ? message.attachments : ""));
