@@ -1,13 +1,13 @@
-language: node_js
-node_js:
-  - "10"
-  - "12"
-  - "13"
+#language: node_js
+#node_js:
+#  - "10"
+#  - "12"
+#  - "13"
 
-os:
-  - linux
-  - osx
-  - windows
+#os:
+#  - linux
+#  - osx
+#  - windows
 
-script:
-  - npm run lint
+#script:
+#  - npm run lint
