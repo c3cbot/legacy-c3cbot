@@ -2147,7 +2147,7 @@ if (global.config.enablefb) {
         }
       }, 30000, forceReconnect);
     }
-    setInterval(forceReconnect, 43200000);
+    //setInterval(forceReconnect, 43200000);
   } catch (ex) {
     log("[Facebook]", "Error found in codebase:", ex);
   }
