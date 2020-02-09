@@ -23,16 +23,17 @@
   },
   "homepage": "https://github.com/lequanglam/c3c#readme",
   "dependencies": {
-    "@discordjs/uws": "^11.149.1",
+    "@discordjs/opus": "^0.1.0",
     "@tensorflow/tfjs": "^1.5.1",
+    "bufferutil": "^4.0.1",
     "canvas": "^2.6.1",
-    "discord.js": "^11.5.1",
-    "erlpack": "https://github.com/hammerandchisel/erlpack",
+    "discord.js": "github:discordjs/discord.js",
+    "erlpack": "github:discordapp/erlpack",
     "eslint": "^5.16.0",
     "fca-unofficial": "^1.1.0",
+    "ffmpeg-static": "^3.0.0",
     "js-yaml": "^3.13.1",
-    "libsodium-wrappers": "^0.7.4",
-    "node-opus": "^0.3.2",
+    "libsodium-wrappers": "^0.7.6",
     "node-stream-zip": "^1.8.0",
     "nsfwjs": "^2.1.0",
     "request": "^2.88.0",
@@ -42,6 +43,8 @@
     "stream-buffers": "^3.0.2",
     "sync-request": "^6.1.0",
     "tiny-worker": "^2.3.0",
-    "wait-for-stuff": "^1.4.0"
+    "utf-8-validate": "^5.0.2",
+    "wait-for-stuff": "^1.4.0",
+    "zlib-sync": "^0.1.6"
   }
 }
