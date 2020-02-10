@@ -1741,7 +1741,7 @@ if (global.config.enablefb) {
                       case "audio":
                       case "video":
                         var dr = new Date(message.attachments[n].duration);
-                        str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                        str += dr.getUTCHours().pad(2) + ":" + dr.getUTCMinutes().pad(2) + ":" + dr.getUTCSeconds().pad(2) + "." + dr.getUTCMilliseconds().pad(3);
                         str += " ";
                         if (message.attachments[n].type == "audio") break;
                       // eslint-disable-next-line no-fallthrough
@@ -1771,7 +1771,7 @@ if (global.config.enablefb) {
                     case "audio":
                     case "video":
                       var dr = new Date(message.attachments[n].duration);
-                      str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                      str += dr.getUTCHours().pad(2) + ":" + dr.getUTCMinutes().pad(2) + ":" + dr.getUTCSeconds().pad(2) + "." + dr.getUTCMilliseconds().pad(3);
                       str += " ";
                       if (message.attachments[n].type == "audio") break;
                     // eslint-disable-next-line no-fallthrough
@@ -2065,7 +2065,7 @@ if (global.config.enablefb) {
                     case "audio":
                     case "video":
                       var dr = new Date(message.attachments[n].duration);
-                      str += dr.getUTCHours() + ":" + dr.getUTCMinutes() + ":" + dr.getUTCSeconds() + "." + dr.getUTCMilliseconds();
+                      str += dr.getUTCHours().pad(2) + ":" + dr.getUTCMinutes().pad(2) + ":" + dr.getUTCSeconds().pad(2) + "." + dr.getUTCMilliseconds().pad(3);
                       str += " ";
                       if (message.attachments[n].type == "audio") break;
                     // eslint-disable-next-line no-fallthrough
