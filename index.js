@@ -136,7 +136,7 @@ ensureExists(path.join(__dirname, "logs/"));
 /**
  * Log to console and also write to logs file, print to every ssh console session
  *
- * @param   {any}  ...message  Anything
+ * @param   {any}  message     Anything
  *
  * @return  {undefined}        Function will not return anything
  */
