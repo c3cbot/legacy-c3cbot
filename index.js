@@ -1487,7 +1487,7 @@ if (global.config.enablefb) {
                 if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
                   admin = true;
                 }
-                if (chhandling.resolverFunc("Facebook", {
+                if (typeof chhandling.resolverFunc == "function" && chhandling.resolverFunc("Facebook", {
                   time: receivetime,
                   msgdata: message,
                   facebookapi: api,
@@ -2473,7 +2473,7 @@ if (global.config.enablediscord) {
           if (global.config.admins.indexOf("DC-" + message.author.id) != -1) {
             admin = true;
           }
-          if (chhandling.resolverFunc("Discord", {
+          if (typeof chhandling.resolverFunc == "function" && chhandling.resolverFunc("Discord", {
             time: receivetime,
             msgdata: message,
             discordapi: client,
