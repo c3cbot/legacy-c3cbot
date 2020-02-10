@@ -1706,6 +1706,8 @@ if (global.config.enablefb) {
                               }, 500, api, message);
                             }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                           }
+                        } else {
+                          log("[Facebook]", "Received an unknown response from plugin:", returndata);
                         }
                         var endtime = Date.now();
                         var calctime = (endtime - starttime) / 1000;
