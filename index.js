@@ -1762,7 +1762,7 @@ if (global.config.enablefb) {
                               }, 500, api, message);
                             }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                           }
-                        } else {
+                        } else if (typeof returndata != "undefined") {
                           log("[Facebook]", "Received an unknown response from plugin:", returndata);
                         }
                         var endtime = Date.now();
@@ -2629,6 +2629,8 @@ if (global.config.enablediscord) {
                   returndata.data.split = true;
                   message.reply("\r\n" + prefix + " " + body, returndata.data);
                 }
+              } else if (typeof returndata != "undefined") {
+                log("[Facebook]", "Received an unknown response from plugin:", returndata);
               }
             } catch (ex) {
               log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
