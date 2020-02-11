@@ -1340,7 +1340,7 @@ function loadPlugin() {
         allowRun = true;
       }
       if (allowRun) {
-        if (!global.data.thanosBlacklist[threadID]) {
+        if (!global.data.everyoneTagBlacklist[threadID]) {
           global.data.everyoneTagBlacklist[threadID] = true;
         } else {
           global.data.everyoneTagBlacklist[threadID] = false;
