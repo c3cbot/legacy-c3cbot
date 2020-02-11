@@ -949,7 +949,7 @@ function checkPluginCompatibly(version) {
   version = version.toString();
   try {
     //* Plugin complied with version 0.3.0 & 0.3.1 is allowed
-    var allowedVersion = "=0.3.0 =0.3.1";
+    var allowedVersion = "=0.3.0 || =0.3.1";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
