@@ -17,7 +17,6 @@ Number.prototype.pad = function (width, z) {
 }
 Number.prototype.round = function (decimal) {
   var dec = decimal || 0;
-  
   var dec2 = Math.pow(10, dec);
   var num = this.valueOf();
   return Math.round(num * dec2) / dec2;
@@ -949,8 +948,8 @@ ensureExists(path.join(__dirname, "plugins/"));
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Plugin complied with version 0.3.0 is allowed
-    var allowedVersion = "=0.3.0";
+    //* Plugin complied with version 0.3.0 & 0.3.1 is allowed
+    var allowedVersion = "=0.3.0 =0.3.1";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
@@ -1438,34 +1437,36 @@ if (global.config.enablefb) {
         }
         for (var i in list) {
           setTimeout(function (id) {
-            api.handleMessageRequest(id, true);
             api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
               if (err) {
                 return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
               }
+              api.handleMessageRequest(id, true);
             });
             log("[Facebook]", "Bot added to", id);
           }, i * 500, list[i].threadID);
         }
+
+        api.getThreadList(10, null, ["OTHER"], function (err, list) {
+          if (err) {
+            return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+          }
+          for (var i in list) {
+            setTimeout(function (id) {
+              api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+                if (err) {
+                  return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+                }
+                api.handleMessageRequest(id, true);
+              });
+              log("[Facebook]", "Bot added to", id);
+            }, i * 500, list[i].threadID);
+          }
+          api.markAsReadAll();
+        });
       });
-      api.getThreadList(10, null, ["OTHER"], function (err, list) {
-        if (err) {
-          return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
-        }
-        for (var i in list) {
-          setTimeout(function (id) {
-            api.handleMessageRequest(id, true);
-            api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
-              if (err) {
-                return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
-              }
-            });
-            log("[Facebook]", "Bot added to", id);
-          }, i * 500, list[i].threadID);
-        }
-      });
-      api.markAsReadAll();
-    }, 60000, log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix));
+    }, 120000, log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix));
+    // 120s 1 lần scan pending message (không như con bot nào đó đặt tới mấy tiếng)
 
     !global.data.messageList ? global.data.messageList = {} : "";
     facebook.listener = api.listenMqtt(function callback(err, message) {
