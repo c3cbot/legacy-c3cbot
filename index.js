@@ -1314,6 +1314,52 @@ function loadPlugin() {
   global.commandMapping["reload"].args[global.config.language] = "";
   global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
 
+  global.commandMapping["toggleeveryone"] = {
+    args: "",
+    desc: {
+      "vi_VN": "Bật/tắt quyền sử dụng mention everyone",
+      "en_US": "Turn on/off everyone mention tag"
+    },
+    scope: function (type, data) {
+      if (type != "Facebook") {
+        return {
+          data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
+          handler: "internal"
+        }
+      }
+      var threadID = data.msgdata.threadID;
+      var allowRun = false;
+      if (!data.admin) {
+        var [err, threadInfo] = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
+        var adminIDs = threadInfo.adminIDs.map(x => x.id.toString());
+        log("[INTERNAL]", "Got AdminIDs of thread", data.msgdata.threadID, ":", adminIDs);
+        if (adminIDs.indexOf(data.msgdata.senderID) != -1) {
+          allowRun = true;
+        }
+      } else {
+        allowRun = true;
+      }
+      if (allowRun) {
+        if (!global.data.thanosBlacklist[threadID]) {
+          global.data.everyoneTagBlacklist[threadID] = true;
+        } else {
+          global.data.everyoneTagBlacklist[threadID] = false;
+        }
+        return {
+          data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.everyoneTagBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
+          handler: "internal"
+        }
+      } else {
+        return {
+          data: global.lang["INSUFFICIENT_PERM"],
+          handler: "internal"
+        }
+      }
+    },
+    compatibly: 1,
+    handler: "INTERNAL"
+  }
+
   global.commandMapping["togglethanos"] = {
     args: {},
     desc: {},
@@ -1468,7 +1514,7 @@ if (global.config.enablefb) {
     }, 120000, log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix));
     // 120s 1 lần scan pending message (không như con bot nào đó đặt tới mấy tiếng)
 
-    !global.data.messageList ? global.data.messageList = {} : "";
+    typeof global.data.messageList != "object" ? global.data.messageList = {} : "";
     facebook.listener = api.listenMqtt(function callback(err, message) {
       try {
         if (message != undefined) {
@@ -1565,7 +1611,15 @@ if (global.config.enablefb) {
               }).map(function (z) {
                 return z.replace(/"/g, "")
               });
-              if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)))) {
+              if (arg.indexOf("@everyone") != -1 && 
+                (global.config.allowEveryoneTagEvenBlacklisted || 
+                  ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || 
+                    (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && 
+                    !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)
+                  )
+                ) &&
+                !global.data.everyoneTagBlacklist[message.threadID]
+              ) {
                 api.getThreadInfo(message.threadID, function (err, data) {
                   var participants = data.participantIDs;
                   var character = "@";
