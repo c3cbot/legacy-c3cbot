@@ -2450,8 +2450,9 @@ if (global.config.enableSSHRemoteConsole) {
   });
 }
 
-!global.data.cacheName ? global.data.cacheName = {} : "";
-!global.data.thanosBlacklist ? global.data.thanosBlacklist = {} : "";
+typeof global.data.cacheName != "object" ? global.data.cacheName = {} : "";
+typeof global.data.thanosBlacklist != "object" ? global.data.thanosBlacklist = {} : "";
+typeof global.data.everyoneTagBlacklist != "object" ? global.data.everyoneTagBlacklist = {} : "";
 
 if (global.config.enablediscord) {
   const Discord = require('discord.js');
