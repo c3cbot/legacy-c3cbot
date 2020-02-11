@@ -1346,7 +1346,7 @@ function loadPlugin() {
           global.data.everyoneTagBlacklist[threadID] = false;
         }
         return {
-          data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.everyoneTagBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
+          data: global.lang["TOGGLEEVERYONE_MSG"].replace("{0}", (!global.data.everyoneTagBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)),
           handler: "internal"
         }
       } else {
