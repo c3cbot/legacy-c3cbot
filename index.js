@@ -17,6 +17,7 @@ Number.prototype.pad = function (width, z) {
 }
 Number.prototype.round = function (decimal) {
   var dec = decimal || 0;
+  
   var dec2 = Math.pow(10, dec);
   var num = this.valueOf();
   return Math.round(num * dec2) / dec2;
