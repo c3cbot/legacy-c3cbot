@@ -1498,14 +1498,17 @@ if (global.config.enablefb) {
     facebook.removePendingClock = setInterval(function (log, botname, connectedmsg) {
       api.getThreadList(10, null, ["PENDING"], function (err, list) {
         if (err) {
-          return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+          return log("[Facebook]", "Remove Pending Messages encountered an error (at getThreadList:PENDING):", err);
         }
         for (var i in list) {
           setTimeout(function (id) {
-            api.handleMessageRequest(id, true, function () {
+            api.handleMessageRequest(id, true, function (err) {
+              if (err) {
+                return log("[Facebook]", "Remove Pending Messages encountered an error (at handleMessageRequest:PENDING):", err);
+              }
               api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
                 if (err) {
-                  return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+                  return log("[Facebook]", "Remove Pending Messages encountered an error (at sendMessage:PENDING):", err);
                 }
                 log("[Facebook]", "Bot added to", id);
               });
@@ -1515,17 +1518,17 @@ if (global.config.enablefb) {
 
         api.getThreadList(10, null, ["OTHER"], function (err, list) {
           if (err) {
-            return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+            return log("[Facebook]", "Remove Pending Messages encountered an error (at getThreadList:OTHER):", err);
           }
           for (var i in list) {
             setTimeout(function (id) {
               api.handleMessageRequest(id, true, function (err) {
                 if (err) {
-                  return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+                  return log("[Facebook]", "Remove Pending Messages encountered an error (at handleMessageRequest:OTHER):", err);
                 }
                 api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
                   if (err) {
-                    return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+                    return log("[Facebook]", "Remove Pending Messages encountered an error (at sendMessage:OTHER):", err);
                   }
                   log("[Facebook]", "Bot added to", id);
                 });
