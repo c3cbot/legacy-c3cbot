@@ -1304,7 +1304,7 @@ function loadPlugin() {
     },
     compatibly: 0,
     handler: "INTERNAL",
-    adminCmd: global.config.allowUserUsePluginsCommand
+    adminCmd: !global.config.allowUserUsePluginsCommand
   }
   global.commandMapping["plugins"].args[global.config.language] = "";
   global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
@@ -1328,7 +1328,7 @@ function loadPlugin() {
     },
     compatibly: 0,
     handler: "INTERNAL",
-    adminCmd: global.config.allowUserUseReloadCommand
+    adminCmd: !global.config.allowUserUseReloadCommand
   }
   global.commandMapping["reload"].args[global.config.language] = "";
   global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
