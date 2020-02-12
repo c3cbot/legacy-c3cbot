@@ -948,8 +948,8 @@ ensureExists(path.join(__dirname, "plugins/"));
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Plugin complied with version 0.3.0 & 0.3.1 is allowed
-    var allowedVersion = "=0.3.0 || =0.3.1";
+    //* Plugin complied with version 0.3.0 & 0.3.1 & 0.3.2 is allowed
+    var allowedVersion = "=0.3.0 || =0.3.1 || =0.3.2";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
@@ -1092,9 +1092,16 @@ function loadPlugin() {
               compatibly: parseInt(cmdo.compatibly),
               handler: plname
             }
+            if (cmdo.hasOwnProperty("adminCmd")) {
+              global.commandMapping[cmd].adminCmd = true;
+            }
           }
         }
-        if (typeof pltemp1[plname]["chatHook"] == "string" && typeof pltemp1[plname]["chatHookType"] == "string" && !isNaN(parseInt(pltemp1[plname]["chatHookPlatform"]))) {
+        if (typeof pltemp1[plname]["chatHook"] == "string" && 
+          typeof pltemp1[plname]["chatHookType"] == "string" && 
+          !isNaN(parseInt(pltemp1[plname]["chatHookPlatform"])) &&
+          typeof global.plugins[pltemp1[plname]["plugin_scope"]][pltemp1[plname]["chatHook"]] == "function"
+        ) {
           global.chatHook.push({
             resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][pltemp1[plname]["chatHook"]],
             listentype: pltemp1[plname]["chatHookType"],
@@ -1197,11 +1204,20 @@ function loadPlugin() {
         }
         for (i = 15 * (page - 1); i < 15 * (page - 1) + 15; i++) {
           if (i < hl.length) {
-            mts += "\r\n" + (i + 1).toString() + ". " + global.config.commandPrefix + hl[i].command;
-            if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i].args[global.config.language].toString().replace(/ /g).length != 0) {
-              mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+            if (data.admin) {
+              mts += "\r\n" + (i + 1).toString() + ". " + global.config.commandPrefix + hl[i].command;
+              if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i].args[global.config.language].toString().replace(/ /g).length != 0) {
+                mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+              }
+              //mts += ": " + hl[i].desc[global.config.language];
+            } else {
+              if (!hl[i].adminCmd) {
+                mts += "\r\n" + (i + 1).toString() + ". " + global.config.commandPrefix + hl[i].command;
+                if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i].args[global.config.language].toString().replace(/ /g).length != 0) {
+                  mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+                }
+              }
             }
-            //mts += ": " + hl[i].desc[global.config.language];
           }
         }
         if (type == "Discord") {
@@ -1238,7 +1254,8 @@ function loadPlugin() {
       }
     },
     compatibly: 0,
-    handler: "INTERNAL"
+    handler: "INTERNAL",
+    adminCmd: true
   }
   global.commandMapping["shutdown"].args[global.config.language] = "";
   global.commandMapping["shutdown"].desc[global.config.language] = global.lang["SHUTDOWN_DESC"];
@@ -1286,7 +1303,8 @@ function loadPlugin() {
       }
     },
     compatibly: 0,
-    handler: "INTERNAL"
+    handler: "INTERNAL",
+    adminCmd: global.config.allowUserUsePluginsCommand
   }
   global.commandMapping["plugins"].args[global.config.language] = "";
   global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
@@ -1309,7 +1327,8 @@ function loadPlugin() {
       }
     },
     compatibly: 0,
-    handler: "INTERNAL"
+    handler: "INTERNAL",
+    adminCmd: global.config.allowUserUseReloadCommand
   }
   global.commandMapping["reload"].args[global.config.language] = "";
   global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
