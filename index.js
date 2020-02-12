@@ -1097,8 +1097,8 @@ function loadPlugin() {
             }
           }
         }
-        if (typeof pltemp1[plname]["chatHook"] == "string" && 
-          typeof pltemp1[plname]["chatHookType"] == "string" && 
+        if (typeof pltemp1[plname]["chatHook"] == "string" &&
+          typeof pltemp1[plname]["chatHookType"] == "string" &&
           !isNaN(parseInt(pltemp1[plname]["chatHookPlatform"])) &&
           typeof global.plugins[pltemp1[plname]["plugin_scope"]][pltemp1[plname]["chatHook"]] == "function"
         ) {
@@ -1638,10 +1638,10 @@ if (global.config.enablefb) {
               }).map(function (z) {
                 return z.replace(/"/g, "")
               });
-              if (arg.indexOf("@everyone") != -1 && 
-                (global.config.allowEveryoneTagEvenBlacklisted || 
-                  ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || 
-                    (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) && 
+              if (arg.indexOf("@everyone") != -1 &&
+                (global.config.allowEveryoneTagEvenBlacklisted ||
+                  ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) ||
+                    (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) &&
                     !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)
                   )
                 ) &&
@@ -1751,9 +1751,11 @@ if (global.config.enablefb) {
                             }
                           });
                         } catch (ex) {
+                          log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex);
+                          var stack = ex.stack.match(/[^\r\n]+/g);
                           returndata = {
                             handler: "internal",
-                            data: "plerr: " + ex.stack
+                            data: "plerr: " + stack.slice(0, 4).join("\r\n")
                           }
                         }
 
@@ -2647,21 +2649,26 @@ if (global.config.enablediscord) {
                   }
                 }
               });
-              if (typeof returndata == "object") {
-                if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                  message.reply("\r\n" + prefix + " " + (returndata.data || ""), { split: true });
-                } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                  var body = returndata.data.body || "";
-                  delete returndata.data.body;
-                  returndata.data.split = true;
-                  message.reply("\r\n" + prefix + " " + body, returndata.data);
-                }
-              } else if (typeof returndata != "undefined") {
-                log("[Facebook]", "Received an unknown response from plugin:", returndata);
-              }
             } catch (ex) {
-              log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex)
+              log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex);
+              var returndata = {
+                handler: "internal",
+                data: "plerr: " + ex.stack
+              }
             }
+            if (typeof returndata == "object") {
+              if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                message.reply("\r\n" + prefix + " " + (returndata.data || ""), { split: true });
+              } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                var body = returndata.data.body || "";
+                delete returndata.data.body;
+                returndata.data.split = true;
+                message.reply("\r\n" + prefix + " " + body, returndata.data);
+              }
+            } else if (typeof returndata != "undefined") {
+              log("[Facebook]", "Received an unknown response from plugin:", returndata);
+            }
+
           }
         } else {
           message.reply("\r\n" + prefix + " " + global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix));
