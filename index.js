@@ -1502,13 +1502,14 @@ if (global.config.enablefb) {
         }
         for (var i in list) {
           setTimeout(function (id) {
-            api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
-              if (err) {
-                return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
-              }
-              api.handleMessageRequest(id, true);
+            api.handleMessageRequest(id, true, function () {
+              api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+                if (err) {
+                  return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+                }
+                log("[Facebook]", "Bot added to", id);
+              });
             });
-            log("[Facebook]", "Bot added to", id);
           }, i * 500, list[i].threadID);
         }
 
@@ -1518,13 +1519,17 @@ if (global.config.enablefb) {
           }
           for (var i in list) {
             setTimeout(function (id) {
-              api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+              api.handleMessageRequest(id, true, function (err) {
                 if (err) {
                   return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
                 }
-                api.handleMessageRequest(id, true);
+                api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+                  if (err) {
+                    return log("[Facebook]", "Remove Pending Messages encountered an error:", err);
+                  }
+                  log("[Facebook]", "Bot added to", id);
+                });
               });
-              log("[Facebook]", "Bot added to", id);
             }, i * 500, list[i].threadID);
           }
           api.markAsReadAll();
