@@ -1007,7 +1007,7 @@ function loadPlugin() {
         for (var nid in plinfo["node_depends"]) {
           try {
             var defaultmodule = require("module").builtinModules;
-            if (defaultmodule.indexOf(nid) != -1) {
+            if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
               global.nodemodule[nid] = require(nid);
             } else {
               var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
