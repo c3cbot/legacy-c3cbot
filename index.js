@@ -1029,11 +1029,11 @@ function loadPlugin() {
                 global.nodemodule[nid] = require(nid);
               } else {
                 var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
-                //var packagejson = require(path.join(moduledir, "package.json"));
-                //global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
-                //  encoding: "utf8"
-                //}), moduledir);
-                global.nodemodule[nid] = require(moduledir);
+                var packagejson = require(path.join(moduledir, "package.json"));
+                global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
+                  encoding: "utf8"
+                }), path.resolve(moduledir, packagejson.main));
+                //global.nodemodule[nid] = require(moduledir);
               }
             } catch (ex) {
               throw "Cannot load node module: " + nid + ". Additional info: " + ex;
