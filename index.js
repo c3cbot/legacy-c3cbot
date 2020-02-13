@@ -966,7 +966,7 @@ function loadPlugin() {
   !global.commandMapping ? global.commandMapping = {} : "";
 
   log("[INTERNAL]", "Searching for plugins in ./plugins/ ...");
-  var pluginFileList = findFromDir(path.join(__dirname, "plugins/"), /.*\.z3p$/, true, false);
+  var pluginFileList = findFromDir(path.join(__dirname, "plugins/"), /.*\.(z3p|zip)$/, true, false);
   for (var n in pluginFileList) {
     try {
       var zip = new StreamZip({
