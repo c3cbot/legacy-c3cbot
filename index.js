@@ -957,6 +957,8 @@ function checkPluginCompatibly(version) {
 }
 
 function loadPlugin() {
+  var error = [];
+
   global.plugins = {}; //Plugin Scope
   pltemp1 = {}; //Plugin Info
   pltemp2 = {}; //Plugin Executable
@@ -1046,6 +1048,7 @@ function loadPlugin() {
       pltemp2[plinfo["plugin_name"]] = plexec;
     } catch (ex) {
       log("[INTERNAL]", "Error while loading plugin at \"" + pluginFileList[n] + "\":", ex);
+      error.push(pluginFileList[n]);
     }
   }
 
@@ -1320,10 +1323,10 @@ function loadPlugin() {
         }
       }
       unloadPlugin();
-      loadPlugin();
+      var error = loadPlugin();
       return {
         handler: "internal",
-        data: "Reloaded"
+        data: `Reloaded ${error.length == 0 ? "" : ("with error at: " + JSON.stringify(error))}`
       }
     },
     compatibly: 0,
@@ -1423,6 +1426,8 @@ function loadPlugin() {
   }
   global.commandMapping["togglethanos"].args[global.config.language] = "";
   global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
+
+  return error;
 }
 function unloadPlugin() {
   for (var name in global.loadedPlugins) {
