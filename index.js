@@ -948,8 +948,8 @@ ensureExists(path.join(__dirname, "plugins/"));
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Plugin complied with version 0.3.0 & 0.3.1 & 0.3.2 is allowed
-    var allowedVersion = "=0.3.0 || =0.3.1 || =0.3.2";
+    //* Plugin complied with version 0.3.0 & 0.3.1 & 0.3.2 & 0.3.3 is allowed
+    var allowedVersion = "=0.3.0 || =0.3.1 || =0.3.2 || =0.3.3";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
@@ -1637,7 +1637,9 @@ if (global.config.enablefb) {
                 !global.data.facebookChatGroupList ? global.data.facebookChatGroupList = [] : "";
                 if (global.data.facebookChatGroupList.indexOf(message.threadID) == -1) global.data.facebookChatGroupList.push(message.threadID);
               }
-              api.markAsRead(message.threadID);
+              setTimeout(function () {
+                api.markAsRead(message.threadID);
+              }, 500);
               var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                 return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '').length);
               }).map(function (z) {
@@ -2076,7 +2078,9 @@ if (global.config.enablefb) {
                         if (err) {
                           log("[Facebook] Errored while sending Anti-Unsend response:", err);
                         } else {
-                          api.markAsRead(message.threadID);
+                          setTimeout(function () {
+                            api.markAsRead(message.threadID);
+                          }, 200);
                         }
                       }, null, message.isGroup);
                       log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
@@ -2111,7 +2115,9 @@ if (global.config.enablefb) {
                   }
                 }
               }
-              api.markAsRead(message.threadID);
+              setTimeout(function () {
+                api.markAsRead(message.threadID);
+              }, 500);
               var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                 return !(el == null || el == "" || el == " ");
               });
