@@ -2158,6 +2158,7 @@ if (global.config.enablefb) {
                 log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", message.body, str);
               } catch (ex) {
                 log("[Facebook] ERROR on replymsg", message);
+                fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
               }
               break;
             default:
