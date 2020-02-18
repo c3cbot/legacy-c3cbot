@@ -1593,9 +1593,6 @@ if (global.config.enablefb) {
                           }
                         }, message.messageID, message.isGroup);
                         endTyping();
-                        setTimeout(function (api, message) {
-                          api.markAsRead(message.threadID);
-                        }, 500, api, message);
                       }, returndata.data.length * 30, api, returndata, endTyping, message);
                     } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
                       if (!returndata.data.body) {
@@ -1610,9 +1607,6 @@ if (global.config.enablefb) {
                           }
                         }, message.messageID, message.isGroup);
                         endTyping();
-                        setTimeout(function (api, message) {
-                          api.markAsRead(message.threadID);
-                        }, 500, api, message);
                       }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                     }
                   }
@@ -1733,9 +1727,6 @@ if (global.config.enablefb) {
                                     }
                                   }, message.messageID, message.isGroup);
                                   endTyping();
-                                  setTimeout(function (api, message) {
-                                    api.markAsRead(message.threadID);
-                                  }, 500, api, message);
                                 }, returndata.data.length * 30, api, returndata, endTyping, message);
                               } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
                                 if (!returndata.data.body) {
@@ -1750,9 +1741,6 @@ if (global.config.enablefb) {
                                     }
                                   }, message.messageID, message.isGroup);
                                   endTyping();
-                                  setTimeout(function (api, message) {
-                                    api.markAsRead(message.threadID);
-                                  }, 500, api, message);
                                 }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                               }
                             }
@@ -1776,9 +1764,6 @@ if (global.config.enablefb) {
                                 }
                               }, message.messageID, message.isGroup);
                               endTyping();
-                              setTimeout(function (api, message) {
-                                api.markAsRead(message.threadID);
-                              }, 500, api, message);
                             }, returndata.data.length * 30, api, returndata, endTyping, message);
                           } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
                             if (!returndata.data.body) {
@@ -1793,9 +1778,6 @@ if (global.config.enablefb) {
                                 }
                               }, message.messageID, message.isGroup);
                               endTyping();
-                              setTimeout(function (api, message) {
-                                api.markAsRead(message.threadID);
-                              }, 500, api, message);
                             }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
                           }
                         } else if (typeof returndata != "undefined") {
@@ -2077,10 +2059,6 @@ if (global.config.enablefb) {
                       }, message.threadID, function (err) {
                         if (err) {
                           log("[Facebook] Errored while sending Anti-Unsend response:", err);
-                        } else {
-                          setTimeout(function () {
-                            api.markAsRead(message.threadID);
-                          }, 200);
                         }
                       }, null, message.isGroup);
                       log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "tried to delete message in " + message.threadID, "but can't because Thanos's Time Gem is activated. Data: ", global.data.messageList[message.messageID]);
