@@ -1713,7 +1713,7 @@ if (global.config.enablefb) {
                             log: function logPlugin(...message) {
                               log.apply(global, [
                                 "[PLUGIN]",
-                                "[" + global.commandMapping[arg[0].substr(1)].handler + "]"
+                                "[" + (global.commandMapping[arg[0].substr(1)] || { handler: "ERROR" }).handler + "]"
                               ].concat(message));
                             },
                             return: function returndata(returndata) {
