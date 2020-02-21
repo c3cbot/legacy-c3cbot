@@ -1095,7 +1095,7 @@ function loadPlugin() {
               compatibly: parseInt(cmdo.compatibly),
               handler: plname
             }
-            if (cmdo.hasOwnProperty("adminCmd")) {
+            if (Object.prototype.hasOwnProperty.call(cmdo, "adminCmd")) {
               global.commandMapping[cmd].adminCmd = true;
             }
           }
@@ -1167,7 +1167,7 @@ function loadPlugin() {
     scope: function (type, data) {
       if (isNaN(parseInt(data.args[1])) && data.args.length != 1) {
         var cmd = data.args[1];
-        if (global.commandMapping.hasOwnProperty(cmd)) {
+        if (Object.prototype.hasOwnProperty.call(global.commandMapping, cmd)) {
           var mts = global.config.commandPrefix + cmd;
           if (typeof global.commandMapping[cmd].args == "object" && typeof global.commandMapping[cmd].args[global.config.language] != "undefined" && global.commandMapping[cmd].args[global.config.language].toString().replace(/ /g).length != 0) {
             mts += " " + (global.commandMapping[cmd].args[global.config.language] ? global.commandMapping[cmd].args[global.config.language] : "");
