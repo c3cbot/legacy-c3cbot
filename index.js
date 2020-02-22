@@ -1632,20 +1632,22 @@ if (global.config.enablefb) {
                 !global.data.facebookChatGroupList ? global.data.facebookChatGroupList = [] : "";
                 if (global.data.facebookChatGroupList.indexOf(message.threadID) == -1) global.data.facebookChatGroupList.push(message.threadID);
               }
+
               if (global.markAsReadFacebook[message.threadID]) {
                 try {
                   clearTimeout(global.markAsReadFacebook[message.threadID]);
                 } catch (ex) {}
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
                   api.markAsRead(message.threadID);
-                  delete global.markAsReadFacebook[message.threadID]
+                  delete global.markAsReadFacebook[message.threadID];
                 }, 1000, message);
               } else {
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
                   api.markAsRead(message.threadID);
-                  delete global.markAsReadFacebook[message.threadID]
+                  delete global.markAsReadFacebook[message.threadID];
                 }, 1000, message);
               }
+
               var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                 return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '').length);
               }).map(function (z) {
@@ -2105,9 +2107,22 @@ if (global.config.enablefb) {
                   }
                 }
               }
-              setTimeout(function () {
-                api.markAsRead(message.threadID);
-              }, 500);
+
+              if (global.markAsReadFacebook[message.threadID]) {
+                try {
+                  clearTimeout(global.markAsReadFacebook[message.threadID]);
+                } catch (ex) {}
+                global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
+                  api.markAsRead(message.threadID);
+                  delete global.markAsReadFacebook[message.threadID];
+                }, 1000, message);
+              } else {
+                global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
+                  api.markAsRead(message.threadID);
+                  delete global.markAsReadFacebook[message.threadID];
+                }, 1000, message);
+              }
+
               var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
                 return !(el == null || el == "" || el == " ");
               });
