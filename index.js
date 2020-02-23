@@ -1494,6 +1494,7 @@ if (global.config.enablefb) {
             return log("[Facebook] Error on delivery_receipts:", data);
           }
         });
+        global.deliveryFacebook = {};
       }
     }, 1000);
 
