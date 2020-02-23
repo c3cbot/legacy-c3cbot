@@ -1454,6 +1454,7 @@ var client = {};
 var facebook = {};
 if (global.config.enablefb) {
   global.markAsReadFacebook = {};
+  global.deliveryFacebook = {};
   facebookcb = function callback(err, api) {
     if (err) {
       facebook.error = err;
@@ -1475,7 +1476,26 @@ if (global.config.enablefb) {
       }
     }
     global.config.fbemail = "<censored, security measures>";
-    global.config.fbpassword = "<censored, security measures>"
+    global.config.fbpassword = "<censored, security measures>";
+    
+    facebook.deliveryClock = setInterval(function () {
+      if (Object.keys(global.deliveryFacebook).length != 0) {
+        var form = {};
+        var i = 0;
+        for (var threadID in global.deliveryFacebook) {
+          // eslint-disable-next-line no-loop-func
+          global.deliveryFacebook.forEach((v, n) => {
+            form[`message_ids[${i}]`] = v;
+            form[`thread_ids[${threadID}][${n}]`] = v;
+          });
+        }
+        api.httpPost("https://www.facebook.com/ajax/mercury/delivery_receipts.php", form, function (err, data) {
+          if (data.error) {
+            return log("[Facebook] Error on delivery_receipts:", data);
+          }
+        });
+      }
+    }, 1000);
 
     function fetchName(id, force, callingback) {
       if (!callingback) {
@@ -1519,7 +1539,7 @@ if (global.config.enablefb) {
                 log("[Facebook]", "Bot added to", id);
               });
             });
-          }, i * 500, list[i].threadID);
+          }, i * 2000, list[i].threadID);
         }
 
         api.getThreadList(10, null, ["OTHER"], function (err, list) {
@@ -1539,7 +1559,7 @@ if (global.config.enablefb) {
                   log("[Facebook]", "Bot added to", id);
                 });
               });
-            }, i * 500, list[i].threadID);
+            }, i * 2000, list[i].threadID);
           }
           api.markAsReadAll();
         });
@@ -1619,6 +1639,8 @@ if (global.config.enablefb) {
           }
           switch (message.type) {
             case "message":
+              !global.deliveryFacebook[message.threadID] ? global.deliveryFacebook[message.threadID] = [] : "";
+              global.deliveryFacebook[message.threadID].push(message.messageID);
               fetchName(message.senderID);
               if (global.config.enableThanosTimeGems) {
                 global.data.messageList[message.messageID] = message;
@@ -1644,7 +1666,7 @@ if (global.config.enablefb) {
                     }
                   });
                   delete global.markAsReadFacebook[message.threadID];
-                }, 1000, message);
+                }, 2000, message);
               } else {
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
                   api.markAsRead(message.threadID, err => {
@@ -1653,7 +1675,7 @@ if (global.config.enablefb) {
                     }
                   });
                   delete global.markAsReadFacebook[message.threadID];
-                }, 1000, message);
+                }, 2000, message);
               }
 
               var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
@@ -2100,6 +2122,9 @@ if (global.config.enablefb) {
               }
               break;
             case "message_reply":
+              !global.deliveryFacebook[message.threadID] ? global.deliveryFacebook[message.threadID] = [] : "";
+              global.deliveryFacebook[message.threadID].push(message.messageID);
+              
               if (global.config.enableThanosTimeGems) {
                 global.data.messageList[message.messageID] = message;
                 for (var id in global.data.messageList) {
@@ -2127,7 +2152,7 @@ if (global.config.enablefb) {
                     }
                   });
                   delete global.markAsReadFacebook[message.threadID];
-                }, 1000, message);
+                }, 2000, message);
               } else {
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
                   api.markAsRead(message.threadID, err => {
@@ -2136,7 +2161,7 @@ if (global.config.enablefb) {
                     }
                   });
                   delete global.markAsReadFacebook[message.threadID];
-                }, 1000, message);
+                }, 2000, message);
               }
 
               var arg = message.body.replace((/”/g), "\"").replace((/“/g), "\"").split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/).filter(function (el) {
@@ -2229,7 +2254,8 @@ if (global.config.enablefb) {
     selfListen: true,
     listenEvents: true,
     updatePresence: false,
-    autoMarkRead: true
+    autoMarkRead: false,
+    autoMarkDelivered: false
   }
   if (global.config.facebookProxy != null) {
     if (global.config.facebookProxyUseSOCKS) {
@@ -2252,6 +2278,7 @@ if (global.config.enablefb) {
       }
       try {
         clearInterval(facebook.removePendingClock);
+        clearInterval(facebook.deliveryClock);
       } catch (ex) { }
       fbinstance = undefined;
       delete require.cache[require.resolve("fca-unofficial")];
@@ -2724,7 +2751,11 @@ var shutdownHandler = function (errorlevel) {
   log("[INTERNAL]", "Detected process is shutting down, handling...");
   //Stop Facebook listener
   if (facebook.listener) {
-    facebook.listener();
+    facebook.listener.stopListening();
+    try {
+      clearInterval(facebook.removePendingClock);
+      clearInterval(facebook.deliveryClock);
+    } catch (ex) {}
     log("[Facebook]", "Stopped Facebook listener");
   }
   //Stop Discord listener and destroy Discord client
