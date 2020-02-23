@@ -1638,12 +1638,20 @@ if (global.config.enablefb) {
                   clearTimeout(global.markAsReadFacebook[message.threadID]);
                 } catch (ex) {}
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
-                  api.markAsRead(message.threadID);
+                  api.markAsRead(message.threadID, err => {
+                    if (err) {
+                      log("[Facebook]", `Marking as read error at ${message.messageID}, threadID ${message.threadID}: `, err)
+                    }
+                  });
                   delete global.markAsReadFacebook[message.threadID];
                 }, 1000, message);
               } else {
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
-                  api.markAsRead(message.threadID);
+                  api.markAsRead(message.threadID, err => {
+                    if (err) {
+                      log("[Facebook]", `Marking as read error at ${message.messageID}, threadID ${message.threadID}: `, err)
+                    }
+                  });
                   delete global.markAsReadFacebook[message.threadID];
                 }, 1000, message);
               }
@@ -2113,12 +2121,20 @@ if (global.config.enablefb) {
                   clearTimeout(global.markAsReadFacebook[message.threadID]);
                 } catch (ex) {}
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
-                  api.markAsRead(message.threadID);
+                  api.markAsRead(message.threadID, err => {
+                    if (err) {
+                      log("[Facebook]", `Marking as read error at ${message.messageID}, threadID ${message.threadID}: `, err)
+                    }
+                  });
                   delete global.markAsReadFacebook[message.threadID];
                 }, 1000, message);
               } else {
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
-                  api.markAsRead(message.threadID);
+                  api.markAsRead(message.threadID, err => {
+                    if (err) {
+                      log("[Facebook]", `Marking as read error at ${message.messageID}, threadID ${message.threadID}: `, err)
+                    }
+                  });
                   delete global.markAsReadFacebook[message.threadID];
                 }, 1000, message);
               }
