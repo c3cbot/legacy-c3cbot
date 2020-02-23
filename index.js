@@ -2255,7 +2255,7 @@ if (global.config.enablefb) {
     listenEvents: true,
     updatePresence: false,
     autoMarkRead: false,
-    autoMarkDelivered: false
+    autoMarkDelivery: false
   }
   if (global.config.facebookProxy != null) {
     if (global.config.facebookProxyUseSOCKS) {
