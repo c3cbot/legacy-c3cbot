@@ -1484,7 +1484,7 @@ if (global.config.enablefb) {
         var i = 0;
         for (var threadID in global.deliveryFacebook) {
           // eslint-disable-next-line no-loop-func
-          global.deliveryFacebook.forEach((v, n) => {
+          global.deliveryFacebook[threadID].forEach((v, n) => {
             form[`message_ids[${i}]`] = v;
             form[`thread_ids[${threadID}][${n}]`] = v;
           });
