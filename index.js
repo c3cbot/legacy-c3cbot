@@ -247,7 +247,7 @@ function log(...message) {
       loadTimes: times
     }
   }
-  fs.appendFile(path.join(__dirname, "logs", `log-${currentLogDate}-${global.logLast.times}.log`), tolog + "\r\n", function (err) {
+  fs.appendFile(path.join(__dirname, "logs", `log-${currentLogDate}-${global.logLast.loadTimes}.log`), tolog + "\r\n", function (err) {
     if (err) {
       console.log("[CRITICAL] [NOT LOGGED] ERROR WHILE WRITING LOGS: ", err)
     }
