@@ -194,12 +194,11 @@ logFileList.forEach(dir => {
   var diro = path.parse(dir);
   diro.ext = ".gz";
   var newdir = path.format(diro);
-  fs.createReadStream(dir)
-    .pipe(zlib.createGzip())
-    .pipe(fs.createWriteStream(newdir))
-    .on("close", function () {
-      fs.unlink(dir, function () {});
-    });
+  zlib.gzip(fs.readFileSync(dir), function (error, result) {
+    if (error) return console.log("[NOT LOGGED] Error while compressing " + dir);
+    fs.writeFileSync(newdir, result);
+    fs.unlinkSync(dir);
+  });
 });
 
 global.logLast = {
