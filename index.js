@@ -948,8 +948,8 @@ ensureExists(path.join(__dirname, "plugins/"));
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Plugin complied with version 0.3.0 & 0.3.1 & 0.3.2 & 0.3.3 is allowed
-    var allowedVersion = "=0.3.0 || =0.3.1 || =0.3.2 || =0.3.3";
+    //* Plugin complied with version 0.3.0 => 0.3.5 is allowed
+    var allowedVersion = ">=0.3.0 <=0.3.5";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
