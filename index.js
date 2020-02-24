@@ -194,7 +194,7 @@ logFileList.forEach(dir => {
   var diro = path.parse(dir);
   diro.ext = ".gz";
   var newdir = path.format(diro);
-  fs.createReadStream(dir, { autoClose: true })
+  fs.createReadStream(dir)
     .pipe(zlib.createGzip())
     .pipe(fs.createWriteStream(newdir))
     .on("close", function () {
