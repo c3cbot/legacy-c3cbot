@@ -194,6 +194,7 @@ logFileList.forEach(dir => {
   var diro = path.parse(dir);
   diro.ext = ".gz";
   var newdir = path.format(diro);
+  console.log(dir, newdir);
   zlib.gzip(fs.readFileSync(dir), function (error, result) {
     if (error) return console.log("[NOT LOGGED] Error while compressing " + dir);
     fs.writeFileSync(newdir, result, {
