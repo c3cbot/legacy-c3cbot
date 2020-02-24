@@ -191,8 +191,7 @@ function ensureExists(path, mask) {
 ensureExists(path.join(__dirname, "logs"));
 var logFileList = findFromDir(path.join(__dirname, "logs"), /.*\.log$/, true, true);
 logFileList.forEach(dir => {
-  var newdir = dir.replace(/\.log$/, ".gz");
-  console.log(dir, newdir);
+  var newdir = dir + ".gz";
   zlib.gzip(fs.readFileSync(dir), function (error, result) {
     if (error) return console.log("[NOT LOGGED] Error while compressing " + dir);
     fs.writeFileSync(newdir, result, {
