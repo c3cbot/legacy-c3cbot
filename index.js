@@ -10,6 +10,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 /* eslint-disable max-classes-per-file */
+/* eslint dot-location: ["error", "property"] */
 Number.prototype.pad = function (width, z) {
   z = z || '0';
   var n = this.valueOf() + '';
@@ -33,22 +34,6 @@ Number.prototype.floor = function (decimal) {
   var num = this.valueOf();
   return Math.floor(num * dec2) / dec2;
 };
-
-//Check folder exists and create it 
-function ensureExists(path, mask) {
-  if (typeof mask != 'number') {
-    mask = 0o777;
-  }
-  try {
-    fs.mkdirSync(path, {
-      mode: mask,
-      recursive: true
-    });
-    return undefined;
-  } catch (ex) {
-    return { err: ex };
-  }
-}
 
 // object.watch
 if (!Object.prototype.watch) {
@@ -131,8 +116,98 @@ global.sshcurrsession = {};
 global.sshstream = {};
 global.nsfwjsdata = {};
 
-ensureExists(path.join(__dirname, "logs/"));
+/**
+ * Find every file in a directory
+ *
+ * @param   {string}    startPath        A path specify where to start.
+ * @param   {RegExp}    filter           Regex to filter results.
+ * @param   {boolean}   arrayOutput      Options: Output array or send to callback?
+ * @param   {boolean}   recursive        Options: Recursive or not?
+ * @param   {function}  [callback]       Callback function.
+ *
+ * @return  {(Array<String>|undefined)}  An array contains path of every files match regex.
+ */
+function findFromDir(startPath, filter, arrayOutput, recursive, callback) {
+  var nocallback = false;
+  if (!callback) {
+    callback = function () { };
+    nocallback = true;
+  }
+  if (!fs.existsSync(startPath)) {
+    throw "No such directory: " + startPath;
+  }
+  var files = fs.readdirSync(startPath);
+  var arrayFile = [];
+  for (var i = 0; i < files.length; i++) {
+    var filename = path.join(startPath, files[i]);
+    var stat = fs.lstatSync(filename);
+    if (stat.isDirectory() && recursive) {
+      var arrdata = findFromDir(filename, filter, true, true);
+      if (!nocallback && !arrayOutput) {
+        for (var n in arrdata) {
+          callback(path.join(filename, arrdata[n]));
+        }
+      } else {
+        arrayFile = arrayFile.concat(arrdata);
+      }
+    } else {
+      if (!arrayOutput && !nocallback) {
+        if (filter.test(filename)) callback(filename);
+      } else {
+        if (filter.test(filename)) arrayFile[arrayFile.length] = filename;
+      }
+    }
+  }
+  if (arrayOutput && !nocallback) {
+    callback(arrayFile);
+  } else if (arrayOutput) {
+    return arrayFile;
+  }
+}
 
+/**
+ * Ensure <path> exists.
+ *
+ * @param   {string}  path  Path
+ * @param   {number}  mask  Folder's mask
+ *
+ * @return  {object}        Error or nothing.
+ */
+function ensureExists(path, mask) {
+  if (typeof mask != 'number') {
+    mask = 0o777;
+  }
+  try {
+    fs.mkdirSync(path, {
+      mode: mask,
+      recursive: true
+    });
+    return undefined;
+  } catch (ex) {
+    return { err: ex };
+  }
+}
+
+ensureExists(path.join(__dirname, "logs"));
+var logFileList = findFromDir(path.join(__dirname, "logs"), /.*\.log$/, true, true);
+logFileList.forEach(dir => {
+  var diro = path.parse(dir);
+  diro.ext = ".gz";
+  var newdir = path.format(diro);
+  fs.createReadStream(dir, { autoClose: true })
+    .pipe(zlib.createGzip())
+    .pipe(fs.createWriteStream(newdir))
+    .on("close", function () {
+      fs.unlink(dir, function () {});
+    });
+});
+
+global.logLast = {
+  year: 1970,
+  month: 1,
+  days: 1,
+  loadTimes: 0
+};
 /**
  * Log to console and also write to logs file, print to every ssh console session
  *
@@ -154,9 +229,31 @@ function log(...message) {
       tolog += " " + util.format("%s", message[n]);
     }
   }
-  fs.appendFileSync(path.join(__dirname, '/logs/log-' + date.getUTCFullYear().pad(4) + '-' + (date.getUTCMonth() + 1).pad(2) + '-' + date.getUTCDate().pad(2) + '.log'), tolog + "\r\n");
 
-  var tssh = "\x1b[K" + "\x1b[1;32m" + "\x1b[1;92m" + "\x1b[38;2;0;255;0m" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
+  var currentLogDate = date.getUTCFullYear().pad(4) + '-' + (date.getUTCMonth() + 1).pad(2) + '-' + date.getUTCDate().pad(2);
+  var lastLogDate = global.logLast.year.pad(4) + "-" + global.logLast.month.pad(2) + "-" + global.logLast.days.pad(2);
+  if (currentLogDate != lastLogDate) {
+    var times = 0;
+    for (;;) {
+      if (!fs.existsSync(path.join(__dirname, "logs", `log-${currentLogDate}-${times}.gz`)) && !fs.existsSync(path.join(__dirname, "logs", `log-${currentLogDate}-${times}.log`))) {
+        break;
+      }
+      times++;
+    }
+    global.logLast = {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      days: date.getUTCDate(),
+      loadTimes: times
+    }
+  }
+  fs.appendFile(path.join(__dirname, "logs", `log-${currentLogDate}-${global.logLast.times}.log`), tolog + "\r\n", function (err) {
+    if (err) {
+      console.log("[CRITICAL] [NOT LOGGED] ERROR WHILE WRITING LOGS: ", err)
+    }
+  });
+
+  var tssh = "\x1b[K" + "\x1b[1;32m" + "\x1b[1;92m" + "\x1b[38;2;0;255;0m[" + (date.getUTCFullYear().pad(4) + "-" + (date.getUTCMonth() + 1).pad(2) + "-" + date.getUTCDate().pad(2) + "T" + date.getUTCHours().pad(2) + "-" + date.getUTCMinutes().pad(2) + "-" + date.getUTCSeconds().pad(2) + "." + date.getUTCMilliseconds().pad(3) + "Z") + "]";
   for (var n in message) {
     if (typeof message[n] == "object") {
       tssh += " " + util.formatWithOptions({
@@ -176,7 +273,7 @@ function log(...message) {
           global.sshstream[session].stdout.write("\r");
           global.sshstream[session].stdout.write(tssh.replace(/\r\n/g, "\uFFFF").replace(/\n/g, "\r\n").replace(/\uFFFF/g, "\r\n") + "\r\n" + "\x1b[1;32m");
           global.sshcurrsession[session].prompt(true);
-          global.sshstream[session].stdout.write(global.sshcurrsession[session].line);
+          //global.sshstream[session].stdout.write(global.sshcurrsession[session].line);
         } catch (ex) { }
       }
     }
@@ -700,55 +797,6 @@ function HMAC(publick, privatek, algo, output) {
   hmac.update(publick);
   var value = hmac.digest(output);
   return value;
-}
-
-/**
- * Find every file in a directory
- *
- * @param   {string}    startPath        A path specify where to start.
- * @param   {RegExp}    filter           Regex to filter results.
- * @param   {boolean}   arrayOutput      Options: Output array or send to callback?
- * @param   {boolean}   recursive        Options: Recursive or not?
- * @param   {function}  [callback]       Callback function.
- *
- * @return  {(Array<String>|undefined)}  An array contains path of every files match regex.
- */
-function findFromDir(startPath, filter, arrayOutput, recursive, callback) {
-  var nocallback = false;
-  if (!callback) {
-    callback = function () { };
-    nocallback = true;
-  }
-  if (!fs.existsSync(startPath)) {
-    throw "No such directory: " + startPath;
-  }
-  var files = fs.readdirSync(startPath);
-  var arrayFile = [];
-  for (var i = 0; i < files.length; i++) {
-    var filename = path.join(startPath, files[i]);
-    var stat = fs.lstatSync(filename);
-    if (stat.isDirectory() && recursive) {
-      var arrdata = findFromDir(filename, filter, true, true);
-      if (!nocallback && !arrayOutput) {
-        for (var n in arrdata) {
-          callback(path.join(filename, arrdata[n]));
-        }
-      } else {
-        arrayFile = arrayFile.concat(arrdata);
-      }
-    } else {
-      if (!arrayOutput && !nocallback) {
-        if (filter.test(filename)) callback(filename);
-      } else {
-        if (filter.test(filename)) arrayFile[arrayFile.length] = filename;
-      }
-    }
-  }
-  if (arrayOutput && !nocallback) {
-    callback(arrayFile);
-  } else if (arrayOutput) {
-    return arrayFile;
-  }
 }
 
 //! This part is an old code, do not use!
