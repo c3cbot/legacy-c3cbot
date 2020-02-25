@@ -1,6 +1,6 @@
 {
   "name": "c3cbot",
-  "version": "0.3.4",
+  "version": "0.3.5-beta",
   "description": "A customizable bot that runs on Facebook and Discord.",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "discord.js": "github:discordjs/discord.js",
     "erlpack": "github:discordapp/erlpack",
     "eslint": "^5.16.0",
-    "fca-unofficial": "^1.1.0",
+    "fca-unofficial": "^1.1.5",
     "ffmpeg-static": "^3.0.0",
     "jimp": "^0.9.3",
     "js-yaml": "^3.13.1",
@@ -46,6 +46,7 @@
     "tiny-worker": "^2.3.0",
     "utf-8-validate": "^5.0.2",
     "wait-for-stuff": "^1.4.0",
-    "zlib-sync": "^0.1.6"
+    "zlib-sync": "^0.1.6",
+    "tar-stream": "^2.1.0"
   }
 }

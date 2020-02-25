@@ -105,6 +105,7 @@ var childProcess = require("child_process");
 const Socks = require('socks').SocksClient;
 var url = require("url");
 var zlib = require("zlib");
+var tar = require("tar-stream");
 ////const onChange = require('on-change');
 const readline = require('readline');
 const rl = readline.createInterface({
@@ -197,8 +198,20 @@ function ensureExists(path, mask) {
 ensureExists(path.join(__dirname, "logs"));
 var logFileList = findFromDir(path.join(__dirname, "logs"), /.*\.log$/, true, true);
 logFileList.forEach(dir => {
-  var newdir = dir.replace(/\.log$/, ".tar.gz");
-  var logname = path.parse(dir).name + ".log";
+  var newdir = path.parse(dir).name + ".tar.gz";
+  var file = fs.readFileSync(dir);
+  var pack = tar.pack();
+  pack.entry({ name: path.parse(dir).name + ".log" }, file);
+  pack.finalize();
+  pack
+    .pipe(zlib.createGunzip())
+    .pipe(fs.createWriteStream(newdir))
+    .on("close", function () {
+      fs.unlinkSync(dir);
+    })
+    .on("error", function () {});
+
+  /* var logname = path.parse(dir).name + ".log";
   var arr = [];
   var prefix = [];
   for (i = 0; i < 100; i++) {
@@ -270,14 +283,9 @@ logFileList.forEach(dir => {
   for (var n in name) {
     for (zxzxzxzxz = 0; zxzxzxzxz < name[n].length; zxzxzxzxz++) {
       var byteRead = name[n].readUInt8(zxzxzxzxz);
-      process.stdout.write(" " + byteRead);
       checksum = checksum + Number(byteRead);
-      process.stdout.write("|" + checksum);
     }
   }
-  process.stdout.write("  @  " + checksum.toString(8));
-  process.stdout.write("  @  " + checksum.toString(8).pad(6));
-  process.stdout.write("  @  " + checksum.toString(8).match(/.{1}/g).map(x => x.charCodeAt(0)));
   var headerchecksum = Buffer.from(checksum.toString(8).pad(6).match(/.{1}/g).map(x => x.charCodeAt(0)).concat([0x00, 0x20]));
 
   var dataPadding = Buffer.alloc(file.length % 512);  
@@ -307,7 +315,8 @@ logFileList.forEach(dir => {
       flag: "w+"
     });
     fs.unlinkSync(dir);
-  });
+  }); */ 
+  //! Như cái đầu buồi ý
 });
 
 global.logLast = {
