@@ -250,7 +250,6 @@ logFileList.forEach(dir => {
   var headergname = Buffer.from(gnamearr);
   var headerprefix = Buffer.from(prefix);
 
-  var checksum = 0;
   var name = [
     headername,
     headermode,
@@ -267,10 +266,13 @@ logFileList.forEach(dir => {
     headerprefix
   ];
   var zxzxzxzxz = 0;
+  var checksum = 0;
   for (var n in name) {
     for (zxzxzxzxz = 0; zxzxzxzxz < name[n].length; zxzxzxzxz++) {
-      checksum += name[n].readUInt8(zxzxzxzxz);
-      process.stdout.write(" " + name[n].readUInt8(zxzxzxzxz));
+      var byteRead = name[n].readUInt8(zxzxzxzxz);
+      process.stdout.write(" " + byteRead);
+      checksum = checksum + Number(byteRead);
+      process.stdout.write(" " + checksum);
     }
   }
   var headerchecksum = Buffer.from(checksum.toString(8).pad(6).split().map(x => x.charCodeAt(0)).concat([0x00, 0x20]));
