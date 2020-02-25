@@ -11,6 +11,12 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable max-classes-per-file */
 /* eslint dot-location: ["error", "property"] */
+
+String.prototype.pad = function (width, z) {
+  z = z || '0';
+  var n = this.valueOf() + '';
+  return (n.length >= width ? n : (new Array(width - n.length + 1).join(z) + n));
+}
 Number.prototype.pad = function (width, z) {
   z = z || '0';
   var n = this.valueOf() + '';
@@ -191,8 +197,105 @@ function ensureExists(path, mask) {
 ensureExists(path.join(__dirname, "logs"));
 var logFileList = findFromDir(path.join(__dirname, "logs"), /.*\.log$/, true, true);
 logFileList.forEach(dir => {
-  var newdir = dir + ".gz";
-  zlib.gzip(fs.readFileSync(dir), function (error, result) {
+  var newdir = dir.replace(/\.log$/, ".tar.gz");
+  var logname = path.parse(dir).name + ".log";
+  var arr = [];
+  var prefix = [];
+  for (i = 0; i < 100; i++) {
+    if (i < logname.length) {
+      arr.push(logname.charCodeAt(i));
+    } else {
+      arr.push(0);
+    }
+  }
+  for (i = 100; i < 255; i++) {
+    if (i < logname.length) {
+      prefix.push(logname.charCodeAt(i));
+    } else {
+      prefix.push(0);
+    }
+  }
+
+  var file = fs.readFileSync(dir);
+  var headername = Buffer.from(arr);
+  var headermode = Buffer.from([0x30, 0x30, 0x30, 0x30, 0x36, 0x36, 0x36, 0x00]);
+  var headeruid = Buffer.from([0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x00]);
+  var headergid = Buffer.from([0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x00]);
+  var headersize = Buffer.from(((file.length || 1).toString(8).pad(11).match(/.{1}/g).map(x => x.charCodeAt(0))).concat([0x00]));
+  var headermodifiedtime = Buffer.from((Math.round(Date.now() / 1000).toString(8).match(/.{1}/g).map(x => x.charCodeAt(0))).concat([0x00]));
+  //headerchecksum = null
+  var headertypeflag = Buffer.from([0x30]);
+  var headerlinkname = Buffer.alloc(100);
+  var headermagic = Buffer.from("ustar".match(/.{1}/g).map(x => x.charCodeAt(0)).concat([0x00]));
+  var headerversion = Buffer.from([0x30, 0x30]);
+  var uname = "c3cbotroot";
+  var unamearr = [];
+  for (i = 0; i < 32; i++) {
+    if (i < uname.length) {
+      unamearr.push(uname.charCodeAt(i));
+    } else {
+      unamearr.push(0x00);
+    }
+  }
+  var gname = "c3cbotroot";
+  var gnamearr = [];
+  for (i = 0; i < 32; i++) {
+    if (i < gname.length) {
+      gnamearr.push(gname.charCodeAt(i));
+    } else {
+      gnamearr.push(0x00);
+    }
+  }
+  var headeruname = Buffer.from(unamearr);
+  var headergname = Buffer.from(gnamearr);
+  var headerprefix = Buffer.from(prefix);
+
+  var checksum = 0;
+  var name = [
+    headername,
+    headermode,
+    headeruid,
+    headergid,
+    headersize,
+    headermodifiedtime,
+    headertypeflag,
+    headerlinkname,
+    headermagic,
+    headerversion,
+    headeruname,
+    headergname,
+    headerprefix
+  ];
+  var zxzxzxzxz = 0;
+  for (var n in name) {
+    for (zxzxzxzxz = 0; zxzxzxzxz < name[n].length; zxzxzxzxz++) {
+      checksum += name[n].readUInt8(zxzxzxzxz);
+    }
+  }
+  var headerchecksum = Buffer.from(checksum.toString(8).pad(6).split().map(x => x.charCodeAt(0)).concat([0x00, 0x20]));
+
+  var dataPadding = Buffer.alloc(file.length % 512);  
+  var footer = Buffer.alloc(1024);
+
+  zlib.gzip(Buffer.concat([
+    headername,
+    headermode,
+    headeruid,
+    headergid,
+    headersize,
+    headermodifiedtime,
+    headerchecksum,
+    headertypeflag,
+    headerlinkname,
+    headermagic,
+    headerversion,
+    headeruname,
+    headergname,
+    headerprefix,
+    file,
+    dataPadding,
+    footer
+  ]), function (error, result) {
     if (error) return console.log("[NOT LOGGED] Error while compressing " + dir);
     fs.writeFileSync(newdir, result, {
       flag: "w+"
@@ -233,7 +336,7 @@ function log(...message) {
   var lastLogDate = global.logLast.year.pad(4) + "-" + global.logLast.month.pad(2) + "-" + global.logLast.days.pad(2);
   if (currentLogDate != lastLogDate) {
     var times = 0;
-    for (;;) {
+    for (; ;) {
       if (!fs.existsSync(path.join(__dirname, "logs", `log-${currentLogDate}-${times}.gz`)) && !fs.existsSync(path.join(__dirname, "logs", `log-${currentLogDate}-${times}.log`))) {
         break;
       }
@@ -1524,7 +1627,7 @@ if (global.config.enablefb) {
     }
     global.config.fbemail = "<censored, security measures>";
     global.config.fbpassword = "<censored, security measures>";
-    
+
     facebook.deliveryClock = setInterval(function () {
       if (Object.keys(global.deliveryFacebook).length != 0) {
         var form = {};
@@ -1706,7 +1809,7 @@ if (global.config.enablefb) {
               if (global.markAsReadFacebook[message.threadID]) {
                 try {
                   clearTimeout(global.markAsReadFacebook[message.threadID]);
-                } catch (ex) {}
+                } catch (ex) { }
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
                   api.markAsRead(message.threadID, err => {
                     if (err) {
@@ -2172,7 +2275,7 @@ if (global.config.enablefb) {
             case "message_reply":
               !global.deliveryFacebook[message.threadID] ? global.deliveryFacebook[message.threadID] = [] : "";
               global.deliveryFacebook[message.threadID].push(message.messageID);
-              
+
               if (global.config.enableThanosTimeGems) {
                 global.data.messageList[message.messageID] = message;
                 for (var id in global.data.messageList) {
@@ -2192,7 +2295,7 @@ if (global.config.enablefb) {
               if (global.markAsReadFacebook[message.threadID]) {
                 try {
                   clearTimeout(global.markAsReadFacebook[message.threadID]);
-                } catch (ex) {}
+                } catch (ex) { }
                 global.markAsReadFacebook[message.threadID] = setTimeout(function (message) {
                   api.markAsRead(message.threadID, err => {
                     if (err) {
@@ -2803,7 +2906,7 @@ var shutdownHandler = function (errorlevel) {
     try {
       clearInterval(facebook.removePendingClock);
       clearInterval(facebook.deliveryClock);
-    } catch (ex) {}
+    } catch (ex) { }
     log("[Facebook]", "Stopped Facebook listener");
   }
   //Stop Discord listener and destroy Discord client
