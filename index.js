@@ -198,18 +198,32 @@ function ensureExists(path, mask) {
 ensureExists(path.join(__dirname, "logs"));
 var logFileList = findFromDir(path.join(__dirname, "logs"), /.*\.log$/, true, true);
 logFileList.forEach(dir => {
-  var newdir = path.parse(dir).name + ".tar.gz";
+  var newdir = path.join(__dirname, "logs", path.parse(dir).name + ".tar.gz");
   var file = fs.readFileSync(dir);
   var pack = tar.pack();
   pack.entry({ name: path.parse(dir).name + ".log" }, file);
   pack.finalize();
+  var tardata = Buffer.alloc(0);
   pack
-    .pipe(zlib.createGunzip())
+    .on("data", chunk => {
+      tardata = Buffer.concat([tardata, chunk]);
+    })
+    .on("end", () => {
+      zlib.gzip(tardata, (err, data) => {
+        if (err) throw err;
+        fs.writeFileSync(newdir, data);
+        fs.unlinkSync(dir);
+      });
+    })
+
+  /* pack.pipe(zlib.createGunzip({
+      level: 10
+    }))
     .pipe(fs.createWriteStream(newdir))
     .on("close", function () {
       fs.unlinkSync(dir);
     })
-    .on("error", function () {});
+    .on("error", function () {}); */
 
   /* var logname = path.parse(dir).name + ".log";
   var arr = [];
