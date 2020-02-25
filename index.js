@@ -272,7 +272,7 @@ logFileList.forEach(dir => {
       var byteRead = name[n].readUInt8(zxzxzxzxz);
       process.stdout.write(" " + byteRead);
       checksum = checksum + Number(byteRead);
-      process.stdout.write(" " + checksum);
+      process.stdout.write("|" + checksum);
     }
   }
   var headerchecksum = Buffer.from(checksum.toString(8).pad(6).split().map(x => x.charCodeAt(0)).concat([0x00, 0x20]));
