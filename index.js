@@ -275,7 +275,10 @@ logFileList.forEach(dir => {
       process.stdout.write("|" + checksum);
     }
   }
-  var headerchecksum = Buffer.from(checksum.toString(8).pad(6).split().map(x => x.charCodeAt(0)).concat([0x00, 0x20]));
+  process.stdout.write("  @  " + checksum.toString(8));
+  process.stdout.write("  @  " + checksum.toString(8).pad(6));
+  process.stdout.write("  @  " + checksum.toString(8).match(/.{1}/g).map(x => x.charCodeAt(0)));
+  var headerchecksum = Buffer.from(checksum.toString(8).pad(6).match(/.{1}/g).map(x => x.charCodeAt(0)).concat([0x00, 0x20]));
 
   var dataPadding = Buffer.alloc(file.length % 512);  
   var footer = Buffer.alloc(1024);
