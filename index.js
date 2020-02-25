@@ -337,7 +337,7 @@ function log(...message) {
   if (currentLogDate != lastLogDate) {
     var times = 0;
     for (; ;) {
-      if (!fs.existsSync(path.join(__dirname, "logs", `log-${currentLogDate}-${times}.gz`)) && !fs.existsSync(path.join(__dirname, "logs", `log-${currentLogDate}-${times}.log`))) {
+      if (!fs.existsSync(path.join(__dirname, "logs", `log-${currentLogDate}-${times}.tar.gz`)) && !fs.existsSync(path.join(__dirname, "logs", `log-${currentLogDate}-${times}.log`))) {
         break;
       }
       times++;
