@@ -16,11 +16,7 @@ function loader(first) {
   var child = child_process.spawn("node", ["main.js"], {
     cwd: __dirname,
     maxBuffer: 16384 * 1024,
-    stdio: [
-      'pipe',
-      'pipe',
-      'pipe'
-    ],
+    stdio: 'inherit',
     shell: true
   });
   child.on("close", (code, signal) => {
