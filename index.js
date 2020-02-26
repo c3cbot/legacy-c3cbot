@@ -11,6 +11,7 @@ var child_process = require("child_process");
  */
 function loader(first) {
   if (!first) {
+    console.log();
 		console.log(`[Loader] 7378278/RESTART error code found. Restarting...`);
   }
   var child = child_process.spawn("node", ["main.js"], {
@@ -19,14 +20,16 @@ function loader(first) {
     stdio: 'inherit',
     shell: true
   });
-  child.on("close", (code, signal) => {
-    if ((code || signal) == 7378278) {
+  child.on("close", (code) => {
+    if (code == 7378278) {
       return loader(false);
     }
     
-    console.log(`[Loader] main.js throw ${code || signal} (not 7378278/RESTART). Shutting down...`);
+    console.log();
+    console.log(`[Loader] main.js throw ${code} (not 7378278/RESTART). Shutting down...`);
   });
   child.on("error", function (err) {
+    console.log();
     console.log("[Loader] Error:", err);
   })
 }
