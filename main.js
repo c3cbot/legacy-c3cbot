@@ -11,6 +11,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable max-classes-per-file */
 /* eslint dot-location: ["error", "property"] */
+/*eslint linebreak-style: ["error", "unix"]*/
 
 String.prototype.pad = function (width, z) {
   z = z || '0';
