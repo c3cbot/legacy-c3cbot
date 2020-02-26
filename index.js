@@ -17,7 +17,7 @@ while (errorCode === true || errorCode == 7378278) {
       'inherit'
     ]
 	});
-	errorCode = returned.status;
+	errorCode = returned.status || returned.signal;
 }
 
 console.log();
