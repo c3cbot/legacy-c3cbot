@@ -2,12 +2,14 @@
 /* eslint-disable camelcase */
 var child_process = require("child_process");
 
-var errorCode = true;
+var errorCode = 7378278;
+var first = true;
 
-while (errorCode === true || errorCode == 7378278) {
-	if (!(errorCode === true)) {
+while (errorCode == 7378278) {
+	if (!first) {
 		console.log(`[Loader] 7378278/RESTART error code found. Restarting...`);
-	}
+  }
+  first = false;
 	var returned = child_process.spawnSync("node main.js", [], {
 		cwd: __dirname,
 		maxBuffer: 16384 * 1024,
