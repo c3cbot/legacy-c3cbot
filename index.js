@@ -2818,11 +2818,12 @@ if (global.config.enablediscord) {
             return: function returndata(returndata) {
               if (!returndata) return undefined;
               if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                message.reply("\r\n" + prefix + " " + (returndata.data || ""));
+                message.reply((returndata.data || ""), { split: true });
               } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
                 var body = returndata.data.body || "";
                 delete returndata.data.body;
-                message.reply("\r\n" + prefix + " " + body, returndata.data);
+                returndata.data.split = true;
+                message.reply(body, returndata.data);
               }
             }
           }) === true) {
@@ -2881,11 +2882,12 @@ if (global.config.enablediscord) {
                 return: function returndata(returndata) {
                   if (!returndata) return undefined;
                   if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                    message.reply("\r\n" + prefix + " " + (returndata.data || ""));
+                    message.reply((returndata.data || ""), { split: true });
                   } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
                     var body = returndata.data.body || "";
                     delete returndata.data.body;
-                    message.reply("\r\n" + prefix + " " + body, returndata.data);
+                    returndata.data.split = true;
+                    message.reply(body, returndata.data);
                   }
                 }
               });
@@ -2898,12 +2900,12 @@ if (global.config.enablediscord) {
             }
             if (typeof returndata == "object") {
               if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                message.reply("\r\n" + prefix + " " + (returndata.data || ""), { split: true });
+                message.reply((returndata.data || ""), { split: true });
               } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
                 var body = returndata.data.body || "";
                 delete returndata.data.body;
                 returndata.data.split = true;
-                message.reply("\r\n" + prefix + " " + body, returndata.data);
+                message.reply(body, returndata.data);
               }
             } else if (typeof returndata != "undefined") {
               log("[Facebook]", "Received an unknown response from plugin:", returndata);
