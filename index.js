@@ -13,14 +13,15 @@ function loader(first) {
   if (!first) {
 		console.log(`[Loader] 7378278/RESTART error code found. Restarting...`);
   }
-  var child = child_process.spawn("node main.js", [], {
+  var child = child_process.spawn("node", ["main.js"], {
     cwd: __dirname,
     maxBuffer: 16384 * 1024,
     stdio: [
       'pipe',
       'pipe',
       'pipe'
-    ]
+    ],
+    shell: true
   });
   child.on("close", (code, signal) => {
     if ((code || signal) == 7378278) {
