@@ -2841,7 +2841,7 @@ if (global.config.enablediscord) {
         }).map(xy => xy.replace(/"/g, ""));
         if (global.commandMapping[arg[0].substr(1)]) {
           if (!(global.commandMapping[arg[0].substr(1)].compatibly & 2) && global.commandMapping[arg[0].substr(1)].compatibly != 0) {
-            message.reply("\r\n" + prefix + " " + global.lang["UNSUPPORTED_INTERFACE"]);
+            message.reply(global.lang["UNSUPPORTED_INTERFACE"]);
           } else {
             var admin = false;
             for (var no in global.config.admins) {
@@ -2913,7 +2913,7 @@ if (global.config.enablediscord) {
 
           }
         } else {
-          message.reply("\r\n" + prefix + " " + global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix));
+          message.reply(global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix));
         }
       } else {
         log("[Discord]", message.author.id, "(" + message.author.tag + ")", (message.channel instanceof Discord.DMChannel ? "DMed:" : "messaged in channel " + message.channel.id + " (" + message.channel.name + "):"), message.content, (message.attachments.size > 0 ? message.attachments : ""));
