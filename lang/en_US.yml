@@ -6,6 +6,7 @@ HELP_DESC: "A guide to commands in here."
 HELP_OUTPUT_PREFIX: "Command list:"
 PAGE: Page
 RESTART_DESC: "Restart the bot."
+SHUTDOWN_DESC: "Turn off completely the bot."
 INSUFFICIENT_PERM: "Insufficient permission."
 PLUGINS_DESC: "List all plugins installed on this bot."
 PLUGINS_OUTPUT_PREFIX: "Plugin list:"

@@ -464,8 +464,9 @@ var defaultconfig = {
     "FB-0", //Replace 0 with FBID
     "DC-0" //Replace 0 with Discord ID
   ],
-  allowAdminUseRestartCommand: false,
-  allowUserUsePluginsCommand: false,
+  allowAdminUseRestartCommand: true,
+  allowAdminUseShutdownCommand: false,
+  allowUserUsePluginsCommand: true,
   allowUserUseReloadCommand: false,
   language: "en_US",
   enableThanosTimeGems: true, //Anti-Unsend
@@ -1418,12 +1419,37 @@ function loadPlugin() {
   }
   global.commandMapping["help"].args[global.config.language] = global.lang["HELP_ARGS"];
   global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
-  global.commandMapping["shutdown"] = {
+
+  global.commandMapping["restart"] = {
     args: {},
     desc: {},
     scope: function (type, data) {
       if (data.admin && global.config.allowAdminUseRestartCommand) {
-        setTimeout(function () { process.exit(); }, 1000);
+        setTimeout(function () { process.exit(7378278); }, 1000);
+        return {
+          handler: "internal",
+          data: "Restarting..."
+        }
+      } else {
+        return {
+          handler: "internal",
+          data: global.lang["INSUFFICIENT_PERM"]
+        }
+      }
+    },
+    compatibly: 0,
+    handler: "INTERNAL",
+    adminCmd: true
+  }
+  global.commandMapping["restart"].args[global.config.language] = "";
+  global.commandMapping["restart"].desc[global.config.language] = global.lang["RESTART_DESC"];
+
+  global.commandMapping["shutdown"] = {
+    args: {},
+    desc: {},
+    scope: function (type, data) {
+      if (data.admin && global.config.allowAdminUseShutdownCommand) {
+        setTimeout(function () { process.exit(74883696); }, 1000);
         return {
           handler: "internal",
           data: "Shutting down..."
@@ -1439,8 +1465,8 @@ function loadPlugin() {
     handler: "INTERNAL",
     adminCmd: true
   }
-  global.commandMapping["shutdown"].args[global.config.language] = "";
-  global.commandMapping["shutdown"].desc[global.config.language] = global.lang["SHUTDOWN_DESC"];
+  global.commandMapping["restart"].args[global.config.language] = "";
+  global.commandMapping["restart"].desc[global.config.language] = global.lang["SHUTDOWN_DESC"];
 
   global.commandMapping["plugins"] = {
     args: {},
