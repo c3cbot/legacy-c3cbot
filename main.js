@@ -336,7 +336,7 @@
     ],
     facebookProxy: null,
     facebookProxyUseSOCKS: false,
-    portSOCK2HTTP: -1,
+    portSOCK2HTTP: 0,
     addressSOCK2HTTP: "127.0.0.1",
     enablediscord: false,
     discordtoken: "",
@@ -411,23 +411,15 @@
 
   if (global.config.facebookProxyUseSOCKS) {
     var ProxyServer = require("./SOCK2HTTP.js")(log);
-    var tempS2HPortFound = false;
     var sock2httpPort = global.config.portSOCK2HTTP;
     var sock2httpAddress = global.config.addressSOCK2HTTP || "0.0.0.0";
-    if (sock2httpPort == -1) {
-      while (!tempS2HPortFound) {
-        sock2httpPort = random(50000, 65535);
-        // eslint-disable-next-line no-await-in-loop
-        tempS2HPortFound = await checkPort(sock2httpPort, sock2httpAddress);
-      }
-    }
 
     var localSocksProxy = new ProxyServer({
       socks: global.config.facebookProxy
     })
       .listen(sock2httpPort, sock2httpAddress)
       .on("listening", () => {
-        log("[SOCK2HTTP]", `Listening at ${sock2httpAddress}:${sock2httpPort}`);
+        log("[SOCK2HTTP]", `Listening at ${localSocksProxy.address().address}:${localSocksProxy.address().port}`);
       });    
   }
 
