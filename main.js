@@ -723,7 +723,7 @@
   }).listen(0, "127.0.0.1");
   var resolveTFJS = function(){};
   var waitPromise = new Promise(resolve => {
-    TFJS_PROMISE_RESOLVE = resolve;
+    resolveTFJS = resolve;
   });
   TFJS_MODEL_SERVER
     .on("listening", () => {
