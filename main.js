@@ -705,7 +705,7 @@
   while (!tempFinishedNSFWHTTP) {
     nsfwPort = random(50000, 65535);
     // eslint-disable-next-line no-await-in-loop
-    tempFinishedNSFWHTTP = await checkPort(port, "127.0.0.1");
+    tempFinishedNSFWHTTP = await checkPort(nsfwPort, "127.0.0.1");
   }
 
   log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
