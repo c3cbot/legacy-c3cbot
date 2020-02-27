@@ -2781,4 +2781,4 @@
   rl.on('SIGTERM', function () { process.emit('SIGTERM'); });
   rl.on('SIGINT', function () { process.emit('SIGINT'); });
   process.on('exit', shutdownHandler);
-})();
+}).call(this);
