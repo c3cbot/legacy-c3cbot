@@ -6,9 +6,10 @@ var fs = require("fs");
 var util = require("util");
 
 module.exports = function (log) {
-    class ProxyServer {
+    class ProxyServer extends http.Server {
         constructor(options) {
-            http.Server.call(this, () => { });
+            super();
+            //http.Server.call(this, () => { });
             this.proxyList = [];
             if (options.socks) {
                 // stand alone proxy loging

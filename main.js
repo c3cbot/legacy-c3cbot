@@ -423,7 +423,11 @@
 
     var localSocksProxy = new ProxyServer({
       socks: global.config.facebookProxy
-    }).listen(sock2httpPort, sock2httpAddress);    
+    })
+      .listen(sock2httpPort, sock2httpAddress)
+      .on("listening", () => {
+        log("[SOCK2HTTP]", `Listening at ${sock2httpAddress}:${sock2httpPort}`);
+      });    
   }
 
   /**
@@ -696,9 +700,16 @@
   }, 10000, testmode, log);
 
   //* NSFW detection API load
+  var tempFinishedNSFWHTTP = false;
+  var nsfwPort = null;
+  while (!tempFinishedNSFWHTTP) {
+    nsfwPort = random(50000, 65535);
+    // eslint-disable-next-line no-await-in-loop
+    tempFinishedNSFWHTTP = await checkPort(port, "127.0.0.1");
+  }
+
   log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
   var NSFWJS_MODEL_PROCESSES = new Worker(() => {
-    var wait = require("wait-for-stuff");
     onmessage = function (evn) {
       if (evn.data.type == "close") {
         self.NSFWJS_MODEL_SERVER.close(function () {
@@ -709,6 +720,7 @@
         var small = evn.data.small;
         var http = require("http");
         var fs = require("fs");
+        var port = evn.data.port;
         self.NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
           if (fs.existsSync(dirname + "/nsfwjs-models" + (small ? "-small" : "") + req.url)) {
             res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -718,7 +730,7 @@
             res.write('404 FILE NOT FOUND');
             res.end();
           }
-        }).listen(2812, "127.0.0.1");
+        }).listen(port, "127.0.0.1");
       }
     }
   });
@@ -736,7 +748,8 @@
   NSFWJS_MODEL_PROCESSES.postMessage({
     type: "dirname",
     data: __dirname,
-    small: global.config.nsfwjsSmallModel
+    small: global.config.nsfwjsSmallModel,
+    port: nsfwPort
   });
 
   function cpuAverage() {
@@ -1013,7 +1026,7 @@
                   "[" + plname + "]"
                 ].concat(message));
               }
-            })
+            });
           }
           global.loadedPlugins[plname] = {
             author: pltemp1[plname].author,
