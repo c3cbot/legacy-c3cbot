@@ -328,7 +328,7 @@
     usefbappstate: true,
     fbemail: "",
     fbpassword: "",
-    fbuseragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36",
+    fbuseragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.116 Safari/537.36",
     fblistenwhitelist: false,
     fblisten: [
       "0" //Replace 0 with FB Thread ID
