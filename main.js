@@ -1,3 +1,4 @@
+/* eslint-disable require-atomic-updates */
 /* eslint-disable array-element-newline */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-warning-comments */
@@ -700,16 +701,34 @@
   }, 10000, testmode, log);
 
   //* NSFW detection API load
-  var tempFinishedNSFWHTTP = false;
-  var nsfwPort = null;
-  while (!tempFinishedNSFWHTTP) {
+  /* while (!tempFinishedNSFWHTTP) {
     nsfwPort = random(50000, 65535);
-    // eslint-disable-next-line no-await-in-loop
     tempFinishedNSFWHTTP = await checkPort(nsfwPort, "127.0.0.1");
-  }
-
-  log("[INTERNAL]", "Starting HTTP server at port 2812... (serving NSFWJS model through HTTP)");
-  var NSFWJS_MODEL_PROCESSES = new Worker(() => {
+  } */
+  var TFJS_MODEL_SERVER = http.createServer((req, res) => {
+    if (fs.existsSync(path.join(__dirname, `nsfwjs-models${config.nsfwjsSmallModel ? "-small" : ""}`, path.resolve("/", req.url)))) {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      fs.createReadStream(path.join(__dirname, `nsfwjs-models${config.nsfwjsSmallModel ? "-small" : ""}`, path.resolve("/", req.url))).pipe(res, { end: true });
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.write(`404 Not found.\r\n\r\nC3CBot ${version}`);
+      res.end();
+    }
+  }).listen(0, "127.0.0.1");
+  var resolveTFJS = function(){};
+  var waitPromise = new Promise(resolve => {
+    TFJS_PROMISE_RESOLVE = resolve;
+  });
+  TFJS_MODEL_SERVER
+    .on("listening", () => {
+      resolveTFJS(server.address().port);
+    })
+    .on("error", err => {
+      log("[TFJS-MODEL-HTTP]", err);
+    });
+  var tfjsPort = await waitPromise;
+  log("[TFJS-MODEL-HTTP]", `Listening at localhost:${tfjsPort}`)
+  /* var NSFWJS_MODEL_PROCESSES = new Worker(() => {
     onmessage = function (evn) {
       if (evn.data.type == "close") {
         self.NSFWJS_MODEL_SERVER.close(function () {
@@ -730,7 +749,7 @@
             res.write('404 FILE NOT FOUND');
             res.end();
           }
-        }).listen(port, "127.0.0.1");
+        }).listen(0, "127.0.0.1");
       }
     }
   });
@@ -750,7 +769,7 @@
     data: __dirname,
     small: global.config.nsfwjsSmallModel,
     port: nsfwPort
-  });
+  }); */
 
   function cpuAverage() {
     var totalIdle = 0,
@@ -1920,7 +1939,7 @@
                         onmessage = function (event) {
                           var wait = require("wait-for-stuff");
                           try {
-                            var NSFWJS = wait.for.promise(require("nsfwjs").load("http://127.0.0.1:2812/", { size: (event.data.small ? 224 : 299) }));
+                            var NSFWJS = wait.for.promise(require("nsfwjs").load(`http://127.0.0.1:${tfjsPort}/`, { size: (event.data.small ? 224 : 299) }));
                           } catch (ex) {
                             var NSFWJS = wait.for.promise(require("nsfwjs").load("https://lequanglam.github.io/nsfwjs-model/", { size: 299 }));
                           }
