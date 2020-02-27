@@ -727,7 +727,7 @@
   });
   TFJS_MODEL_SERVER
     .on("listening", () => {
-      resolveTFJS(server.address().port);
+      resolveTFJS(TFJS_MODEL_SERVER.address().port);
     })
     .on("error", err => {
       log("[TFJS-MODEL-HTTP]", err);
