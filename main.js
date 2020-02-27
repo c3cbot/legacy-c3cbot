@@ -411,16 +411,30 @@
 
   if (global.config.facebookProxyUseSOCKS) {
     var ProxyServer = require("./SOCK2HTTP.js")(log);
-    var sock2httpPort = global.config.portSOCK2HTTP;
-    var sock2httpAddress = global.config.addressSOCK2HTTP || "0.0.0.0";
+
+    var fS2HResolve = function(){}
+    var S2HPromise = new Promise(resolve => {
+      fS2HResolve = resolve;
+    });
 
     var localSocksProxy = new ProxyServer({
       socks: global.config.facebookProxy
     })
-      .listen(sock2httpPort, sock2httpAddress)
+      .listen(global.config.portSOCK2HTTP, global.config.addressSOCK2HTTP || "0.0.0.0")
       .on("listening", () => {
         log("[SOCK2HTTP]", `Listening at ${localSocksProxy.address().address}:${localSocksProxy.address().port}`);
-      });    
+        fS2HResolve({
+          address: localSocksProxy.address().address,
+          port: localSocksProxy.address().port
+        })
+      })
+      .on("error", err => {
+        log("[SOCK2HTTP]", err);
+      });
+    
+    var S2HResponse = await S2HPromise;
+    var sock2httpPort = S2HResponse.port;
+    var sock2httpAddress = S2HResponse.address;
   }
 
   /**
