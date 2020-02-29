@@ -1,4 +1,4 @@
-var semver = require("node-semver");
+var semver = require("semver");
 var currVersion = require("./package.json").version;
 var syncrequest = require("sync-request");
 var childProcess = require("child_process");
