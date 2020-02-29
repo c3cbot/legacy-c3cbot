@@ -2431,7 +2431,7 @@ if (global.config.enablefb) {
         log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (12 hours clock)");
       }
       if (typeof facebook.listener == "function") {
-        facebook.listener();
+        facebook.listener.stopListening();
         log("[Facebook]", "Stopped Facebook listener");
         temporaryAppState = facebook.api.getAppState();
       }
@@ -2926,11 +2926,6 @@ var shutdownHandler = function (errorlevel) {
     client.destroy();
     log("[Discord]", "Logged out and destroyed client.");
   }
-  //Logout if don't use appstates
-  if (!global.config.usefbappstate && facebook.api) {
-    facebook.api.logout();
-    log("[Facebook]", "Logged out");
-  }
   //Stop auto-saving
   try {
     clearInterval(autosave);
@@ -2947,7 +2942,13 @@ var shutdownHandler = function (errorlevel) {
   } else {
     fs.writeFileSync(path.join(__dirname, "data.json"), JSON.stringify(global.data, null, 4));
   }
-  log("[INTERNAL]", "Saved data");
+  log("[INTERNAL]", "Saved data.");
+
+  //Logout if don't use appstates
+  if (!global.config.usefbappstate && typeof facebook.api == "object" && typeof facebook.api.logout == "function") {
+    var err = wait.for.callback(facebook.api.logout);
+    log("[Facebook]", "Logged out.", err);
+  }
 
   //Close SSH connections
   for (var conn in global.sshstream) {
