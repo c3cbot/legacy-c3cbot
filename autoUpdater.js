@@ -12,10 +12,10 @@ var gitCheck = childProcess.spawnSync("git", [
     "--is-inside-work-tree"
 ], {
     shell: true,
-    stdio: "ignore",
+    stdio: "inherit",
     cwd: __dirname
 });
-var gitCheckX = (!gitCheck.error ? gitCheck.stdout.toString() == "true" : false);
+var gitCheckX = (!gitCheck.error ? gitCheck.stdout.toString("utf8") == "true" : false);
 
 module.exports = {
     checkForUpdate: function checkForUpdate() {
@@ -28,7 +28,7 @@ module.exports = {
                     "HEAD"
                 ], {
                     shell: true,
-                    stdio: "ignore",
+                    stdio: "inherit",
                     cwd: __dirname
                 }).stdout.toString("utf8");
                 var githubHash = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/ref/heads/master", {
@@ -82,13 +82,13 @@ module.exports = {
             latestRelease = "latest";
             var gitProcess = childProcess.spawn("git", ["stash"], {
                 shell: true,
-                stdio: "ignore",
+                stdio: "inherit",
                 cwd: __dirname
             });
             gitProcess.on("close", function () {
                 var gitProcessX = childProcess.spawn("git", ["pull"], {
                     shell: true,
-                    stdio: "ignore",
+                    stdio: "inherit",
                     cwd: __dirname
                 });
                 gitProcessX.on("close", function (code) {
@@ -97,7 +97,7 @@ module.exports = {
                     }
                     var npmProcess = childProcess.spawn("npm", ["install"], {
                         shell: true,
-                        stdio: "ignore",
+                        stdio: "inherit",
                         cwd: __dirname
                     });
                     npmProcess.on("close", function (code) {
@@ -145,7 +145,7 @@ module.exports = {
                                 }
                                 var npmProcess = childProcess.spawn("npm", ["install"], {
                                     shell: true,
-                                    stdio: "ignore",
+                                    stdio: "inherit",
                                     cwd: __dirname
                                 });
                                 npmProcess.on("close", function (code) {
