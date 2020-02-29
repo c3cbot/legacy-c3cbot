@@ -2971,6 +2971,7 @@ var shutdownHandler = function (errorlevel) {
 
   log("[INTERNAL]", "Closing bot with code " + errorlevel + "..." + "\x1b[m\r\n");
   rl.setPrompt("\x1b[m");
+  console.log();
 }
 //Handle SIGINT and SIGTERM
 var signalHandler = function (signal) {
