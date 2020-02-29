@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable camelcase */
-var child_process = require("child_process");
+var childProcess = require("child_process");
 
 /**
  * C3CLoader Function
@@ -14,7 +13,7 @@ function loader(first) {
     console.log();
 		console.log(`[Loader] 7378278/RESTART error code found. Restarting...`);
   }
-  var child = child_process.spawn("node", ["main.js"], {
+  var child = childProcess.spawn("node", ["main.js"], {
     cwd: __dirname,
     maxBuffer: 16384 * 1024,
     stdio: 'inherit',

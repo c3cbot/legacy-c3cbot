@@ -372,6 +372,7 @@ var defaultconfig = {
   nsfwjsSmallModel: true, //! DO NOT SET THIS TO FALSE UNLESS YOU HAVE A BEEFY SERVER!
   commandPrefix: "/",
   autoRestartTimerMinutes: 50,
+  autoUpdate: true,
   configVersion: 1
 }
 
@@ -875,6 +876,26 @@ function requireFromString(src, filename) {
   var m = new Module();
   m._compile(src, filename);
   return m.exports;
+}
+
+//Auto updater
+var autoUpdater = require("./autoUpdater.js");
+var newUpdate = autoUpdater.checkForUpdate();
+log("[Updater]", `You are using build ${newUpdate.currVersion}, and ${newUpdate.newUpdate ? "there is a new build (" + newUpdate.version + ")" : "there are no new build."}`);
+if (newUpdate.newUpdate && global.config.autoUpdate) {
+  log("[Updater]", `Downloading build ${newUpdate.version}...`)
+  autoUpdater.installUpdate()
+    .then(function (success, value) {
+      if (success) {
+        log("[Updater]", `Updated with ${value} entries extracted. Triggering restart...`);
+        process.exit(7378278);
+      } else {
+        log("[Updater]", "Failed to install new build:", value);
+      }
+    })
+    .catch(function (ex) {
+      log("[Updater]", "Failed to install new build:", ex);
+    });
 }
 
 //Plugin Load
