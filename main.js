@@ -2972,6 +2972,10 @@ var shutdownHandler = function (errorlevel) {
     log("[Facebook]", "Logged out.", err);
   }
 
+  if (!facebookloggedIn) {
+    fs.unlinkSync(path.join(__dirname, "fbstate.json"));
+  }
+
   //Close SSH connections
   for (var conn in global.sshstream) {
     try {
