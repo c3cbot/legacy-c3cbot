@@ -1092,6 +1092,56 @@ function loadPlugin() {
     }
   }
 
+  global.commandMapping["updatebot"] = {
+    args: {},
+    desc: {},
+    scope: function (type, data) {
+      if (data.admin) {
+        var newUpdate = autoUpdater.checkForUpdate();
+        log("[Updater]", `You are using build ${newUpdate.currVersion}, and ${newUpdate.newUpdate ? "there is a new build (" + newUpdate.version + ")" : "there are no new build."}`);
+        data.return({
+          data: `Current build: ${newUpdate.currVersion}\r\nLatest build: ${newUpdate.version}.${newUpdate.newUpdate ? "\r\nUpdating..." : ""}`,
+          handler: "internal"
+        });
+        if (newUpdate.newUpdate) {
+          log("[Updater]", `Downloading build ${newUpdate.version}...`)
+          autoUpdater.installUpdate()
+            .then(function (success, value) {
+              if (success) {
+                log("[Updater]", `Updated with ${value} entries extracted. Triggering restart...`);
+                data.return({
+                  handler: "internal",
+                  data: "Extracted files. Restarting..."
+                });
+                setTimeout(() => process.exit(7378278), 1000);
+              } else {
+                log("[Updater]", "Failed to install new build:", value);
+                data.return({
+                  handler: "internal",
+                  data: "Failed to install new build: " + value
+                });
+              }
+            })
+            .catch(function (ex) {
+              log("[Updater]", "Failed to install new build:", ex);
+              data.return({
+                handler: "internal",
+                data: "Failed to install new build: " + ex
+              });
+            });
+        }
+      } else {
+        return {
+          handler: "internal",
+          data: global.lang["INSUFFICIENT_PERM"]
+        }
+      }
+    },
+    compatibly: 0,
+    handler: "INTERNAL",
+    adminCmd: true
+  }
+
   global.commandMapping["version"] = {
     args: {},
     desc: {},
@@ -1884,9 +1934,9 @@ if (global.config.enablefb) {
                                 if (err) {
                                   log("[Facebook] Errored while sending response:", err);
                                   if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                        log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                        process.exit(7378278);
-                      }
+                                    log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+                                    process.exit(7378278);
+                                  }
                                 }
                               }, message.messageID, message.isGroup);
                               endTyping();
