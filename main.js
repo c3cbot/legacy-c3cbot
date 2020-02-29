@@ -124,6 +124,9 @@ global.sshcurrsession = {};
 global.sshstream = {};
 global.nsfwjsdata = {};
 
+//! Changing this process's priority
+os.setPriority(os.constants.priority.PRIORITY_HIGH);
+
 /**
  * Find every file in a directory
  *
