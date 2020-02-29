@@ -108,6 +108,7 @@ var net = require('net');
 var zlib = require("zlib");
 var tar = require("tar-stream");
 const readline = require('readline');
+var speakeasy = require("speakeasy"); //2FA
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -327,6 +328,7 @@ var defaultconfig = {
   usefbappstate: true,
   fbemail: "",
   fbpassword: "",
+  fb2fasecret: "BASE32OFSECRETKEY",
   fbuseragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.116 Safari/537.36",
   fblistenwhitelist: false,
   fblisten: [
@@ -1053,7 +1055,8 @@ function loadPlugin() {
         }
         global.loadedPlugins[plname] = {
           author: pltemp1[plname].author,
-          version: pltemp1[plname].version
+          version: pltemp1[plname].version,
+          onUnload: global.plugins[pltemp1[plname]["plugin_scope"]].onUnload
         }
         log("[INTERNAL]", "Loaded", plname, pltemp1[plname].version, "by", pltemp1[plname].author);
       } catch (ex) {
@@ -1385,6 +1388,13 @@ function loadPlugin() {
 }
 function unloadPlugin() {
   for (var name in global.loadedPlugins) {
+    if (typeof global.loadedPlugins[name].onUnload == "function") {
+      try {
+        global.loadedPlugins[name].onUnload();
+      } catch (ex) {
+        log("[INTERNAL]", `Error while executing ${name}.onUnload: ${ex}`);
+      }
+    }
     for (var cmd in global.commandMapping) {
       if (global.commandMapping[cmd].handler == name) {
         delete global.commandMapping[cmd];
@@ -1406,14 +1416,32 @@ loadPlugin();
 
 var client = {};
 var facebook = {};
+var tried2FA = false;
 if (global.config.enablefb) {
   global.markAsReadFacebook = {};
   global.deliveryFacebook = {};
   facebookcb = function callback(err, api) {
     if (err) {
-      facebook.error = err;
-      log("[Facebook]", err);
-      log("[Facebook]", "Error saved to 'facebook.error'.");
+      if (err.error == "login-approval") {
+        facebook.error = err;
+        log("[Facebook]", "Login approval detected. You can verify it manually by using 'facebook.error.continue([code])'.");
+        if (global.config.fb2fasecret != "BASE32OFSECRETKEY") {
+          tried2FA = true;
+          log("[Facebook]", "Attempting to verify using 2FA secret in config...");
+          var key2fa = global.config.fb2fasecret.replace(/ /g, "");
+          var verifycode = speakeasy.totp({
+            secret: key2fa,
+            encoding: 'base32'
+          });
+          facebook.error.continue(verifycode);
+        }
+      } else {
+        log("[Facebook]", err);
+        if (!tried2FA) {
+          facebook.error = err;
+          log("[Facebook]", "Error saved to 'facebook.error'.");
+        }
+      }
       return null;
     } else {
       facebook.error = null;
@@ -2756,7 +2784,7 @@ var shutdownHandler = function (errorlevel) {
   }
 
   //Stop model server
-  NSFWJS_MODEL_PROCESSES.stop();
+  TFJS_MODEL_SERVER.close();
   log("[INTERNAL]", "Closed local HTTP Model Server.");
 
   //Stop local SOCK2HTTP
@@ -2774,9 +2802,9 @@ var signalHandler = function (signal) {
   process.exit();
 }
 
-process.on('SIGTERM', function () { signalHandler("SIGTERM"); }); //Ctrl+C but not on Windows?
+process.on('SIGTERM', () => signalHandler("SIGTERM")); //Ctrl+C but not on Windows?
 process.on('SIGINT', function () { signalHandler("SIGINT"); }); //Ctrl+C?
 process.on('SIGHUP', function () { signalHandler("SIGHUP"); }); //Windows Command Prompt close button?
-rl.on('SIGTERM', function () { process.emit('SIGTERM'); });
-rl.on('SIGINT', function () { process.emit('SIGINT'); });
+rl.on('SIGTERM', () => process.emit('SIGINT'));
+rl.on('SIGINT', () => process.emit('SIGINT'));
 process.on('exit', shutdownHandler);
