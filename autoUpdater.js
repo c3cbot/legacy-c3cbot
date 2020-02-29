@@ -30,7 +30,7 @@ module.exports = {
                     shell: true,
                     stdio: "pipe",
                     cwd: __dirname
-                }).stdout.toString("utf8");
+                }).stdout.toString("utf8").replace(/\r/g, "").replace(/\n/g, "");
                 var githubHash = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/ref/heads/master", {
                     headers: {
                         "User-Agent": `C3CBot/${currVersion} request/0.0-sync`,
