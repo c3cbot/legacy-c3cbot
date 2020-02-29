@@ -1424,7 +1424,7 @@ if (global.config.enablefb) {
     if (err) {
       if (err.error == "login-approval") {
         facebook.error = err;
-        log("[Facebook]", "Login approval detected. You can verify it manually by using 'facebook.error.continue([code])'.");
+        log("[Facebook]", "Login approval detected. You can verify it manually by using 'facebook.error.continue(your_code)'.");
         if (global.config.fb2fasecret != "BASE32OFSECRETKEY") {
           tried2FA = true;
           log("[Facebook]", "Attempting to verify using 2FA secret in config...");
@@ -1445,6 +1445,9 @@ if (global.config.enablefb) {
       return null;
     } else {
       facebook.error = null;
+    }
+    if (tried2FA) {
+      log("[Facebook]", "Verified using 2FA secret in config.")
     }
 
     log("[Facebook]", "Logged in.");
