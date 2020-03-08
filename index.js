@@ -20,7 +20,9 @@ function loader(first) {
     shell: true
   });
   child.on("close", (code) => {
-    if (code == 7378278) {
+    //UNIX, why? (limited to 8-bit)
+    //Original code: 7378278
+    if (code % 256 == 102) {
       return loader(false);
     }
     
