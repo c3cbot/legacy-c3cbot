@@ -965,8 +965,8 @@ function loadPlugin() {
       }
       if (typeof plinfo["node_depends"] == "object") {
         for (var nid in plinfo["node_depends"]) {
+          var defaultmodule = require("module").builtinModules;
           try {
-            var defaultmodule = require("module").builtinModules;
             if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
               global.nodemodule[nid] = require(nid);
             } else {
@@ -984,7 +984,7 @@ function loadPlugin() {
               cwd: path.join(__dirname, "plugins")
             });
             try {
-              var defaultmodule = require("module").builtinModules;
+              require.cache = {};
               if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
                 global.nodemodule[nid] = require(nid);
               } else {
@@ -2972,6 +2972,7 @@ var shutdownHandler = function (errorlevel) {
     log("[Facebook]", "Logged out.", err);
   }
 
+  //Delete appstate if not logged in
   if (!facebookloggedIn) {
     fs.unlinkSync(path.join(__dirname, "fbstate.json"));
   }
