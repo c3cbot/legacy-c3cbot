@@ -983,6 +983,7 @@ function loadPlugin() {
               stdio: "ignore",
               cwd: path.join(__dirname, "plugins")
             });
+            wait.for.promise(new Promise(x => setTimeout(x, 250)));
             try {
               require.cache = {};
               if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
