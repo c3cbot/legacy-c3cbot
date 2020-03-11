@@ -216,7 +216,7 @@ logFileList.forEach(dir => {
     .on("end", () => {
       zlib.gzip(tardata, (err, data) => {
         if (err) throw err;
-        fs.writeFileSync(newdir, data);
+        fs.writeFileSync(newdir, data, { mode: 0o666 });
         fs.unlinkSync(dir);
       });
     })
@@ -392,12 +392,12 @@ global.config = fs.existsSync(path.join(__dirname, "config.json")) ? (function (
       log("[INTERNAL]", "Deleted ", configName, "in config file. (unused)");
     }
   }
-  fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(readedConfig, null, 4));
+  fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(readedConfig, null, 4), { mode: 0o666 });
   return readedConfig;
 })() : (function () {
   log("[INTERNAL]", "Config file not found. Creating a default one...");
   try {
-    fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(defaultconfig, null, 4));
+    fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(defaultconfig, null, 4), { mode: 0o666 });
   } catch (ex) {
     log("[INTERNAL]", "Cannot write default config, returned an error: ", ex);
   }
@@ -695,10 +695,10 @@ var autosave = setInterval(function (testmode, log) {
     global.isDataSaving = true;
     try {
       if (testmode) {
-        fs.writeFileSync(path.join(__dirname, "data-test-temp.json"), JSON.stringify(global.data, null, 4));
+        fs.writeFileSync(path.join(__dirname, "data-test-temp.json"), JSON.stringify(global.data, null, 4), { mode: 0o666 });
         fs.renameSync(path.join(__dirname, "data-test-temp.json"), path.join(__dirname, "data-test.json"));
       } else {
-        fs.writeFileSync(path.join(__dirname, "data-temp.json"), JSON.stringify(global.data, null, 4));
+        fs.writeFileSync(path.join(__dirname, "data-temp.json"), JSON.stringify(global.data, null, 4), { mode: 0o666 });
         fs.renameSync(path.join(__dirname, "data-temp.json"), path.join(__dirname, "data.json"));
       }
     } catch (err) {
@@ -1535,7 +1535,7 @@ if (global.config.enablefb) {
     facebook.api = api;
     if (global.config.usefbappstate) {
       try {
-        fs.writeFileSync(path.join(__dirname, "fbstate.json"), JSON.stringify(api.getAppState()));
+        fs.writeFileSync(path.join(__dirname, "fbstate.json"), JSON.stringify(api.getAppState()), { mode: 0o666 });
       } catch (ex) {
         log("[INTERNAL]", ex);
       }
@@ -2282,7 +2282,7 @@ if (global.config.enablefb) {
                 } else {
                   log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "deleted a message in " + message.threadID + " (" + message.messageID + ") but we have data: ", global.data.messageList[message.messageID]);
                 }
-                fs.writeFileSync(path.join(__dirname, "deletedmsg/") + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4));
+                fs.writeFileSync(path.join(__dirname, "deletedmsg/") + message.messageID, JSON.stringify(global.data.messageList[message.messageID], null, 4), { mode: 0o666 });
                 for (var id in global.data.messageList) {
                   if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date()).getTime()) {
                     delete global.data.messageList[id];
@@ -2307,7 +2307,7 @@ if (global.config.enablefb) {
               if (message.messageReply) {
                 for (var xzxz in message.messageReply.attachments) {
                   if (message.messageReply.attachments[xzxz].error) {
-                    fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
+                    fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4), { mode: 0o666 });
                   }
                 }
               }
@@ -2407,7 +2407,7 @@ if (global.config.enablefb) {
                 log("[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")", "replied to", message.messageReply.senderID, "at", message.threadID + ":", message.body, str);
               } catch (ex) {
                 log("[Facebook] ERROR on replymsg", message);
-                fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4));
+                fs.writeFileSync(path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"), JSON.stringify(message, null, 4), { mode: 0o666 });
               }
               break;
             default:
@@ -2961,9 +2961,9 @@ var shutdownHandler = function (errorlevel) {
 
   //Save for the last time
   if (testmode) {
-    fs.writeFileSync(path.join(__dirname, "data-test.json"), JSON.stringify(global.data, null, 4));
+    fs.writeFileSync(path.join(__dirname, "data-test.json"), JSON.stringify(global.data, null, 4), { mode: 0o666 });
   } else {
-    fs.writeFileSync(path.join(__dirname, "data.json"), JSON.stringify(global.data, null, 4));
+    fs.writeFileSync(path.join(__dirname, "data.json"), JSON.stringify(global.data, null, 4), { mode: 0o666 });
   }
   log("[INTERNAL]", "Saved data.");
 
