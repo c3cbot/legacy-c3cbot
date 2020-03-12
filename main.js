@@ -966,15 +966,11 @@ function loadPlugin() {
       if (typeof plinfo["node_depends"] == "object") {
         for (var nid in plinfo["node_depends"]) {
           var defaultmodule = require("module").builtinModules;
+          var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
           try {
             if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
               global.nodemodule[nid] = require(nid);
             } else {
-              var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
-              //var packagejson = require(path.join(moduledir, "package.json"));
-              //global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
-              //  encoding: "utf8"
-              //}), moduledir);
               global.nodemodule[nid] = require(moduledir);
             }
           } catch (ex) {
@@ -983,17 +979,12 @@ function loadPlugin() {
               stdio: "ignore",
               cwd: path.join(__dirname, "plugins")
             });
-            wait.for.promise(new Promise(x => setTimeout(x, 250)));
+            wait.for.promise(new Promise(x => setTimeout(x, 1000)));
             try {
               require.cache = {};
               if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
                 global.nodemodule[nid] = require(nid);
               } else {
-                var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
-                //var packagejson = require(path.join(moduledir, "package.json"));
-                //global.nodemodule[nid] = requireFromString(fs.readFileSync(path.resolve(moduledir, packagejson.main), {
-                //  encoding: "utf8"
-                //}), path.resolve(moduledir, packagejson.main));
                 global.nodemodule[nid] = require(moduledir);
               }
             } catch (ex) {
