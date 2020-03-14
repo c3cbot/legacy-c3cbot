@@ -4,13 +4,30 @@
 
 A bot that can be customized using plugins. Currently supports Facebook Messenger (using fca-unofficial, a repo forked from facebook-chat-api and maintained by me) and Discord (using discord.js)
 
+## Before you install
+Make sure you have Administrator/root permission on your terminal, otherwise you can't start bot. (reason: process priority).
+Also you need to install (first => last):
+1. Node.JS 12+ (of course because this thing was writen in JS) (download link <a href="#Download">here</a>)
+2. Xcode (if you are using macOS)
+3. Python 2/3 (Windows users can install this using `npm i windows-build-tools`, macOS doesn't need this because Xcode installed it)
+4. Visual C++ Build Tools (Windows users only, use `npm i windows-build-tools` to install this)
+
+
+List of supported/tested OS:
+- Windows 7 => 10 (x86)
+- Windows 7 => 10 (x64)
+- macOS 10.13+ (warning: lower version is not tested!)
+- Ubuntu 18+ (x86/x64)
+- Other Linux distro (x86/x64/ARM/... as long as Node supports that platform)
+
+OS that are currently testing:
+- iPhoneOS (jailbroken)
+- Android (rooted)
+
+Notice for Ubuntu users: Please add `sudo` before every commands.
+
 ## Install
-Install Node.JS (version 10 \<for 0.3.0 or lower\>, 12 or 13 \<for 0.3.1 or higher\>; download link <a href="#Download">here</a>) and Git if you don't have one. 
-If you're using Windows, you need to open command prompt and type this command:
-```bash
-npm install -g windows-build-tools
-```
-Download latest version (version 0.3.4, as of 22/02/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.4.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted, then type: 
+Download latest version (version 0.3.4, as of 22/02/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.4.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
 ```bash
 npm install
 ``` 
@@ -33,6 +50,7 @@ After that, you can run that command again and bot will go live.
 - YT2MP3 (`/plugins/YT2MP3.z3p`) => Convert youtube links to MP3.
 - DenyCommand (`/plugins/DenyCommand.z3p`) => Allow admins (operators) to disable some commands.
 - eXPerienceChat (`/plugins/eXPerienceChat.z3p`) => Add XP ranking system.
+
 ## Libraries (as plugins)
 - LibBetterRandom (`/plugins/LibBetterRandom.z3p`) => Implent Mersenne Twister random algorithim for other plugins to be used. Currently used by `Economy-Income` and `Economy-Gambling`
 
