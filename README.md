@@ -24,7 +24,7 @@ OS that are currently testing:
 - iPhoneOS (jailbroken)
 - Android (rooted)
 
-Notice for Ubuntu users: Please add `sudo` before every commands.
+Notice for Ubuntu & macOS users: Please add `sudo` before every commands.
 
 ## Install
 Download latest version (version 0.3.4, as of 22/02/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.4.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
