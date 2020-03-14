@@ -1085,6 +1085,21 @@ function loadPlugin() {
     }
   }
 
+  global.commandMapping["systeminfo"] = {
+    args: {},
+    desc: "Show system info",
+    scope: function (type, data) {
+      var uptime = os.uptime();
+      var utdate = new Date(uptime);
+      return {
+        handler: "internal",
+        data: `System info:\r\n- CPU arch: ${os.arch()}\r\n- OS type: ${os.type()} (Platform: ${os.platform()})\r\n- OS version: ${os.release()}\r\n- Uptime: ${(uptime / 3600 / 24).floor(0).pad(2)}:${utdate.getUTCHours().pad(2)}:${utdate.getUTCMinutes().pad(2)}:${utdate.getUTCSeconds().pad(2)}\r\n- Total memory: ${os.totalmem() / 1048576} MB`
+      }
+    },
+    compatibly: 0,
+    handler: "INTERNAL"
+  }
+
   global.commandMapping["updatebot"] = {
     args: {},
     desc: {},
