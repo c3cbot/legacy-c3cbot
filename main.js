@@ -1512,8 +1512,9 @@ function unloadPlugin() {
   }
 }
 
-//Load plugin (Async)
-setTimeout(loadPlugin, 0);
+//Load plugin
+//Async loading is a bad idea
+loadPlugin();
 
 var client = {};
 var facebook = {};
