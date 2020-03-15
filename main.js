@@ -975,20 +975,31 @@ function loadPlugin() {
             }
           } catch (ex) {
             log("[INTERNAL]", pluginFileList[n], "is requiring node modules named", nid, "but it isn't installed. Attempting to install it through npm package manager...");
-            childProcess.execSync("npm i " + nid + (plinfo["node_depends"][nid] == "*" || plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])), {
+            var { status } = childProcess.spawnSync("npm i " + nid + (plinfo["node_depends"][nid] == "*" || plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])), {
               stdio: "ignore",
               cwd: path.join(__dirname, "plugins")
             });
-            wait.for.promise(new Promise(x => setTimeout(x, 1000)));
-            try {
-              require.cache = {};
-              if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
-                global.nodemodule[nid] = require(nid);
-              } else {
-                global.nodemodule[nid] = require(moduledir);
+            if (status == 0) {
+              //Loading 3 more times before drop that plugins
+              var moduleLoadTime = 0;
+              var exception = "";
+              for (moduleLoadTime = 1; moduleLoadTime <= 3; moduleLoadTime++) {
+                wait.for.promise(new Promise(x => setTimeout(x, 200)));
+                require.cache = {};
+                try {
+                  if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
+                    global.nodemodule[nid] = require(nid);
+                  } else {
+                    global.nodemodule[nid] = require(moduledir);
+                  }
+                  break;
+                } catch (ex) {
+                  exception = ex;
+                }
               }
-            } catch (ex) {
-              throw "Cannot load node module: " + nid + ". Additional info: " + ex;
+              if (moduleLoadTime == 3) {
+                throw "Cannot load node module: " + nid + ". Additional info: " + exception;
+              }
             }
           }
         }
@@ -1496,8 +1507,8 @@ function unloadPlugin() {
   }
 }
 
-//Load plugin
-loadPlugin();
+//Load plugin (Async)
+setTimeout(loadPlugin, 0);
 
 var client = {};
 var facebook = {};
