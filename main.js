@@ -1013,6 +1013,8 @@ function loadPlugin() {
     } catch (ex) {
       log("[INTERNAL]", "Error while loading plugin at \"" + pluginFileList[n] + "\":", ex);
       error.push(pluginFileList[n]);
+      delete pltemp1[plinfo["plugin_name"]];
+      delete pltemp2[plinfo["plugin_name"]];
     }
   }
 
@@ -1020,7 +1022,7 @@ function loadPlugin() {
     var passed = true;
     if (pltemp1[plname]["dependents"]) {
       for (var no in pltemp1[plname]["dependents"]) {
-        if (!pltemp1[pltemp1[plname]["dependents"][no]]) {
+        if (typeof pltemp1[pltemp1[plname]["dependents"][no]] != "object") {
           passed = false;
           log("[INTERNAL]", plname, "depend on plugin named", pltemp1[plname]["dependents"][no] + ", but that plugin is not installed/loaded.");
         }
@@ -1511,8 +1513,8 @@ function unloadPlugin() {
 }
 
 //Load plugin
-//Async loading is a bad idea
-loadPlugin();
+//Async loading is a bad idea, or is it?
+setTimeout(loadPlugin, 1);
 
 var client = {};
 var facebook = {};
