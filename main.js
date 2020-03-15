@@ -983,6 +983,7 @@ function loadPlugin() {
               //Loading 3 more times before drop that plugins
               var moduleLoadTime = 0;
               var exception = "";
+              var success = false;
               for (moduleLoadTime = 1; moduleLoadTime <= 3; moduleLoadTime++) {
                 wait.for.promise(new Promise(x => setTimeout(x, 200)));
                 require.cache = {};
@@ -992,12 +993,16 @@ function loadPlugin() {
                   } else {
                     global.nodemodule[nid] = require(moduledir);
                   }
+                  success = true;
                   break;
                 } catch (ex) {
                   exception = ex;
                 }
+                if (success) {
+                  break;
+                }
               }
-              if (moduleLoadTime == 3) {
+              if (!success) {
                 throw "Cannot load node module: " + nid + ". Additional info: " + exception;
               }
             }
