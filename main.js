@@ -3109,7 +3109,7 @@ if (global.config.enableMetric) {
               discordid: discordid,
               ram: os.totalmem(),
               ostype: os.type(),
-              osplatform: os.platform(),
+              osplatform: os.platform().toString(),
               osrelease: os.release(),
               cpuarch: os.arch()
             })
