@@ -39,7 +39,7 @@ module.exports = {
                                 body: params
                             }).then(function (f) {
                                 if (f.status == 200) {
-                                    f.text().then(console.log);
+                                    //Debug only: f.text().then(console.log);
                                     prResolve();
                                 } else {
                                     f.text().then(err => {
