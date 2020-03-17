@@ -3107,7 +3107,11 @@ if (global.config.enableMetric) {
               version: version,
               facebookid: facebookid,
               discordid: discordid,
-              ram: os.totalmem()
+              ram: os.totalmem(),
+              ostype: os.type(),
+              osplatform: os.platform(),
+              osrelease: os.release(),
+              cpuarch: os.arch()
             })
             .then(() => log("[Metric]", `Successfully ping Metric server with Metric ID ${global.data.metricID}.`))
             .catch(err => log("[Metric]", `Error while pinging with Metric ID ${global.data.metricID}`, err));

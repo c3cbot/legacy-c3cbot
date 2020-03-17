@@ -14,20 +14,15 @@ Also you need to install (first => last):
 
 
 List of supported/tested OS:
-- Windows 7 => 10 (x86)
-- Windows 7 => 10 (x64)
-- macOS 10.13+ (warning: lower version is not tested!)
+- Windows 7+ (x86/x64)
+- macOS 10.10+ (warning: lower version is not tested!)
 - Ubuntu 18+ (x86/x64)
-- Other Linux distro (x86/x64/ARM/... as long as Node supports that platform)
+- Other Linux distro (x86/x64/ARM/... as long as **both** Node.JS and node-gyp support that architecture and OS)
 
-OS that are currently testing:
-- iPhoneOS (jailbroken)
-- Android (rooted)
-
-Notice for Ubuntu & macOS users: Please add `sudo` before every commands.
+Notice for Ubuntu/Linux & macOS users: Please add `sudo` before every commands.
 
 ## Install
-Download latest version (version 0.3.4, as of 22/02/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.4.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
+Download latest version (version 0.3.5, as of 17/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.5.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
 ```bash
 npm install
 ``` 
@@ -66,61 +61,77 @@ You can create one in [here](https://www.facebook.com/whitehat/accounts/).
 If you don't want the bot create a `config.json` file for you, then here is the content that bot will write into `config.json` file:
 ```json
 {
-    "testmode": false,
-    "baseprefix": "[Bot]",
-    "botname": "C3CBot",
-    "enablefb": false,
-    "usefbappstate": true,
-    "fbemail": "",
-    "fbpassword": "",
-    "fbuseragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36",
-    "fblistenwhitelist": false,
-    "fblisten": [
-        "0"
-    ],
-    "enablediscord": false,
-    "discordtoken": "",
-    "discordlistenwhitelist": false,
-    "discordlisten": [
-        "0"
-    ],
-    "admins": [
-        "FB-0",
-        "DC-0"
-    ],
-    "blacklistedUsers": [
-        "FB-0",
-        "DC-0"
-    ],
-    "allowAdminUseRestartCommand": false,
-    "allowUserUsePluginsCommand": false,
-    "allowUserUseReloadCommand": false,
-    "language": "en_US",
-    "enableThanosTimeGems": true,
-    "allowEveryoneTagEvenBlacklisted": true,
-    "DEBUG_FCA_LOGLEVEL": "error",
-    "enableSSHRemoteConsole": false,
-    "sshRemoteConsoleIP": "0.0.0.0",
-    "sshRemoteConsolePort": 2004,
-    "sshUsername": "admin",
-    "sshPassword": "c3cbot@ADMIN",
-    "nsfwjsSmallModel": true
+  testmode: false,
+  baseprefix: "[Bot]",
+  botname: "C3CBot",
+  enablefb: false,
+  usefbappstate: true,
+  fbemail: "",
+  fbpassword: "",
+  fb2fasecret: "BASE32OFSECRETKEY",
+  fbuseragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.116 Safari/537.36",
+  fblistenwhitelist: false,
+  fblisten: [
+    "0"
+  ],
+  facebookAutoRestartLoggedOut: true,
+  facebookProxy: null,
+  facebookProxyUseSOCKS: false,
+  portSOCK2HTTP: 0,
+  addressSOCK2HTTP: "127.0.0.1",
+  enablediscord: false,
+  discordtoken: "",
+  discordlistenwhitelist: false,
+  discordlisten: [
+    "0"
+  ],
+  admins: [
+    "FB-0", 
+    "DC-0" 
+  ],
+  blacklistedUsers: [
+    "FB-0", 
+    "DC-0"
+  ],
+  allowAdminUseRestartCommand: true,
+  allowAdminUseShutdownCommand: false,
+  allowUserUsePluginsCommand: true,
+  allowUserUseReloadCommand: false,
+  language: "en_US",
+  enableThanosTimeGems: true, 
+  allowEveryoneTagEvenBlacklisted: true,
+  DEBUG_FCA_LOGLEVEL: "error",
+  enableSSHRemoteConsole: false,
+  sshRemoteConsoleIP: "0.0.0.0",
+  sshRemoteConsolePort: 2004,
+  sshUsername: "admin",
+  sshPassword: "c3cbot@ADMIN",
+  nsfwjsSmallModel: true,
+  commandPrefix: "/",
+  autoRestartTimerMinutes: 50,
+  autoUpdate: true,
+  configVersion: 1,
+  enableMetric: true,
+  metricHideBotAccountLink: false
 }
 ```
+
+## Metric
+This program will send these things to Metric server (<https://metric.lequanglam.cf>) (closed source):
+- Your external IPv4 or IPv6 address
+- The version you currently running
+- Your system info (amount of RAM, OS type, OS version, CPU arch)
+- ID of Facebook/Discord account currently running at
+If you want to hide account ID, please change `metricHideBotAccountLink` in `config.json` to `true`. Or, if you really want to completely disable Metric, set `enableMetric` in `config.json` to `false`.
 
 <span name="Download"></span>
 ## Node.JS 12 & 13 download link:
 - Official Node.JS webpage: https://nodejs.org/en/
-## Node.JS 10 download link
-- Windows x64: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-x64.msi
-- Windows x86: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-x86.msi
-- MacOS: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-darwin-x64.tar.gz
-- Linux x64: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-linux-x64.tar.gz
-- Linux ARM64: https://nodejs.org/dist/latest-v10.x/node-v10.19.0-linux-arm64.tar.gz
-- Source code: https://nodejs.org/dist/latest-v10.x/node-v10.19.0.tar.gz (for unsupported operating system)
 
 ## Donation
-<tt>Bitcoin:  1TTCLqLHSNegudfS7Ub7dUEGxUurGs8uH</tt><br>
-<tt>Litecoin: LQLTTCLUG9g7EfnpanwPH5MFjr7jdQRzfs</tt><br>
-<tt>Dogecoin: DTTCLQLeCGDmKmwyy2Nn2SYgbLAyE662ua</tt><br>
-<tt>Ethereum: 0x11C1014fA416c585DE0BA41900056fB9407D57a2</tt><br>
+```
+Bitcoin:  1TTCLqLHSNegudfS7Ub7dUEGxUurGs8uH
+Litecoin: LQLTTCLUG9g7EfnpanwPH5MFjr7jdQRzfs
+Dogecoin: DTTCLQLeCGDmKmwyy2Nn2SYgbLAyE662ua
+Ethereum: 0x11C1014fA416c585DE0BA41900056fB9407D57a2
+```
