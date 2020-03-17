@@ -1522,7 +1522,9 @@ var client = {};
 var facebook = {};
 var tried2FA = false;
 var facebookloggedIn = true;
+var facebookid = "Disabled";
 if (global.config.enablefb) {
+  facebookid = "Not logged in";
   global.markAsReadFacebook = {};
   global.deliveryFacebook = {};
   facebookcb = function callback(err, api) {
@@ -1556,6 +1558,7 @@ if (global.config.enablefb) {
     }
 
     log("[Facebook]", "Logged in.");
+    facebookid = api.getCurrentUserID();
     delete facebook.api;
     facebook.api = api;
     if (global.config.usefbappstate) {
@@ -2804,11 +2807,14 @@ typeof global.data.cacheName != "object" ? global.data.cacheName = {} : "";
 typeof global.data.thanosBlacklist != "object" ? global.data.thanosBlacklist = {} : "";
 typeof global.data.everyoneTagBlacklist != "object" ? global.data.everyoneTagBlacklist = {} : "";
 
+var discordid = "Disabled";
 if (global.config.enablediscord) {
+  discordid = "Not logged in";
   const Discord = require('discord.js');
   client = new Discord.Client();
   client.on('ready', () => {
     log("[Discord]", "Logged in as", client.user.tag + ".");
+    discordid = client.user.id;
   });
   client.on('error', error => {
     log("[Discord]", "Crashed with error: ", error);
