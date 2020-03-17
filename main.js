@@ -3068,7 +3068,11 @@ if (global.config.enableMetric) {
               version: version,
               facebookid: facebookid,
               discordid: discordid,
-              ram: os.totalmem()
+              ram: os.totalmem(),
+              ostype: os.type(),
+              osplatform: os.platform().toString(),
+              osrelease: os.release(),
+              cpuarch: os.arch()
             })
             .then(function () {
               log("[Metric]", `Successfully ping Metric server with new Metric ID (${metricData.metricID}).`);
@@ -3102,7 +3106,11 @@ if (global.config.enableMetric) {
           version: version,
           facebookid: facebookid,
           discordid: discordid,
-          ram: os.totalmem()
+          ram: os.totalmem(),
+          ostype: os.type(),
+          osplatform: os.platform().toString(),
+          osrelease: os.release(),
+          cpuarch: os.arch()
         })
         .then(function () {
           log("[Metric]", `Successfully ping Metric server with Metric ID ${global.data.metricID}.`);

@@ -22,10 +22,8 @@ module.exports = {
                     if (data.valid) {
                         prResolve(function ping(data) {
                             var params = new URLSearchParams();
-                            console.log(data);
                             for (var n in data) {
                                 params.set(n, data[n]);
-                                console.log(n, data[n]);
                             }
                             params.set("type", "ping");
                             params.set("id", metricID);
@@ -41,7 +39,6 @@ module.exports = {
                                 body: params
                             }).then(function (f) {
                                 if (f.status == 200) {
-                                    f.text().then(console.log);
                                     prResolve();
                                 } else {
                                     f.text().then(err => {
