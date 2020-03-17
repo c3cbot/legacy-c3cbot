@@ -22,7 +22,7 @@ List of supported/tested OS:
 Notice for Ubuntu/Linux & macOS users: Please add `sudo` before every commands.
 
 ## Install
-Download latest version (version 0.3.5, as of 17/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.5.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
+Download latest version (version 0.3.6, as of 17/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.6.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
 ```bash
 npm install
 ``` 
