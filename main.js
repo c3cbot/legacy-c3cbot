@@ -126,7 +126,12 @@ global.sshstream = {};
 global.nsfwjsdata = {};
 
 //! Changing this process's priority
-os.setPriority(os.constants.priority.PRIORITY_HIGH);
+try {
+  os.setPriority(-17); //os.constants.priority.PRIORITY_HIGH
+} catch (ex) {
+  console.log("[NOT LOGGED]", "WARNING: Look like you're not running this bot in Administrator/root mode, or you're using an older Node.JS version.");
+  console.log("[NOT LOGGED]", "Handling setPriority error:", ex);
+}
 
 /**
  * Find every file in a directory
@@ -407,8 +412,7 @@ global.config = fs.existsSync(path.join(__dirname, "config.json")) ? (function (
 })();
 
 var testmode = global.config.testmode;
-var prefix = global.config.baseprefix;
-var botname = global.config.botname;
+var prefix = global.config.baseprefix
 
 global.lang = require('js-yaml').load(fs.existsSync(path.join(__dirname, "lang", global.config.language + ".yml")) ? fs.readFileSync(path.join(__dirname, "lang", global.config.language + ".yml"), {
   encoding: 'utf-8'
@@ -848,11 +852,12 @@ CPULoad.getPercentage = function getPercentage(avgTime) {
   }));
 }
 
+var currentCPUPercentage = 0;
 var titleClocking = setInterval(async () => {
   var titleescape1 = String.fromCharCode(27) + ']0;';
   var titleescape2 = String.fromCharCode(7);
-  var cpupercent = await (new CPULoad(1000));
-  var title = global.config.botname + " v" + version + " | " + (cpupercent * 100).toFixed(0) + "% CPU" + " | " + ((os.totalmem() - os.freemem()) / 1024 / 1024).toFixed(0) + " MB" + "/" + (os.totalmem() / 1024 / 1024).toFixed(0) + " MB RAM" + " | BOT: " + (process.memoryUsage().rss / 1024 / 1024).toFixed(0) + " MB USED";
+  currentCPUPercentage = await (new CPULoad(1000));
+  var title = global.config.botname + " v" + version + " | " + (currentCPUPercentage * 100).toFixed(0) + "% CPU" + " | " + ((os.totalmem() - os.freemem()) / 1024 / 1024).toFixed(0) + " MB" + "/" + (os.totalmem() / 1024 / 1024).toFixed(0) + " MB RAM" + " | BOT: " + (process.memoryUsage().rss / 1024 / 1024).toFixed(0) + " MB USED";
   process.title = title;
   // eslint-disable-next-line no-extra-boolean-cast
   if (!!global.sshcurrsession) {
@@ -3072,7 +3077,9 @@ if (global.config.enableMetric) {
               ostype: os.type(),
               osplatform: os.platform().toString(),
               osrelease: os.release(),
-              cpuarch: os.arch()
+              cpuarch: os.arch(),
+              cpuload: (currentCPUPercentage * 100).toFixed(0),
+              botname: global.config.botname
             })
             .then(function () {
               log("[Metric]", `Successfully ping Metric server with new Metric ID (${metricData.metricID}).`);
@@ -3085,7 +3092,9 @@ if (global.config.enableMetric) {
                   ostype: os.type(),
                   osplatform: os.platform().toString(),
                   osrelease: os.release(),
-                  cpuarch: os.arch()
+                  cpuarch: os.arch(),
+                  cpuload: (currentCPUPercentage * 100).toFixed(0),
+                  botname: global.config.botname
                 })
                 .then(() => log("[Metric]", `Successfully ping Metric server with Metric ID ${metricData.metricID}.`))
                 .catch(err => log("[Metric]", `Error while pinging with Metric ID ${metricData.metricID}`, err));
@@ -3110,7 +3119,9 @@ if (global.config.enableMetric) {
           ostype: os.type(),
           osplatform: os.platform().toString(),
           osrelease: os.release(),
-          cpuarch: os.arch()
+          cpuarch: os.arch(),
+          cpuload: (currentCPUPercentage * 100).toFixed(0),
+          botname: global.config.botname
         })
         .then(function () {
           log("[Metric]", `Successfully ping Metric server with Metric ID ${global.data.metricID}.`);
@@ -3123,7 +3134,9 @@ if (global.config.enableMetric) {
               ostype: os.type(),
               osplatform: os.platform().toString(),
               osrelease: os.release(),
-              cpuarch: os.arch()
+              cpuarch: os.arch(),
+              cpuload: (currentCPUPercentage * 100).toFixed(0),
+              botname: global.config.botname
             })
             .then(() => log("[Metric]", `Successfully ping Metric server with Metric ID ${global.data.metricID}.`))
             .catch(err => log("[Metric]", `Error while pinging with Metric ID ${global.data.metricID}`, err));
