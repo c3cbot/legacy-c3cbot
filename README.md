@@ -117,7 +117,7 @@ If you don't want the bot create a `config.json` file for you, then here is the 
 ```
 
 ## Metric
-This program will send these things to Metric server (<https://metric.lequanglam.cf>) (closed source):
+This program will send these things to Metric server (<https://c3c-metric.lequanglam.cf>) (closed source):
 - Your external IPv4 or IPv6 address
 - The version you currently running
 - Your system info (amount of RAM, OS type, OS version, CPU arch, CPU load)
