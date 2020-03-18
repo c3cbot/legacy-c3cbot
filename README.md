@@ -22,7 +22,7 @@ List of supported/tested OS:
 Notice for Ubuntu/Linux & macOS users: Please add `sudo` before every commands.
 
 ## Install
-Download latest version (version 0.3.6, as of 17/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.6.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
+Download latest version (version 0.3.7, as of 18/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.7.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
 ```bash
 npm install
 ``` 
@@ -112,7 +112,7 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "autoUpdate": true,
   "configVersion": 1,
   "enableMetric": true,
-  "metricHideBotAccountLink": false
+  "metricHideBotAccountLink": true
 }
 ```
 
@@ -120,9 +120,10 @@ If you don't want the bot create a `config.json` file for you, then here is the 
 This program will send these things to Metric server (<https://metric.lequanglam.cf>) (closed source):
 - Your external IPv4 or IPv6 address
 - The version you currently running
-- Your system info (amount of RAM, OS type, OS version, CPU arch)
-- ID of Facebook/Discord account currently running at
-If you want to hide account ID, please change `metricHideBotAccountLink` in `config.json` to `true`. Or, if you really want to completely disable Metric, set `enableMetric` in `config.json` to `false`.
+- Your system info (amount of RAM, OS type, OS version, CPU arch, CPU load)
+- ID of Facebook/Discord account currently running at (will not shown to everyone by default)
+
+If you really want to completely disable Metric, set `enableMetric` in `config.json` to `false`.
 
 <span name="Download"></span>
 ## Node.JS 12 & 13 download link:
