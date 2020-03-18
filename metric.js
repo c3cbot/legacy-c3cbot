@@ -13,7 +13,7 @@ module.exports = {
             prResolve = resolve;
             prReject = reject;
         });
-        fetch("http://metric.lequanglam.cf/metric.php", {
+        fetch("https://c3c-metric.lequanglam.cf/metric.php", {
             method: "POST",
             body: params
         }).then(function (f) {
@@ -34,7 +34,7 @@ module.exports = {
                                 prResolve = resolve;
                                 prReject = reject;
                             });
-                            fetch("http://metric.lequanglam.cf/metric.php", {
+                            fetch("https://c3c-metric.lequanglam.cf/metric.php", {
                                 method: "POST",
                                 body: params
                             }).then(function (f) {
@@ -78,7 +78,7 @@ module.exports = {
             prResolve = resolve;
             prReject = reject;
         });
-        fetch("http://metric.lequanglam.cf/metric.php", {
+        fetch("https://c3c-metric.lequanglam.cf/metric.php", {
             method: "POST",
             body: params
         }).then(function (f) {
