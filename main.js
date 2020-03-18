@@ -381,7 +381,7 @@ var defaultconfig = {
   autoUpdate: true,
   configVersion: 1,
   enableMetric: true,
-  metricHideBotAccountLink: false
+  metricHideBotAccountLink: true
 }
 
 //Load config
@@ -3069,7 +3069,7 @@ if (global.config.enableMetric) {
         global.data.metricSecret = metricData.metricSecret;
         metric.authenticate(metricData.metricID, metricData.metricSecret)
           .then(ping => {
-            ping({
+            var send = {
               version: version,
               facebookid: facebookid,
               discordid: discordid,
@@ -3080,11 +3080,15 @@ if (global.config.enableMetric) {
               cpuarch: os.arch(),
               cpuload: (currentCPUPercentage * 100).toFixed(0),
               botname: global.config.botname
-            })
+            }
+            if (global.config.metricHideBotAccountLink) {
+              send.hide = true;
+            }
+            ping(send)
             .then(function () {
               log("[Metric]", `Successfully ping Metric server with new Metric ID (${metricData.metricID}).`);
               setInterval(function (ping) {
-                ping({
+                var send = {
                   version: version,
                   facebookid: facebookid,
                   discordid: discordid,
@@ -3095,7 +3099,11 @@ if (global.config.enableMetric) {
                   cpuarch: os.arch(),
                   cpuload: (currentCPUPercentage * 100).toFixed(0),
                   botname: global.config.botname
-                })
+                }
+                if (global.config.metricHideBotAccountLink) {
+                  send.hide = true;
+                }
+                ping(send)
                 .then(() => log("[Metric]", `Successfully ping Metric server with Metric ID ${metricData.metricID}.`))
                 .catch(err => log("[Metric]", `Error while pinging with Metric ID ${metricData.metricID}`, err));
               }, 50000, ping);
@@ -3111,7 +3119,7 @@ if (global.config.enableMetric) {
   } else {
     metric.authenticate(global.data.metricID, global.data.metricSecret)
       .then(ping => {
-        ping({
+        var send = {
           version: version,
           facebookid: facebookid,
           discordid: discordid,
@@ -3122,11 +3130,15 @@ if (global.config.enableMetric) {
           cpuarch: os.arch(),
           cpuload: (currentCPUPercentage * 100).toFixed(0),
           botname: global.config.botname
-        })
+        }
+        if (global.config.metricHideBotAccountLink) {
+          send.hide = true;
+        }
+        ping(send)
         .then(function () {
           log("[Metric]", `Successfully ping Metric server with Metric ID ${global.data.metricID}.`);
           setInterval(function (ping) {
-            ping({
+            var send = {
               version: version,
               facebookid: facebookid,
               discordid: discordid,
@@ -3137,7 +3149,11 @@ if (global.config.enableMetric) {
               cpuarch: os.arch(),
               cpuload: (currentCPUPercentage * 100).toFixed(0),
               botname: global.config.botname
-            })
+            }
+            if (global.config.metricHideBotAccountLink) {
+              send.hide = true;
+            }
+            ping(send)
             .then(() => log("[Metric]", `Successfully ping Metric server with Metric ID ${global.data.metricID}.`))
             .catch(err => log("[Metric]", `Error while pinging with Metric ID ${global.data.metricID}`, err));
           }, 50000, ping);
