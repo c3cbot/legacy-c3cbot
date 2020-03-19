@@ -1591,6 +1591,11 @@ if (global.config.enablefb) {
           if (data.error) {
             return log("[Facebook] Error on delivery_receipts:", data);
           }
+          api.markAsSeen(function (err) {
+            if (err) {
+              return log("[Facebook] Error on markAsSeen:", err);
+            }
+          });
         });
         global.deliveryFacebook = {};
       }

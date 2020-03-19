@@ -143,6 +143,7 @@ module.exports = {
                                 if (err) {
                                     return returnResolve(false, err);
                                 }
+                                fs.unlinkSync("package-lock.json");
                                 var npmProcess = childProcess.spawn("npm", ["install"], {
                                     shell: true,
                                     stdio: "pipe",
