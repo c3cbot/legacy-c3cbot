@@ -11,6 +11,7 @@ Also you need to install (first => last):
 2. Xcode (if you are using macOS)
 3. Python 2/3 (Windows users can install this using `npm i windows-build-tools`, macOS doesn't need this because Xcode installed it)
 4. Visual C++ Build Tools (Windows users only, use `npm i windows-build-tools` to install this)
+5. make, gcc (Linux/Ubuntu only)
 
 
 List of supported/tested OS:
