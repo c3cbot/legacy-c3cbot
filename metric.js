@@ -42,25 +42,25 @@ module.exports = {
                                     prResolve();
                                 } else {
                                     f.text().then(err => {
-                                        prReject(new Error(`HTTP ${f.status}: ${err}`));
+                                        prReject(new Error(`HTTP ${f.status}: ${err}`), (f.status == 400));
                                     });
                                 }
                             }).catch(function (err) {
-                                prReject(err);
+                                prReject(err, false);
                             });
                             return returnPromise;
                         });
                     } else {
-                        prReject(new Error(`Invalid Metric ID and/or Metric Secret!`))
+                        prReject(new Error(`Invalid Metric ID and/or Metric Secret!`), true)
                     }
                 })
             } else {
                 f.text().then(err => {
-                    prReject(new Error(`HTTP ${f.status}: ${err}`));
+                    prReject(new Error(`HTTP ${f.status}: ${err}`), (f.status == 400));
                 });
             }
         }).catch(function (err) {
-            prReject(err);
+            prReject(err, false);
         });
         return returnPromise;
     },
@@ -88,7 +88,7 @@ module.exports = {
                 });
             } else {
                 f.text().then(err => {
-                    prReject(new Error(`HTTP ${f.status}: ${err}`));
+                    prReject(new Error(`HTTP ${f.status}: ${err}`), (f.status == 400));
                 });
             }
         }).catch(function (err) {
