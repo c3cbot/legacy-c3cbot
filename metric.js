@@ -42,7 +42,7 @@ module.exports = {
                                     prResolve();
                                 } else {
                                     f.text().then(err => {
-                                        prReject(new Error(`HTTP ${f.status}: ${err}`), (f.status == 400));
+                                        prReject(new Error(`HTTP ${f.status}: ${err}`), (f.status == 400), true);
                                     });
                                 }
                             }).catch(function (err) {
@@ -56,7 +56,7 @@ module.exports = {
                 })
             } else {
                 f.text().then(err => {
-                    prReject(new Error(`HTTP ${f.status}: ${err}`), (f.status == 400));
+                    prReject(new Error(`HTTP ${f.status}: ${err}`), (f.status == 400), true);
                 });
             }
         }).catch(function (err) {
