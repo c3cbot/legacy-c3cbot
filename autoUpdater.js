@@ -73,7 +73,7 @@ module.exports = {
             returnResolve = resolve;
         });
         var latestRelease = "";
-        if (gitCheck) {
+        if (gitCheckX) {
             latestRelease = "latest";
             var gitProcess = childProcess.spawn("git", ["stash"], {
                 shell: true,
