@@ -7,6 +7,7 @@ A bot that can be customized using plugins. Currently supports Facebook Messenge
 ## Before you install
 Make sure you have Administrator/root permission on your terminal, otherwise you can't start bot. (reason: process priority).
 Also you need to install (first => last):
+
 1. Node.JS 12+ (of course because this thing was writen in JS) (download link <a href="#Download">here</a>)
 2. Xcode (if you are using macOS)
 3. Python 2/3 (Windows users can install this using `npm i windows-build-tools`, macOS doesn't need this because Xcode installed it)
@@ -23,7 +24,7 @@ List of supported/tested OS:
 Notice for Ubuntu/Linux & macOS users: Please add `sudo` before every commands.
 
 ## Install
-Download latest version (version 0.3.7, as of 18/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.7.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
+Download latest version (version 0.3.9, as of 20/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.9.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
 ```bash
 npm install
 ``` 
