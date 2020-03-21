@@ -116,6 +116,7 @@ const rl = readline.createInterface({
   terminal: true,
   prompt: ""
 });
+var fetch = require("node-fetch");
 var checkPort = require("./checkPort.js");
 ////var querystring = require('querystring');
 ////var delay = require('delay');
@@ -381,7 +382,9 @@ var defaultconfig = {
   autoUpdate: true,
   configVersion: 1,
   enableMetric: true,
-  metricHideBotAccountLink: true
+  metricHideBotAccountLink: true,
+  enableGlobalBan: true,
+  hideUnknownCommandMessage: false
 }
 
 //Load config
@@ -1532,6 +1535,151 @@ if (global.config.enablefb) {
   facebookid = "Not logged in";
   global.markAsReadFacebook = {};
   global.deliveryFacebook = {};
+  global.facebookGlobalBanClock = {};
+  !Array.isArray(global.data.fbBannedUsers) ? global.data.fbBannedUsers = [] : "";
+  var fbGlobalBanTrigger = function (threadID, forceNoClock) {
+    var checkFunc = function (threadID) {
+      var isGroup = threadID.length === 16;
+      log("[GLOBAL-BAN]", `Checking banned status for ${isGroup ? "thread" : "user"} ${threadID}...`);
+      fetch("https://c3cbot.tk/global-banlist.json")
+        .then(f => {
+          if (f.ok) {
+            return f.json();
+          } else {
+            throw new Error("Cannot fetch Global Ban List from server c3cbot.tk (GitHub Pages).");
+          }
+        })
+        .then(j => {
+          if (!isGroup) {
+            if (Object.hasOwnProperty.call(j.facebook, threadID)) {
+                log("[GLOBAL-BAN]", `WARNING: User ${threadID} found on Ban List (Permanently banned)`);
+                log("[GLOBAL-BAN]", `Banned reason: ${j.facebook[threadID].reason}`);
+                log("[GLOBAL-BAN]", "Triggering banned payload...");
+                facebook.api.sendMessage(`!ALERT! GLOBAL-BAN\r\nYou are permanently banned from C3CBot Network.\r\nReason: ${j.facebook[threadID].reason}`, threadID, function (error) {
+                  if (error) {
+                    log("[GLOBAL-BAN]", `Warning: Cannot trigger sendMessage for ${threadID}. Error:`, error);
+                    if (error.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                      log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+                      facebookloggedIn = false;
+                      process.exit(7378278);
+                    }
+                  }
+                  facebook.api.changeBlockedStatus(threadID, true, function (err) {
+                    if (err) {
+                      return log("[GLOBAL-BAN]", `Warning: Cannot trigger changeBlockStatus for ${threadID}. Error:`, err);
+                    }
+                    clearInterval(global.facebookGlobalBanClock[threadID]);
+                    delete global.facebookGlobalBanClock[threadID];
+                  });
+                });
+            } else {
+              log("[GLOBAL-BAN]", `User ${threadID} hasn't been banned.`);
+            }
+          } else {
+            if (Object.hasOwnProperty.call(j.facebook, threadID)) {
+              log("[GLOBAL-BAN]", `WARNING: Thread ${threadID} found on Ban List (Permanently banned)`);
+              log("[GLOBAL-BAN]", `Banned reason: ${j.facebook[threadID].reason}`);
+              log("[GLOBAL-BAN]", "Triggering thread banned payload...");
+              facebook.api.sendMessage(`!ALERT! GLOBAL-BAN\r\nThis thread has been permanently banned from C3CBot Network.\r\nReason: ${j.facebook[threadID].reason}`, threadID, function (error) {
+                if (error) {
+                  log("[GLOBAL-BAN]", `Warning: Cannot trigger sendMessage for ${threadID}. Error:`, error);
+                  if (error.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                    log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+                    facebookloggedIn = false;
+                    process.exit(7378278);
+                  }
+                }
+                facebook.api.removeUserFromGroup(facebook.api.getCurrentUserID(), threadID, function (err) {
+                  if (err) {
+                    return log("[GLOBAL-BAN]", `ERROR: Cannot trigger removeUserFromGroup for ${threadID}. Error:`, err);
+                  }
+                  clearInterval(global.facebookGlobalBanClock[threadID]);
+                  delete global.facebookGlobalBanClock[threadID];
+                });
+              });
+            } else {
+              facebook.api.getThreadInfo(threadID, function (err, data) {
+                if (err) {
+                  return log("[GLOBAL-BAN]", `ERROR: Cannot get thread info for thread ${threadID}.`);
+                }
+                bannedUsers = [];
+                banNoKickUsers = [];
+                leave = false;
+                for (var i in data.participantIDs) {
+                  if (Object.hasOwnProperty.call(j.facebook, data.participantIDs)) {
+                    if (j.facebook[data.participantIDs[i]].noAdding) {
+                      leave = true;
+                      bannedUsers.push({
+                        id: data.participantIDs[i],
+                        reason: j.facebook[data.participantIDs[i]].reason,
+                        name: global.data.cacheName[data.participantIDs[i]]
+                      });
+                      log("[GLOBAL-BAN]", `WARNING: User ${data.participantIDs[i]} in ${threadID} found on Ban List (Permanently banned) and has flag noAdding = true.`);
+                      log("[GLOBAL-BAN]", `Banned reason: ${j.facebook[data.participantIDs[i]].reason}`);
+                    } else {
+                      if (global.data.fbBannedUsers.indexOf(data.participantIDs[i]) == 1) {
+                        banNoKickUsers.push({
+                          id: data.participantIDs[i],
+                          reason: j.facebook[data.participantIDs[i]].reason,
+                          name: global.data.cacheName[data.participantIDs[i]]
+                        });
+                        log("[GLOBAL-BAN]", `WARNING: User ${data.participantIDs[i]} in ${threadID} found on Ban List (Permanently banned)`);
+                        log("[GLOBAL-BAN]", `Banned reason: ${j.facebook[data.participantIDs[i]].reason}`);
+                      }
+                    }
+                  }
+                }
+                if (leave) {
+                  log("[GLOBAL-BAN]", `Triggering noAdding banned payload...`);
+                  facebook.api.sendMessage(`!ALERT! GLOBAL-BAN\r\nThis thread cannot add/use C3CBot because a member of this thread has been banned from adding Bots.\r\nBanned users with noAdding flags: ${JSON.stringify(bannedUsers.map(x => `https://fb.com/${x.id} (Reason: ${x.reason})`), null, 4)}`, threadID, function (error) {
+                    if (error) {
+                      log("[GLOBAL-BAN]", `Warning: Cannot trigger sendMessage for ${threadID}. Error:`, error);
+                      if (error.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                        log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+                        facebookloggedIn = false;
+                        process.exit(7378278);
+                      }
+                    }
+                    facebook.api.removeUserFromGroup(facebook.api.getCurrentUserID(), threadID, function (err) {
+                      if (err) {
+                        return log("[GLOBAL-BAN]", `ERROR: Cannot trigger removeUserFromGroup for ${threadID}. Error:`, err);
+                      }
+                      clearInterval(global.facebookGlobalBanClock[threadID]);
+                      delete global.facebookGlobalBanClock[threadID];
+                    });
+                  }, "", isGroup);
+                } else {
+                  if (banNoKickUsers.length > 0) {
+                    log("[GLOBAL-BAN]", `Triggering member banned payload...`);
+                    facebook.api.sendMessage(`!ALERT! GLOBAL-BAN\r\nBanned users in this group: ${JSON.stringify(banNoKickUsers.map(x => `https://fb.com/${x.id} (Reason: ${x.reason})`), null, 4)}`, threadID, function (error) {
+                      if (error) {
+                        log("[GLOBAL-BAN]", `Warning: Cannot trigger sendMessage for ${threadID}. Error:`, error);
+                        if (error.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                          log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+                          facebookloggedIn = false;
+                          process.exit(7378278);
+                        }
+                        return null;
+                      }
+                      global.data.fbBannedUsers = global.data.fbBannedUsers.concat(banNoKickUsers);
+                    }, "", isGroup);
+                  }
+                }
+              });
+            }
+          }
+        })
+        .catch(err => {
+          log("[GLOBAL-BAN]", `Failed to check banned status for ${isGroup ? "thread" : "user"} ${threadID}:`, err);
+        })
+    }
+    if (typeof global.facebookGlobalBanClock[threadID] == "undefined") {
+      global.facebookGlobalBanClock[threadID] = setInterval(checkFunc, 750000, threadID);
+      checkFunc(threadID);
+    } else if (forceNoClock) {
+      checkFunc(threadID);
+    }
+  }
   facebookcb = function callback(err, api) {
     if (err) {
       if (err.error == "login-approval") {
@@ -1659,6 +1807,7 @@ if (global.config.enablefb) {
                   return null;
                 }
                 log("[Facebook]", "Bot added to", id);
+
               });
             });
           }, i * 2000, list[i].threadID);
@@ -1720,72 +1869,79 @@ if (global.config.enablefb) {
               return;
           }
           var receivetime = new Date();
-          for (var n in global.chatHook) {
-            if (global.chatHook[n].listenplatform & 1) {
-              var chhandling = global.chatHook[n];
-              if (chhandling.listentype == "everything") {
-                var admin = false;
-                if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
-                  admin = true;
-                }
-                if (typeof chhandling.resolverFunc == "function" && chhandling.resolverFunc("Facebook", {
-                  time: receivetime,
-                  msgdata: message,
-                  facebookapi: api,
-                  discordapi: client,
-                  prefix: prefix,
-                  admin: admin,
-                  // eslint-disable-next-line no-loop-func
-                  log: function logPlugin(...message) {
-                    log.apply(global, [
-                      "[PLUGIN]",
-                      "[" + chhandling.handler + "]"
-                    ].concat(message));
-                  },
-                  // eslint-disable-next-line no-loop-func
-                  return: function returndata(returndata) {
-                    if (!returndata) return undefined;
-                    if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                      var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message.isGroup);
-                      setTimeout(function (api, returndata, endTyping, message) {
-                        api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                          if (err) {
-                            log("[Facebook] Errored while sending response:", err);
-                            if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                              log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                              facebookloggedIn = false;
-                              process.exit(7378278);
-                            }
-                          }
-                        }, message.messageID, message.isGroup);
-                        endTyping();
-                      }, returndata.data.length * 30, api, returndata, endTyping, message);
-                    } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                      if (!returndata.data.body) {
-                        returndata.data.body = "";
-                      }
-                      returndata.data.body = prefix + " " + returndata.data.body;
-                      var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message.isGroup);
-                      setTimeout(function (api, returndata, endTyping, message, log) {
-                        api.sendMessage(returndata.data, message.threadID, function (err) {
-                          if (err) {
-                            log("[Facebook] Errored while sending response:", err);
-                            if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                              log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                              facebookloggedIn = false;
-                              process.exit(7378278);
-                            }
-                          }
-                        }, message.messageID, message.isGroup);
-                        endTyping();
-                      }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
-                    }
+          if (global.config.enableGlobalBan) {
+            fbGlobalBanTrigger(message.threadID);
+          }
+          if (global.data.fbBannedUsers.indexOf(message.senderID || message.author) == 1 || global.config.enableGlobalBan) {
+            for (var n in global.chatHook) {
+              if (global.chatHook[n].listenplatform & 1) {
+                var chhandling = global.chatHook[n];
+                if (chhandling.listentype == "everything") {
+                  var admin = false;
+                  if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
+                    admin = true;
                   }
-                }) === true) {
-                  nointernalresolve = true;
+                  if (typeof chhandling.resolverFunc == "function" && chhandling.resolverFunc("Facebook", {
+                    time: receivetime,
+                    msgdata: message,
+                    facebookapi: api,
+                    discordapi: client,
+                    prefix: prefix,
+                    admin: admin,
+                    // eslint-disable-next-line no-loop-func
+                    log: function logPlugin(...message) {
+                      log.apply(global, [
+                        "[PLUGIN]",
+                        "[" + chhandling.handler + "]"
+                      ].concat(message));
+                    },
+                    // eslint-disable-next-line no-loop-func
+                    return: function returndata(returndata) {
+                      if (!returndata) return undefined;
+                      if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                        var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message.isGroup);
+                        setTimeout(function (api, returndata, endTyping, message) {
+                          api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
+                            if (err) {
+                              log("[Facebook] Errored while sending response:", err);
+                              if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                                log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+                                facebookloggedIn = false;
+                                process.exit(7378278);
+                              }
+                            }
+                          }, message.messageID, message.isGroup);
+                          endTyping();
+                        }, returndata.data.length * 30, api, returndata, endTyping, message);
+                      } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                        if (!returndata.data.body) {
+                          returndata.data.body = "";
+                        }
+                        returndata.data.body = prefix + " " + returndata.data.body;
+                        var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message.isGroup);
+                        setTimeout(function (api, returndata, endTyping, message, log) {
+                          api.sendMessage(returndata.data, message.threadID, function (err) {
+                            if (err) {
+                              log("[Facebook] Errored while sending response:", err);
+                              if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                                log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+                                facebookloggedIn = false;
+                                process.exit(7378278);
+                              }
+                            }
+                          }, message.messageID, message.isGroup);
+                          endTyping();
+                        }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message, log);
+                      }
+                    }
+                  }) === true) {
+                    nointernalresolve = true;
+                  }
                 }
               }
             }
+          } else {
+            nointernalresolve = true;
           }
           switch (message.type) {
             case "message":
@@ -2038,15 +2194,17 @@ if (global.config.enablefb) {
                       }
                     }
                   } else {
-                    api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix), message.threadID, function (err) {
-                      if (err) {
-                        if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                          log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                          facebookloggedIn = false;
-                          process.exit(7378278);
+                    if (!global.config.hideUnknownCommandMessage) {
+                      api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix), message.threadID, function (err) {
+                        if (err) {
+                          if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                            log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+                            facebookloggedIn = false;
+                            process.exit(7378278);
+                          }
                         }
-                      }
-                    }, message.messageID, message.isGroup);
+                      }, message.messageID, message.isGroup);
+                    }
                   }
                 } else {
                   var str = "";
@@ -2956,7 +3114,9 @@ if (global.config.enablediscord) {
 
           }
         } else {
-          message.reply(global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix));
+          if (!global.config.hideUnknownCommandMessage) {
+            message.reply(global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix));
+          }
         }
       } else {
         log("[Discord]", message.author.id, "(" + message.author.tag + ")", (message.channel instanceof Discord.DMChannel ? "DMed:" : "messaged in channel " + message.channel.id + " (" + message.channel.name + "):"), message.content, (message.attachments.size > 0 ? message.attachments : ""));
