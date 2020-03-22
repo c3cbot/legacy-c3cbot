@@ -182,7 +182,11 @@ module.exports = {
                         return resolvePromise(false, "GIT-" + code);
                     }
                     fs.unlinkSync("package-lock.json");
-                    var npmProcess = childProcess.spawn("npm", ["install"], {
+                    var npmProcess = childProcess.spawn("npm", [
+                        "--depth", 
+                        "9999", 
+                        "update"
+                    ], {
                         shell: true,
                         stdio: "pipe",
                         cwd: __dirname
