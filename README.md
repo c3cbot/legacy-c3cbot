@@ -24,7 +24,7 @@ List of supported/tested OS:
 Notice for Ubuntu/Linux & macOS users: Please add `sudo` before every commands.
 
 ## Install
-Download latest version (version 0.3.13, as of 21/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.13.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
+Download latest version (version 0.3.14, as of 22/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.14.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
 ```bash
 npm install
 ``` 
@@ -38,18 +38,6 @@ npm start
 If this is the first time you execute this command, it'll generate `config.json` file. Close that command and then configure `config.json` file.
 
 After that, you can run that command again and bot will go live.
-
-## Plugins
-- SimSimi (`/plugins/SimSimi.z3p`) => Allow users to chat with SimSimi.
-- Economy (`/plugins/Economy.z3p`) => Create an economy.
-- Economy-Income (`/plugin/Economy-Income.z3p`) => Add a way to earn money. Extends `Economy`
-- Economy-Gambling (`/plugins/Economy-Gambling.z3p`) => Add some gambling games to bot. Extends `Economy`
-- YT2MP3 (`/plugins/YT2MP3.z3p`) => Convert youtube links to MP3.
-- DenyCommand (`/plugins/DenyCommand.z3p`) => Allow admins (operators) to disable some commands.
-- eXPerienceChat (`/plugins/eXPerienceChat.z3p`) => Add XP ranking system.
-
-## Libraries (as plugins)
-- LibBetterRandom (`/plugins/LibBetterRandom.z3p`) => Implent Mersenne Twister random algorithim for other plugins to be used. Currently used by `Economy-Income` and `Economy-Gambling`
 
 ## Localize
 This bot currently supporting 2 language: `en_US` (English) and `vi_VN` (Tiếng Việt). You can change languages in `config.json`.
