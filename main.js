@@ -1539,7 +1539,7 @@ if (global.config.enablefb) {
   !Array.isArray(global.data.fbBannedUsers) ? global.data.fbBannedUsers = [] : "";
   var fbGlobalBanTrigger = function (threadID, forceNoClock) {
     var checkFunc = function (threadID) {
-      var isGroup = threadID.length === 16;
+      var isGroup = threadID.length == 16;
       log("[GLOBAL-BAN]", `Checking banned status for ${isGroup ? "thread" : "user"} ${threadID}...`);
       fetch("https://c3cbot.tk/global-banlist.json")
         .then(f => {
@@ -1598,15 +1598,17 @@ if (global.config.enablefb) {
                 });
               });
             } else {
+              log("[GLOBAL-BAN]", `Thread ${threadID} isn't banned. Checking member ban...`);
               facebook.api.getThreadInfo(threadID, function (err, data) {
                 if (err) {
                   return log("[GLOBAL-BAN]", `ERROR: Cannot get thread info for thread ${threadID}.`);
                 }
+                log("[GLOBAL-BAN]", `Got member data for thread ${threadID}.`);
                 bannedUsers = [];
                 banNoKickUsers = [];
                 leave = false;
                 for (var i in data.participantIDs) {
-                  if (Object.hasOwnProperty.call(j.facebook, data.participantIDs)) {
+                  if (Object.hasOwnProperty.call(j.facebook, data.participantIDs[i])) {
                     if (j.facebook[data.participantIDs[i]].noAdding) {
                       leave = true;
                       bannedUsers.push({
@@ -1663,6 +1665,8 @@ if (global.config.enablefb) {
                       }
                       global.data.fbBannedUsers = global.data.fbBannedUsers.concat(banNoKickUsers);
                     }, "", isGroup);
+                  } else {
+                    log("[GLOBAL-BAN]", `Thread ${threadID} isn't banned by member ban.`);
                   }
                 }
               });
