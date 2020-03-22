@@ -239,7 +239,11 @@ module.exports = {
                     rimraf.sync(path.join(__dirname, `c3c-${latestRelease}`));
 
                     fs.unlinkSync("package-lock.json");
-                    var npmProcess = childProcess.spawn("npm", ["install"], {
+                    var npmProcess = childProcess.spawn("npm", [
+                        "--depth", 
+                        "9999", 
+                        "update"
+                    ], {
                         shell: true,
                         stdio: "pipe",
                         cwd: __dirname
