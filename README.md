@@ -8,11 +8,12 @@ A bot that can be customized using plugins. Currently supports Facebook Messenge
 Make sure you have Administrator/root permission on your terminal, otherwise you can't start bot. (reason: process priority).
 Also you need to install (first => last):
 
-1. Node.JS 12+ (of course because this thing was writen in JS) (download link <a href="#Download">here</a>)
-2. Xcode (if you are using macOS)
-3. Python 2/3 (Windows users can install this using `npm i windows-build-tools`, macOS doesn't need this because Xcode installed it)
-4. Visual C++ Build Tools (Windows users only, use `npm i windows-build-tools` to install this)
-5. make, gcc (Linux/Ubuntu only)
+1. .NET Framework 4+ (Windows **7** only)
+2. make, gcc (Linux/Ubuntu only)
+3. Node.JS 12+ (of course because this thing was writen in JS) (download link <a href="#Download">here</a>)
+4. Xcode (if you are using macOS)
+5. Python 2/3 (Windows users can install this using `npm i windows-build-tools`)
+6. Visual C++ Build Tools (Windows users only, use `npm i windows-build-tools` to install this)
 
 
 List of supported/tested OS:
