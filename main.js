@@ -1,6 +1,5 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable require-atomic-updates */
-/* eslint-disable array-element-newline */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-warning-comments */
 /* eslint-disable no-throw-literal */
@@ -8,7 +7,6 @@
 /* eslint-disable no-undefined */
 /* eslint-disable no-return-assign */
 /* eslint-disable no-redeclare */
-/* eslint-disable no-console */
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 /* eslint-disable max-classes-per-file */
@@ -379,7 +377,9 @@ var defaultconfig = {
   nsfwjsSmallModel: true, //! DO NOT SET THIS TO FALSE UNLESS YOU HAVE A BEEFY SERVER!
   commandPrefix: "/",
   autoRestartTimerMinutes: 50,
+  noAutoRestartIfFBNotLogggedIn: true,
   autoUpdate: true,
+  autoUpdateTimer: 60,
   configVersion: 1,
   enableMetric: true,
   metricHideBotAccountLink: true,
@@ -892,23 +892,31 @@ function requireFromString(src, filename) {
 
 //Auto updater
 var autoUpdater = require("./autoUpdater.js");
-var newUpdate = autoUpdater.checkForUpdate();
-log("[Updater]", `You are using build ${newUpdate.currVersion}, and ${newUpdate.newUpdate ? "there is a new build (" + newUpdate.version + ")" : "there are no new build."}`);
-if (newUpdate.newUpdate && global.config.autoUpdate) {
-  log("[Updater]", `Downloading build ${newUpdate.version}...`)
-  autoUpdater.installUpdate()
-    .then(function (ret) {
-      var [success, value] = ret;
-      if (success) {
-        log("[Updater]", `Updated with ${value} entries extracted. Triggering restart...`);
-        process.exit(7378278);
-      } else {
-        log("[Updater]", "Failed to install new build:", value);
-      }
-    })
-    .catch(function (ex) {
-      log("[Updater]", "Failed to install new build:", ex);
-    });
+function checkUpdate(silent) {
+  var newUpdate = autoUpdater.checkForUpdate();
+  if (!silent || newUpdate.newUpdate) {
+    log("[Updater]", `You are using build ${newUpdate.currVersion}, and ${newUpdate.newUpdate ? "there is a new build (" + newUpdate.version + ")" : "there are no new build."}`);
+  }
+  if (newUpdate.newUpdate && global.config.autoUpdate) {
+    log("[Updater]", `Downloading build ${newUpdate.version}...`)
+    autoUpdater.installUpdate()
+      .then(function (ret) {
+        var [success, value] = ret;
+        if (success) {
+          log("[Updater]", `Updated with ${value} entries extracted. Triggering restart...`);
+          process.exit(7378278);
+        } else {
+          log("[Updater]", "Failed to install new build:", value);
+        }
+      })
+      .catch(function (ex) {
+        log("[Updater]", "Failed to install new build:", ex);
+      });
+  }
+}
+checkUpdate(false);
+if (global.config.autoUpdateTimer > 0 && global.config.autoUpdate) {
+  setInterval(checkUpdate, global.config.autoUpdateTimer * 60 * 1000, true);
 }
 
 ensureExists(path.join(__dirname, "deletedmsg/"));
@@ -3232,8 +3240,10 @@ process.on('exit', shutdownHandler);
 //Auto restart clock
 if (Math.abs(global.config.autoRestartTimerMinutes) != 0) {
   setTimeout(function () {
-    log("[INTERNAL]", "Auto restart timer triggered. Restarting... (by throwing code 7378278)");
-    process.exit(7378278);
+    if (!(global.config.noAutoRestartIfFBNotLogggedIn && (facebookid == "Not logged in" || facebookid == "Disabled"))) {
+      log("[INTERNAL]", "Auto restart timer triggered. Restarting... (by throwing code 7378278)");
+      process.exit(7378278);
+    }
   }, Math.abs(global.config.autoRestartTimerMinutes) * 60 * 1000);
 }
 
