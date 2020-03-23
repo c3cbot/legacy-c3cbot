@@ -181,7 +181,9 @@ module.exports = {
                     if (code != 0) {
                         return resolvePromise(false, "GIT-" + code);
                     }
-                    fs.unlinkSync("package-lock.json");
+                    try {
+                        fs.unlinkSync("package-lock.json");
+                    } catch (ex) {}
                     var npmProcess = childProcess.spawn("npm", [
                         "--depth", 
                         "9999", 
