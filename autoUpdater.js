@@ -179,25 +179,21 @@ module.exports = {
                 });
                 gitProcessX.on("close", function (code) {
                     if (code != 0) {
-                        return resolvePromise(false, "GIT-" + code);
+                        return resolvePromise([false, "GIT-" + code]);
                     }
                     try {
                         fs.unlinkSync("package-lock.json");
                     } catch (ex) {}
-                    var npmProcess = childProcess.spawn("npm", [
-                        "--depth", 
-                        "9999", 
-                        "update"
-                    ], {
+                    var npmProcess = childProcess.spawn("npm", ["update"], {
                         shell: true,
                         stdio: "pipe",
                         cwd: __dirname
                     });
                     npmProcess.on("close", function (code) {
                         if (code != 0) {
-                            return resolvePromise(false, "NPM-" + code);
+                            return resolvePromise([false, "NPM-" + code]);
                         }
-                        resolvePromise(true, "?");
+                        resolvePromise([true, "?"]);
                     });
                 });
             });
@@ -211,7 +207,7 @@ module.exports = {
             try {
                 latestRelease = githubdata[githubdata.length - 1].ref.replace("refs/tags/", "");
             } catch (ex) {
-                return resolvePromise(false, "GITHUB-RATE-LIMITED.");
+                return resolvePromise([false, "GITHUB-RATE-LIMITED"]);
             }
             //HTTP ZIP package method
             //var zipDownload = https.get(`https://github.com/lequanglam/c3c/archive/${latestRelease}.zip`);
@@ -243,8 +239,9 @@ module.exports = {
                     }
                     //Removing the directory where ZIP files are extracted.
                     rimraf.sync(path.join(__dirname, `c3c-${latestRelease}`));
-
-                    fs.unlinkSync("package-lock.json");
+                    try {
+                        fs.unlinkSync("package-lock.json");
+                    } catch (ex) {}
                     var npmProcess = childProcess.spawn("npm", ["update"], {
                         shell: true,
                         stdio: "pipe",
@@ -252,13 +249,13 @@ module.exports = {
                     });
                     npmProcess.on("close", function (code) {
                         if (code != 0) {
-                            return resolvePromise(false, "NPM-" + code);
+                            return resolvePromise([false, "NPM-" + code]);
                         }
-                        resolvePromise(true, zip.getEntryCount());
+                        resolvePromise([true, zip.getEntryCount()]);
                     });
                 })
                 .catch(err => {
-                    resolvePromise(false, `Error: ${err}`);
+                    resolvePromise([false, `Error: ${err}`]);
                 });
         }
         return returnPromise;

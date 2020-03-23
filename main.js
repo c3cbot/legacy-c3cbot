@@ -618,7 +618,7 @@ function obf(data) {
 }
 var prefixObf = setInterval(() => {
   prefix = obf(global.config.baseprefix);
-  if (prefix == "") prefix = "̣";
+  if (prefix == "") prefix = "\u200C";
 }, 1000);
 
 /**
@@ -897,7 +897,8 @@ log("[Updater]", `You are using build ${newUpdate.currVersion}, and ${newUpdate.
 if (newUpdate.newUpdate && global.config.autoUpdate) {
   log("[Updater]", `Downloading build ${newUpdate.version}...`)
   autoUpdater.installUpdate()
-    .then(function (success, value) {
+    .then(function (ret) {
+      var [success, value] = ret;
       if (success) {
         log("[Updater]", `Updated with ${value} entries extracted. Triggering restart...`);
         process.exit(7378278);
@@ -1141,7 +1142,8 @@ function loadPlugin() {
         if (newUpdate.newUpdate) {
           log("[Updater]", `Downloading build ${newUpdate.version}...`)
           autoUpdater.installUpdate()
-            .then(function (success, value) {
+            .then(function (ret) {
+              var [success, value] = ret;
               if (success) {
                 log("[Updater]", `Updated with ${value} entries extracted. Triggering restart...`);
                 data.return({
