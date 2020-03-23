@@ -415,7 +415,7 @@ global.config = fs.existsSync(path.join(__dirname, "config.json")) ? (function (
 })();
 
 var testmode = global.config.testmode;
-var prefix = global.config.baseprefix
+var prefix = global.config.baseprefix;
 
 global.lang = require('js-yaml').load(fs.existsSync(path.join(__dirname, "lang", global.config.language + ".yml")) ? fs.readFileSync(path.join(__dirname, "lang", global.config.language + ".yml"), {
   encoding: 'utf-8'
@@ -618,6 +618,7 @@ function obf(data) {
 }
 var prefixObf = setInterval(() => {
   prefix = obf(global.config.baseprefix);
+  if (prefix == "") prefix = "̣";
 }, 1000);
 
 /**
@@ -909,15 +910,15 @@ if (newUpdate.newUpdate && global.config.autoUpdate) {
     });
 }
 
-//Plugin Load
 ensureExists(path.join(__dirname, "deletedmsg/"));
+//Plugin Load
 ensureExists(path.join(__dirname, "plugins/"));
 
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Plugin complied with version 0.3.0 => 0.3.14 is allowed
-    var allowedVersion = ">=0.3.0 <=0.3.14";
+    //* Plugin complied with version 0.3.0 => 0.3.14 and 0.4.0 is allowed
+    var allowedVersion = ">=0.3.0 <=0.3.14 || 0.4.0";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
@@ -1854,7 +1855,14 @@ if (global.config.enablefb) {
               });
             }, i * 2000, list[i].threadID);
           }
-          api.markAsReadAll();
+          api.markAsReadAll(function (err) {
+            if (err) {
+              if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                log("[Facebook]", "Not logged in. Triggering restart...");
+                process.exit(7378278);
+              }
+            }
+          });
         });
       });
     }, 120000, log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix));
