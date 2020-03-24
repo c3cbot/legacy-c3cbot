@@ -12,8 +12,8 @@ Also you need to install (first => last):
 2. make, gcc (Linux/Ubuntu only)
 3. Node.JS 12+ (of course because this thing was writen in JS) (download link <a href="#Download">here</a>)
 4. Xcode (if you are using macOS)
-5. Python 2/3 (Windows users can install this using `npm i windows-build-tools`)
-6. Visual C++ Build Tools (Windows users only, use `npm i windows-build-tools` to install this)
+5. Python 2/3 (Windows users can install this using `npm i --add-python-to-path windows-build-tools`)
+6. Visual C++ Build Tools (Windows users only, use `npm i --add-python-to-path windows-build-tools` to install this)
 
 
 List of supported/tested OS:
