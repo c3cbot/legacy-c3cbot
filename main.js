@@ -90,9 +90,6 @@ var os = require("os");
 const fs = require('fs');
 var path = require("path");
 var http = require("http");
-var canvas = require("canvas");
-var Canvas = canvas.Canvas;
-var Image = canvas.Image;
 var Worker = require('tiny-worker');
 const util = require('util');
 var streamBuffers = require('stream-buffers');
@@ -104,6 +101,7 @@ var url = require("url");
 var net = require('net');
 var zlib = require("zlib");
 var tar = require("tar-stream");
+var Jimp = require("jimp");
 const readline = require('readline');
 var speakeasy = require("speakeasy"); //2FA
 const rl = readline.createInterface({
@@ -2691,27 +2689,32 @@ if (global.config.enablefb) {
                       imagesx.path = attachmentArray[n].name;
                       imagesx.put(attachmentArray[n].data);
                       imagesx.stop();
-                      if ((attachmentArray[n].type == "photo" || attachmentArray[n].type == "animated_image") &&
+                      if ((attachmentArray[n].type == "photo" || 
+                        attachmentArray[n].type == "animated_image") &&
                         !global.data.thanosBlacklist[message.threadID]) {
-                        var image = new Image();
+
+                        var image = wait.for.promise(Jimp.load(attachmentArray[n].data));
+
+                        /* var image = new Image();
                         image.src = attachmentArray[n].data;
                         var cvs = new Canvas(image.width, image.height);
                         var ctx = cvs.getContext("2d");
                         ctx.drawImage(image, 0, 0);
-                        var imgdata1 = ctx.getImageData(0, 0, image.width, image.height);
-                        var id = Date.now()
-                          .toString() + "-" + random(0, 99)
-                            .toString() + random(0, 99)
-                              .toString() + Math.random()
-                                .toString() + Math.random()
-                                  .toString();
+                        var imgdata1 = ctx.getImageData(0, 0, image.width, image.height); */
+
+                        var id = Date.now().toString() + 
+                          "-" + 
+                          random(0, 99).toString() + 
+                          random(0, 99).toString() + 
+                          Math.random().toString() + 
+                          Math.random().toString();
                         global.nsfwjsdata[id] = {};
                         global.nsfwjsdata[id].complete = false;
                         worker.postMessage({
                           id: id,
-                          data: Array.from(imgdata1.data),
-                          width: imgdata1.width,
-                          height: imgdata1.height,
+                          data: Array.from(new Uint8Array(image.bitmap.data)),
+                          width: image.bitmap.width,
+                          height: image.bitmap.height,
                           small: global.config.nsfwjsSmallModel
                         });
                         // eslint-disable-next-line no-loop-func
