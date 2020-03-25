@@ -31,7 +31,7 @@
     "discord.js": "^12.0.2",
     "erlpack": "^0.1.3",
     "eslint": "^5.16.0",
-    "fca-unofficial": "^1.1.9",
+    "fca-unofficial": "^1.1.10",
     "ffmpeg-static": "^3.0.0",
     "jimp": "^0.9.6",
     "js-yaml": "^3.13.1",
