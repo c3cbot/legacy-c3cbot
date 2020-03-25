@@ -38,6 +38,7 @@
     "node-fetch": "^2.6.0",
     "node-stream-zip": "^1.8.0",
     "nsfwjs": "^2.1.0",
+    "opusscript": "^0.0.7",
     "request": "^2.88.0",
     "rimraf": "^3.0.2",
     "semver": "^7.1.1",

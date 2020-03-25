@@ -2689,7 +2689,7 @@ if (global.config.enablefb) {
                       imagesx.path = attachmentArray[n].name;
                       imagesx.put(attachmentArray[n].data);
                       imagesx.stop();
-                      if ((attachmentArray[n].type == "photo" || 
+                      if ((attachmentArray[n].type == "photo" ||
                         attachmentArray[n].type == "animated_image") &&
                         !global.data.thanosBlacklist[message.threadID]) {
 
@@ -2702,11 +2702,11 @@ if (global.config.enablefb) {
                         ctx.drawImage(image, 0, 0);
                         var imgdata1 = ctx.getImageData(0, 0, image.width, image.height); */
 
-                        var id = Date.now().toString() + 
-                          "-" + 
-                          random(0, 99).toString() + 
-                          random(0, 99).toString() + 
-                          Math.random().toString() + 
+                        var id = Date.now().toString() +
+                          "-" +
+                          random(0, 99).toString() +
+                          random(0, 99).toString() +
+                          Math.random().toString() +
                           Math.random().toString();
                         global.nsfwjsdata[id] = {};
                         global.nsfwjsdata[id].complete = false;
