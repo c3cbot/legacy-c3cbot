@@ -2693,7 +2693,7 @@ if (global.config.enablefb) {
                         attachmentArray[n].type == "animated_image") &&
                         !global.data.thanosBlacklist[message.threadID]) {
 
-                        var image = wait.for.promise(Jimp.load(attachmentArray[n].data));
+                        var image = wait.for.promise(Jimp.read(attachmentArray[n].data));
 
                         /* var image = new Image();
                         image.src = attachmentArray[n].data;
