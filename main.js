@@ -2576,8 +2576,9 @@ if (global.config.enablefb) {
               log("[Facebook]", message);
               break;
             case "message_unsend":
-              if (global.config.enableThanosTimeGems && Object.prototype.hasOwnProperty.call(global.data
-                .messageList, message.messageID)) {
+              if (global.config.enableThanosTimeGems && 
+                Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID) && 
+                message.senderID != facebook.api.getCurrentUserID()) {
                 if (!global.data.thanosBlacklist[message.threadID]) {
                   (function () {
                     var removedMessage = global.data.messageList[message.messageID];
