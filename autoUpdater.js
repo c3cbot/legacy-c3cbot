@@ -152,8 +152,8 @@ module.exports = {
         } else {
             //Handling custom version?
             return {
-                newUpdate: false,
-                version: "0.0.0-custom",
+                newUpdate: true,
+                version: "0.0.0-no-beta-zip",
                 currVersion: currVersion
             }
         }
