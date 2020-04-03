@@ -406,7 +406,7 @@ var defaultconfig = {
   sshPassword: "c3cbot@ADMIN",
   nsfwjsSmallModel: true, //! DO NOT SET THIS TO FALSE UNLESS YOU HAVE A BEEFY SERVER!
   commandPrefix: "/",
-  autoRestartTimerMinutes: 50,
+  autoRestartTimerMinutes: 0, //Disabling it by default.
   noAutoRestartIfFBNotLogggedIn: true,
   autoUpdate: true,
   autoUpdateTimer: 60,
