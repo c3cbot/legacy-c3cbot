@@ -20,6 +20,19 @@ var gitCheck = childProcess.spawnSync("git", [
 });
 var gitCheckX = (!gitCheck.error ? gitCheck.stdout.toString("utf8").split(/(\r\n)|(\r)|(\n)/g)[0] == "true" : false);
 
+function spawn(cmd, arg) {
+  return new Promise(resolve => {
+    var npmProcess = childProcess.spawn(cmd, arg, {
+        shell: true,
+        stdio: "pipe",
+        cwd: __dirname
+    });
+    npmProcess.on("close", function (code) {
+        resolve(code);
+    });
+  });
+}
+
 /**
  * Find every file in a directory
  *
@@ -166,37 +179,51 @@ module.exports = {
         var latestRelease = "";
         if (gitCheckX) {
             latestRelease = "latest";
-            var gitProcess = childProcess.spawn("git", ["stash"], {
-                shell: true,
-                stdio: "pipe",
-                cwd: __dirname
-            });
-            gitProcess.on("close", function () {
-                var gitProcessX = childProcess.spawn("git", ["pull"], {
-                    shell: true,
-                    stdio: "pipe",
-                    cwd: __dirname
-                });
-                gitProcessX.on("close", function (code) {
-                    if (code != 0) {
-                        return resolvePromise([false, "GIT-" + code]);
+            spawn("git", ["pull"])
+                .then(code => {
+                    if (code == 0) {
+                        throw "OK";
                     }
-                    try {
+                    return spawn("git", ["stash"]);
+                })
+                .then(code => {
+                    if (code != 0) {
+                        resolvePromise([false, "git stash: Error " + code]);
+                        throw "NOT OK";
+                    }
+                    return spawn("git", ["pull"]);
+                })
+                .then(code => {
+                    if (code != 0) {
+                        resolvePromise([false, "git pull: Error " + code]);
+                        throw "NOT OK";
+                    }
+                    throw "OK";
+                })
+                .catch(str => {
+                    if (str == "OK") {
                         fs.unlinkSync("package-lock.json");
-                    } catch (ex) {}
-                    var npmProcess = childProcess.spawn("npm", ["update"], {
-                        shell: true,
-                        stdio: "pipe",
-                        cwd: __dirname
-                    });
-                    npmProcess.on("close", function (code) {
-                        if (code != 0) {
-                            return resolvePromise([false, "NPM-" + code]);
-                        }
-                        resolvePromise([true, "?"]);
-                    });
+                        spawn("npm", ["install"])
+                            .then(code => {
+                                if (code != 0) {
+                                    resolvePromise([false, "npm install: Error " + code]);
+                                    throw null;
+                                }
+                                return spawn("npm", ["update"]);
+                            })
+                            .then(code => {
+                                if (code != 0) {
+                                    resolvePromise([false, "npm update: Error " + code]);
+                                    throw null;
+                                }
+                                fs.unlinkSync("package-lock.json");
+                                resolvePromise([true, "?"]);
+                            })
+                            .catch(_ => {});
+                    } else if (str instanceof Error) {
+                        resolvePromise([false, str]);
+                    }
                 });
-            });
         } else {
             var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
                 headers: {
@@ -242,20 +269,26 @@ module.exports = {
                     try {
                         fs.unlinkSync("package-lock.json");
                     } catch (ex) {}
-                    var npmProcess = childProcess.spawn("npm", ["update"], {
-                        shell: true,
-                        stdio: "pipe",
-                        cwd: __dirname
-                    });
-                    npmProcess.on("close", function (code) {
-                        if (code != 0) {
-                            return resolvePromise([false, "NPM-" + code]);
-                        }
-                        resolvePromise([true, zip.getEntryCount()]);
-                    });
+                    spawn("npm", ["install"])
+                        .then(code => {
+                            if (code != 0) {
+                                resolvePromise([false, "npm install: Error " + code]);
+                                throw null;
+                            }
+                            return spawn("npm", ["update"]);
+                        })
+                        .then(code => {
+                            if (code != 0) {
+                                resolvePromise([false, "npm update: Error " + code]);
+                                throw null;
+                            }
+                            fs.unlinkSync("package-lock.json");
+                            resolvePromise([true, zip.getEntryCount()]);
+                        })
+                        .catch(_ => {});
                 })
                 .catch(err => {
-                    resolvePromise([false, `Error: ${err}`]);
+                    resolvePromise([false, err]);
                 });
         }
         return returnPromise;
