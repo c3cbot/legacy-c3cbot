@@ -21,7 +21,8 @@ List of *might be* supported/tested OS (not tested: \*):
   - Windows 7 (x86\*/x64)
   - Windows 8.1 (x86\*/x64)
   - Windows 10 (x86/x64)
-- macOS 10.10+ [yes we support 10.10, even through Node dropped that version.]
+- macOS 10.9+ [yes we support 10.9/10.10, even through Node dropped that version.]
+  - Mac OS X 10.9 “Mavericks”
   - Mac OS X 10.10 “Yosemite”
   - Mac OS X 10.11 “El Capitan”
   - macOS 10.12 “Sierra”
