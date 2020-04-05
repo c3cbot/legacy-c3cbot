@@ -62,4 +62,4 @@ CPULoad.getPercentage = function getPercentage(avgTime) {
     }));
 };
 
-exports = CPULoad;
+module.exports = CPULoad;
