@@ -1,87 +1,10 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable require-atomic-updates */
 /* eslint-disable class-methods-use-this */
-/* eslint-disable no-warning-comments */
-/* eslint-disable no-throw-literal */
-/* eslint-disable object-curly-spacing */
-/* eslint-disable no-undefined */
-/* eslint-disable no-return-assign */
 /* eslint-disable no-redeclare */
-/* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
-/* eslint-disable max-classes-per-file */
-/* eslint dot-location: ["error", "property"] */
-String.prototype.pad = function (width, z) {
-  z = z || '0';
-  var n = this.valueOf() + '';
-  return (n.length >= width ? n : (new Array(width - n.length + 1)
-    .join(z) + n));
-}
-Number.prototype.pad = function (width, z) {
-  z = z || '0';
-  var n = this.valueOf() + '';
-  return (n.length >= width ? n : (new Array(width - n.length + 1)
-    .join(z) + n));
-}
-Number.prototype.round = function (decimal) {
-  var dec = decimal || 0;
-  var dec2 = Math.pow(10, dec);
-  var num = this.valueOf();
-  return Math.round(num * dec2) / dec2;
-};
-Number.prototype.ceil = function (decimal) {
-  var dec = decimal || 0;
-  var dec2 = Math.pow(10, dec);
-  var num = this.valueOf();
-  return Math.ceil(num * dec2) / dec2;
-};
-Number.prototype.floor = function (decimal) {
-  var dec = decimal || 0;
-  var dec2 = Math.pow(10, dec);
-  var num = this.valueOf();
-  return Math.floor(num * dec2) / dec2;
-};
-// object.watch
-if (!Object.prototype.watch) {
-  Object.defineProperty(Object.prototype, "watch", {
-    enumerable: false,
-    configurable: true,
-    writable: false,
-    value: function (prop, handler) {
-      var oldval = this[prop],
-        newval = oldval,
-        getter = function () {
-          return newval;
-        },
-        setter = function (val) {
-          oldval = newval;
-          return newval = handler.call(this, prop, oldval, val);
-        };
-      if (delete this[prop]) { // can't watch constants
-        Object.defineProperty(this, prop, {
-          get: getter,
-          set: setter,
-          enumerable: true,
-          configurable: true
-        });
-      }
-    }
-  });
-}
-// object.unwatch
-if (!Object.prototype.unwatch) {
-  Object.defineProperty(Object.prototype, "unwatch", {
-    enumerable: false,
-    configurable: true,
-    writable: false,
-    value: function (prop) {
-      var val = this[prop];
-      delete this[prop]; // remove accessors
-      this[prop] = val;
-    }
-  });
-}
-var sizeObject = function (object) {
+
+require("ClassModifier.js");
+var _sizeObject = function (object) {
   return Object.keys(object)
     .length;
 };
@@ -97,8 +20,8 @@ var syncrequest = require('sync-request');
 var wait = require('wait-for-stuff');
 var semver = require("semver");
 var childProcess = require("child_process");
-var url = require("url");
-var net = require('net');
+//var url = require("url");
+//var net = require('net');
 var zlib = require("zlib");
 var tar = require("tar-stream");
 var Jimp = require("jimp");
@@ -111,7 +34,8 @@ const rl = readline.createInterface({
   prompt: ""
 });
 var fetch = require("node-fetch");
-var checkPort = require("./checkPort.js");
+var _checkPort = require("./checkPort.js");
+var CPULoad = require("./CPULoad.js");
 ////var querystring = require('querystring');
 ////var delay = require('delay');
 const StreamZip = require('node-stream-zip');
@@ -194,7 +118,7 @@ function ensureExists(path, mask) {
       mode: mask,
       recursive: true
     });
-    return undefined;
+    return;
   } catch (ex) {
     return {
       err: ex
@@ -225,7 +149,7 @@ logFileList.forEach(dir => {
         });
         fs.unlinkSync(dir);
       });
-    })
+    });
 });
 global.logLast = {
   year: 1970,
@@ -253,7 +177,7 @@ function log(...message) {
                 .pad(2) + "." + date.getUTCMilliseconds()
                   .pad(3) + "Z") + "]"];
   console.log.apply(console, x.concat(message)
-    .concat(["\x1b[1;32m"]))
+    .concat(["\x1b[1;32m"]));
   rl.prompt(true);
   var tolog = "[" + (date.getUTCFullYear()
     .pad(4) + "-" + (date.getUTCMonth() + 1)
@@ -289,13 +213,13 @@ function log(...message) {
       month: date.getUTCMonth() + 1,
       days: date.getUTCDate(),
       loadTimes: times
-    }
+    };
   }
   fs.appendFile(
     path.join(__dirname, "logs", `log-${currentLogDate}-${global.logLast.loadTimes}.log`), tolog + "\r\n",
     function (err) {
       if (err) {
-        console.log("[CRITICAL] [NOT LOGGED] ERROR WHILE WRITING LOGS: ", err)
+        console.log("[CRITICAL] [NOT LOGGED] ERROR WHILE WRITING LOGS: ", err);
       }
     }
   );
@@ -334,8 +258,9 @@ function log(...message) {
     }
   }
 }
+
 //Capturing STDERR
-var stderrold = process.stderr.write;
+var _stderrold = process.stderr.write;
 global.stderrdata = "";
 process.stderr.write = function (chunk, encoding, callback) {
   global.stderrdata += chunk;
@@ -415,7 +340,7 @@ var defaultconfig = {
   metricHideBotAccountLink: true,
   enableGlobalBan: true,
   hideUnknownCommandMessage: false
-}
+};
 //Load config
 global.config = fs.existsSync(path.join(__dirname, "config.json")) ? (function () {
   var readedConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "config.json")));
@@ -463,7 +388,7 @@ global.lang = require('js-yaml')
   })());
 if (global.config.facebookProxyUseSOCKS) {
   var ProxyServer = require("./SOCK2HTTP.js")(log);
-  var fS2HResolve = function () { }
+  var fS2HResolve = function () { };
   var S2HPromise = new Promise(resolve => {
     fS2HResolve = resolve;
   });
@@ -478,7 +403,7 @@ if (global.config.facebookProxyUseSOCKS) {
           .address,
         port: localSocksProxy.address()
           .port
-      })
+      });
     })
     .on("error", err => {
       log("[SOCK2HTTP]", err);
@@ -539,7 +464,7 @@ function obf(data) {
       }
     }
     return rv;
-  }
+  };
   Obfuscator.prototype.deobfuscate = function (str) {
     str = str + "";
     var rv = "";
@@ -553,7 +478,7 @@ function obf(data) {
       }
     }
     return rv;
-  }
+  };
   var strongObfuscator = new Obfuscator([
     "AÀÁÂÃÄÅĀĂĄǍǞǠȀȂȦΆΑАѦӐӒḀẠẢẤẦẨẬẶἈἉᾈᾉᾸᾹᾺᾼ₳ÅȺẮẰẲẴἌἎἏᾌΆǺẪ",
     "BƁΒВḂḄḆ",
@@ -644,7 +569,7 @@ function obf(data) {
   ]);
   return strongObfuscator.obfuscate(data) || "";
 }
-var prefixObf = setInterval(() => {
+var _prefixObf = setInterval(() => {
   prefix = obf(global.config.baseprefix);
   if (prefix == "") prefix = "\u200C";
 }, 1000);
@@ -675,7 +600,7 @@ var random = function (min, max) {
  * @param  {number} numbytes Number of bytes.
  * @returns {string} Random bytes.
  */
-var randomBytes = function (numbytes) {
+var _randomBytes = function (numbytes) {
   numbytes = numbytes || 1;
   return crypto.randomBytes(numbytes)
     .toString('hex');
@@ -692,7 +617,7 @@ var crypto = require('crypto');
  *
  * @return  {string}                     HMAC hash
  */
-function HMAC(publick, privatek, algo, output) {
+function _HMAC(publick, privatek, algo, output) {
   algo = algo || "sha512";
   output = output || "hex";
   var hmac = crypto.createHmac(algo, privatek);
@@ -713,7 +638,7 @@ if (testmode) {
     "data-test.json"
   ))) : (function () {
     log("[INTERNAL]", "OwO, data file not found.");
-    global.data = {}
+    global.data = {};
   })();
 } else {
   fs.existsSync(path.join(__dirname, "data.json")) ? global.data = JSON.parse(fs.readFileSync(path.join(
@@ -765,11 +690,11 @@ var autosave = setInterval(function (testmode, log) {
   tempFinishedNSFWHTTP = await checkPort(nsfwPort, "127.0.0.1");
 } */
 var TFJS_MODEL_SERVER = http.createServer((req, res) => {
-  if (fs.existsSync(path.join(__dirname, `nsfwjs-models${config.nsfwjsSmallModel ? "-small" : ""}`, path.resolve("/", req.url)))) {
+  if (fs.existsSync(path.join(__dirname, `nsfwjs-models${global.config.nsfwjsSmallModel ? "-small" : ""}`, path.resolve("/", req.url)))) {
     res.writeHead(200, {
       'Content-Type': 'text/plain'
     });
-    fs.createReadStream(path.join(__dirname, `nsfwjs-models${config.nsfwjsSmallModel ? "-small" : ""}`, path
+    fs.createReadStream(path.join(__dirname, `nsfwjs-models${global.config.nsfwjsSmallModel ? "-small" : ""}`, path
       .resolve("/", req.url)))
       .pipe(res, {
         end: true
@@ -795,109 +720,10 @@ TFJS_MODEL_SERVER.on("listening", () => {
     log("[TFJS-MODEL-HTTP]", err);
   });
 var tfjsPort = wait.for.promise(waitPromise);
-log("[TFJS-MODEL-HTTP]", `Listening at localhost:${tfjsPort}`)
-/* var NSFWJS_MODEL_PROCESSES = new Worker(() => {
-  onmessage = function (evn) {
-    if (evn.data.type == "close") {
-      self.NSFWJS_MODEL_SERVER.close(function () {
-        self.postMessage("closed");
-      });
-    } else if (evn.data.type == "dirname") {
-      var dirname = evn.data.data;
-      var small = evn.data.small;
-      var http = require("http");
-      var fs = require("fs");
-      var port = evn.data.port;
-      self.NSFWJS_MODEL_SERVER = http.createServer(function (req, res) {
-        if (fs.existsSync(dirname + "/nsfwjs-models" + (small ? "-small" : "") + req.url)) {
-          res.writeHead(200, { 'Content-Type': 'text/plain' });
-          fs.createReadStream(dirname + "/nsfwjs-models" + (small ? "-small" : "") + req.url).pipe(res, { end: true });
-        } else {
-          res.writeHead(404, { 'Content-Type': 'text/plain' });
-          res.write('404 FILE NOT FOUND');
-          res.end();
-        }
-      }).listen(0, "127.0.0.1");
-    }
-  }
-});
-NSFWJS_MODEL_PROCESSES_STOPEVENT = false;
-NSFWJS_MODEL_PROCESSES.onmessage = function (evn) {
-  NSFWJS_MODEL_PROCESSES_STOPEVENT = !NSFWJS_MODEL_PROCESSES_STOPEVENT;
-  NSFWJS_MODEL_PROCESSES.terminate();
-}
-NSFWJS_MODEL_PROCESSES.stop = function () {
-  this.postMessage({
-    type: "close"
-  });
-  //wait.for.value(NSFWJS_MODEL_PROCESSES_STOPEVENT, true);
-}
-NSFWJS_MODEL_PROCESSES.postMessage({
-  type: "dirname",
-  data: __dirname,
-  small: global.config.nsfwjsSmallModel,
-  port: nsfwPort
-}); */
-function cpuAverage() {
-  var totalIdle = 0,
-    totalTick = 0;
-  var cpus = os.cpus();
-  for (var i = 0, len = cpus.length; i < len; i++) {
-    var cpu = cpus[i];
-    for (type in cpu.times) {
-      totalTick += cpu.times[type];
-    }
-    totalIdle += cpu.times.idle;
-  }
-  return {
-    idle: totalIdle / cpus.length,
-    total: totalTick / cpus.length
-  };
-}
-/**
- * Get CPU percentage in avgTime ms.
- *
- * @param   {number}   avgTime  Time in milliseconds.
- *
- * @return  {Promise}           A promise that will resolve with percentage of CPU load.
- */
-class CPULoad {
-  constructor(avgTime) {
-    return new Promise((resolve) => {
-      this.samples = [];
-      this.samples[1] = cpuAverage();
-      this.refresh = setTimeout(() => {
-        this.samples[0] = this.samples[1];
-        this.samples[1] = cpuAverage();
-        var totalDiff = this.samples[1].total - this.samples[0].total;
-        var idleDiff = this.samples[1].idle - this.samples[0].idle;
-        resolve(1 - idleDiff / totalDiff);
-      }, avgTime);
-    });
-  }
-}
-/**
- * Get load percentage of CPU (sync)
- *
- * @param   {number}  avgTime  Time between samples in milliseconds
- *
- * @return  {number}           Percentage of CPU load.
- */
-CPULoad.getPercentage = function getPercentage(avgTime) {
-  return wait.for.promise(new Promise((resolve) => {
-    this.samples = [];
-    this.samples[1] = cpuAverage();
-    this.refresh = setTimeout(() => {
-      this.samples[0] = this.samples[1];
-      this.samples[1] = cpuAverage();
-      var totalDiff = this.samples[1].total - this.samples[0].total;
-      var idleDiff = this.samples[1].idle - this.samples[0].idle;
-      resolve(1 - idleDiff / totalDiff);
-    }, avgTime);
-  }));
-}
+log("[TFJS-MODEL-HTTP]", `Listening at localhost:${tfjsPort}`);
+
 var currentCPUPercentage = 0;
-var titleClocking = setInterval(async () => {
+var _titleClocking = setInterval(async () => {
   var titleescape1 = String.fromCharCode(27) + ']0;';
   var titleescape2 = String.fromCharCode(7);
   currentCPUPercentage = await (new CPULoad(1000));
@@ -945,7 +771,7 @@ function checkUpdate(silent) {
     );
   }
   if (newUpdate.newUpdate && global.config.autoUpdate) {
-    log("[Updater]", `Downloading build ${newUpdate.version}...`)
+    log("[Updater]", `Downloading build ${newUpdate.version}...`);
     autoUpdater.installUpdate()
       .then(function (ret) {
         var [success, value] = ret;
@@ -983,8 +809,8 @@ function checkPluginCompatibly(version) {
 function loadPlugin() {
   var error = [];
   global.plugins = {}; //Plugin Scope
-  pltemp1 = {}; //Plugin Info
-  pltemp2 = {}; //Plugin Executable
+  var pltemp1 = {}; //Plugin Info
+  var pltemp2 = {}; //Plugin Executable
   global.fileMap = {};
   global.loadedPlugins = {};
   global.chatHook = [];
@@ -1136,7 +962,7 @@ function loadPlugin() {
                 .fscope],
               compatibly: parseInt(cmdo.compatibly),
               handler: plname
-            }
+            };
             if (Object.prototype.hasOwnProperty.call(cmdo, "adminCmd")) {
               global.commandMapping[cmd].adminCmd = true;
             }
@@ -1168,7 +994,7 @@ function loadPlugin() {
           author: pltemp1[plname].author,
           version: pltemp1[plname].version,
           onUnload: global.plugins[pltemp1[plname]["plugin_scope"]].onUnload
-        }
+        };
         log("[INTERNAL]", "Loaded", plname, pltemp1[plname].version, "by", pltemp1[plname].author);
       } catch (ex) {
         log(
@@ -1182,17 +1008,17 @@ function loadPlugin() {
   global.commandMapping["systeminfo"] = {
     args: {},
     desc: "Show system info",
-    scope: function (type, data) {
+    scope: function (_type, _data) {
       var uptime = os.uptime();
       var utdate = new Date(uptime);
       return {
         handler: "internal",
         data: `System info:\r\n- CPU arch: ${os.arch()}\r\n- OS type: ${os.type()} (Platform: ${os.platform()})\r\n- OS version: ${os.release()}\r\n- Uptime: ${(uptime / 3600 / 24).floor(0).pad(2)}:${utdate.getUTCHours().pad(2)}:${utdate.getUTCMinutes().pad(2)}:${utdate.getUTCSeconds().pad(2)}\r\n- Total memory: ${os.totalmem() / 1048576} MB`
-      }
+      };
     },
     compatibly: 0,
     handler: "INTERNAL"
-  }
+  };
   global.commandMapping["updatebot"] = {
     args: {},
     desc: {},
@@ -1208,7 +1034,7 @@ function loadPlugin() {
           handler: "internal"
         });
         if (newUpdate.newUpdate) {
-          log("[Updater]", `Downloading build ${newUpdate.version}...`)
+          log("[Updater]", `Downloading build ${newUpdate.version}...`);
           autoUpdater.installUpdate()
             .then(function (ret) {
               var [success, value] = ret;
@@ -1239,17 +1065,17 @@ function loadPlugin() {
         return {
           handler: "internal",
           data: global.lang["INSUFFICIENT_PERM"]
-        }
+        };
       }
     },
     compatibly: 0,
     handler: "INTERNAL",
     adminCmd: true
-  }
+  };
   global.commandMapping["version"] = {
     args: {},
     desc: {},
-    scope: function (type, data) {
+    scope: function (_type, _data) {
       var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
         headers: {
           "User-Agent": global.config.fbuseragent
@@ -1272,11 +1098,11 @@ function loadPlugin() {
         handler: "internal",
         data: "Currently running on version " + version + "\r\nLatest GitHub version: " + latestgithubversion +
           "\r\nLatest code version: " + latestcodeversion
-      }
+      };
     },
     compatibly: 0,
     handler: "INTERNAL"
-  }
+  };
   global.commandMapping["version"].args[global.config.language] = "";
   global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
   global.commandMapping["help"] = {
@@ -1299,12 +1125,12 @@ function loadPlugin() {
           return {
             handler: "internal",
             data: mts
-          }
+          };
         } else {
           return {
             handler: "internal",
             data: global.config.commandPrefix + cmd + "\r\n" + global.lang["HELP_CMD_NOT_FOUND"]
-          }
+          };
         }
       } else {
         var page = 1;
@@ -1325,9 +1151,9 @@ function loadPlugin() {
           }
         }
         if (type == "Discord") {
-          mts += "\r\n```HTTP"
+          mts += "\r\n```HTTP";
         }
-        for (i = 15 * (page - 1); i < 15 * (page - 1) + 15; i++) {
+        for (var i = 15 * (page - 1); i < 15 * (page - 1) + 15; i++) {
           if (i < hl.length) {
             if (data.admin) {
               mts += "\r\n" + (i + 1)
@@ -1354,7 +1180,7 @@ function loadPlugin() {
           }
         }
         if (type == "Discord") {
-          mts += "\r\n```"
+          mts += "\r\n```";
         }
         mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 15)
           .ceil() + ')';
@@ -1362,12 +1188,12 @@ function loadPlugin() {
         return {
           handler: "internal",
           data: mts
-        }
+        };
       }
     },
     compatibly: 0,
     handler: "INTERNAL"
-  }
+  };
   global.commandMapping["help"].args[global.config.language] = global.lang["HELP_ARGS"];
   global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
   global.commandMapping["restart"] = {
@@ -1381,18 +1207,18 @@ function loadPlugin() {
         return {
           handler: "internal",
           data: "Restarting..."
-        }
+        };
       } else {
         return {
           handler: "internal",
           data: global.lang["INSUFFICIENT_PERM"]
-        }
+        };
       }
     },
     compatibly: 0,
     handler: "INTERNAL",
     adminCmd: true
-  }
+  };
   global.commandMapping["restart"].args[global.config.language] = "";
   global.commandMapping["restart"].desc[global.config.language] = global.lang["RESTART_DESC"];
   global.commandMapping["shutdown"] = {
@@ -1406,18 +1232,18 @@ function loadPlugin() {
         return {
           handler: "internal",
           data: "Shutting down..."
-        }
+        };
       } else {
         return {
           handler: "internal",
           data: global.lang["INSUFFICIENT_PERM"]
-        }
+        };
       }
     },
     compatibly: 0,
     handler: "INTERNAL",
     adminCmd: true
-  }
+  };
   global.commandMapping["restart"].args[global.config.language] = "";
   global.commandMapping["restart"].desc[global.config.language] = global.lang["SHUTDOWN_DESC"];
   global.commandMapping["plugins"] = {
@@ -1428,7 +1254,7 @@ function loadPlugin() {
         return {
           handler: "internal",
           data: global.lang["INSUFFICIENT_PERM"]
-        }
+        };
       }
       var page = 1;
       page = parseInt(data.args[1]) || 1;
@@ -1442,9 +1268,9 @@ function loadPlugin() {
         hl.push(tempx);
       }
       if (type == "Discord") {
-        mts += "\r\n```HTTP"
+        mts += "\r\n```HTTP";
       }
-      for (i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
+      for (var i = 5 * (page - 1); i < 5 * (page - 1) + 5; i++) {
         if (i < hl.length) {
           mts += "\r\n" + (i + 1)
             .toString() + ". " + hl[i].name;
@@ -1455,19 +1281,19 @@ function loadPlugin() {
         }
       }
       if (type == "Discord") {
-        mts += "\r\n```"
+        mts += "\r\n```";
       }
       mts += '\r\n(Page ' + page + '/' + (hl.length / 5)
         .ceil() + ')';
       return {
         handler: "internal",
         data: mts
-      }
+      };
     },
     compatibly: 0,
     handler: "INTERNAL",
     adminCmd: !global.config.allowUserUsePluginsCommand
-  }
+  };
   global.commandMapping["plugins"].args[global.config.language] = "";
   global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
   global.commandMapping["reload"] = {
@@ -1478,19 +1304,19 @@ function loadPlugin() {
         return {
           handler: "internal",
           data: global.lang["INSUFFICIENT_PERM"]
-        }
+        };
       }
       unloadPlugin();
       var error = loadPlugin();
       return {
         handler: "internal",
         data: `Reloaded ${error.length == 0 ? "" : ("with error at: " + JSON.stringify(error))}`
-      }
+      };
     },
     compatibly: 0,
     handler: "INTERNAL",
     adminCmd: !global.config.allowUserUseReloadCommand
-  }
+  };
   global.commandMapping["reload"].args[global.config.language] = "";
   global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
   global.commandMapping["toggleeveryone"] = {
@@ -1504,12 +1330,12 @@ function loadPlugin() {
         return {
           data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
           handler: "internal"
-        }
+        };
       }
       var threadID = data.msgdata.threadID;
       var allowRun = false;
       if (!data.admin) {
-        var [err, threadInfo] = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
+        var [_err, threadInfo] = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
         var adminIDs = threadInfo.adminIDs.map(x => x.id.toString());
         log("[INTERNAL]", "Got AdminIDs of thread", data.msgdata.threadID, ":", adminIDs);
         if (adminIDs.indexOf(data.msgdata.senderID) != -1) {
@@ -1530,17 +1356,17 @@ function loadPlugin() {
             (!global.data.everyoneTagBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)
           ),
           handler: "internal"
-        }
+        };
       } else {
         return {
           data: global.lang["INSUFFICIENT_PERM"],
           handler: "internal"
-        }
+        };
       }
     },
     compatibly: 1,
     handler: "INTERNAL"
-  }
+  };
   global.commandMapping["togglethanos"] = {
     args: {},
     desc: {},
@@ -1549,12 +1375,12 @@ function loadPlugin() {
         return {
           data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
           handler: "internal"
-        }
+        };
       }
       var threadID = data.msgdata.threadID;
       var allowRun = false;
       if (!data.admin) {
-        var [err, threadInfo] = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
+        var [_err, threadInfo] = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
         var adminIDs = threadInfo.adminIDs.map(x => x.id.toString());
         log("[INTERNAL]", "Got AdminIDs of thread", data.msgdata.threadID, ":", adminIDs);
         if (adminIDs.indexOf(data.msgdata.senderID) != -1) {
@@ -1573,17 +1399,17 @@ function loadPlugin() {
           data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.thanosBlacklist[threadID] ? global.lang
             .ENABLED : global.lang.DISABLED)),
           handler: "internal"
-        }
+        };
       } else {
         return {
           data: global.lang["INSUFFICIENT_PERM"],
           handler: "internal"
-        }
+        };
       }
     },
     compatibly: 1,
     handler: "INTERNAL"
-  }
+  };
   global.commandMapping["togglethanos"].args[global.config.language] = "";
   global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
   return error;
@@ -1608,7 +1434,7 @@ function unloadPlugin() {
         delete global.chatHook[cmd];
       }
     }
-    delete global.plugins[pltemp1[name]["plugin_scope"]];
+    //delete global.plugins[pltemp1[name]["plugin_scope"]];
     log("[INTERNAL]", "Unloaded plugin", name, global.loadedPlugins[name].version, "by", global.loadedPlugins[name]
       .author);
     delete global.loadedPlugins[name];
@@ -1709,9 +1535,9 @@ if (global.config.enablefb) {
                   return log("[GLOBAL-BAN]", `ERROR: Cannot get thread info for thread ${threadID}.`);
                 }
                 log("[GLOBAL-BAN]", `Got member data for thread ${threadID}.`);
-                bannedUsers = [];
-                banNoKickUsers = [];
-                leave = false;
+                var bannedUsers = [];
+                var banNoKickUsers = [];
+                var leave = false;
                 for (var i in data.participantIDs) {
                   if (Object.hasOwnProperty.call(j.facebook, data.participantIDs[i])) {
                     if (j.facebook[data.participantIDs[i]].noAdding) {
@@ -1807,16 +1633,16 @@ if (global.config.enablefb) {
             "[GLOBAL-BAN]", `Failed to check banned status for ${isGroup ? "thread" : "user"} ${threadID}:`,
             err
           );
-        })
-    }
+        });
+    };
     if (typeof global.facebookGlobalBanClock[threadID] == "undefined") {
       global.facebookGlobalBanClock[threadID] = setInterval(checkFunc, 750000, threadID);
       checkFunc(threadID);
     } else if (forceNoClock) {
       checkFunc(threadID);
     }
-  }
-  facebookcb = function callback(err, api) {
+  };
+  var facebookcb = function callback(err, api) {
     if (err) {
       if (err.error == "login-approval") {
         facebook.error = err;
@@ -1846,7 +1672,7 @@ if (global.config.enablefb) {
       facebook.error = null;
     }
     if (tried2FA) {
-      log("[Facebook]", "Verified using 2FA secret in config.")
+      log("[Facebook]", "Verified using 2FA secret in config.");
     }
     log("[Facebook]", "Logged in.");
     facebookid = api.getCurrentUserID();
@@ -1891,7 +1717,7 @@ if (global.config.enablefb) {
 
     function fetchName(id, force, callingback) {
       if (!callingback) {
-        callingback = function () { }
+        callingback = function () { };
       }
       if (!global.data.cacheName["FB-" + id] || global.data.cacheName["FB-" + id].startsWith("FETCHING-") || !!force) {
         if (typeof global.data.cacheName["FB-" + id] == "string" && global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return;
@@ -2035,7 +1861,7 @@ if (global.config.enablefb) {
     typeof global.data.messageList != "object" ? global.data.messageList = {} : "";
     facebook.listener = api.listenMqtt(function callback(err, message) {
       try {
-        if (message != undefined) {
+        if (typeof message != "undefined" && message != null) {
           var nointernalresolve = false;
           switch (message.type) {
             case "read":
@@ -2074,7 +1900,7 @@ if (global.config.enablefb) {
                     },
                     // eslint-disable-next-line no-loop-func
                     return: function returndata(returndata) {
-                      if (!returndata) return undefined;
+                      if (!returndata) return;
                       if (returndata.handler == "internal" && typeof returndata.data == "string") {
                         var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
                           .isGroup);
@@ -2201,7 +2027,7 @@ if (global.config.enablefb) {
                     .length);
                 })
                 .map(function (z) {
-                  return z.replace(/"/g, "")
+                  return z.replace(/"/g, "");
                 });
               if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global
                 .config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1
@@ -2273,7 +2099,7 @@ if (global.config.enablefb) {
                       }
                       try {
                         if (!client) {
-                          client = undefined
+                          client = null;
                         }
                         var starttime = Date.now();
                         var timingwarning = setInterval(function () {
@@ -2305,7 +2131,7 @@ if (global.config.enablefb) {
                               ].concat(message));
                             },
                             return: function returndata(returndata) {
-                              if (!returndata) return undefined;
+                              if (!returndata) return;
                               if (returndata.handler == "internal" && typeof returndata.data == "string") {
                                 var endTyping = api.sendTypingIndicator(
                                   message.threadID, function () { },
@@ -2374,7 +2200,7 @@ if (global.config.enablefb) {
                             handler: "internal",
                             data: "plerr: " + stack.slice(0, 4)
                               .join("\r\n")
-                          }
+                          };
                         }
                         if (typeof returndata == "object") {
                           if (returndata.handler == "internal" && typeof returndata.data == "string") {
@@ -2563,7 +2389,7 @@ if (global.config.enablefb) {
                             process.exit(7378278);
                           }
                         }
-                      }, undefined, message.isGroup
+                      }, null, message.isGroup
                     );
                     log("[Facebook]", message.author, "added Bot to", message.threadID);
                   }
@@ -2576,8 +2402,8 @@ if (global.config.enablefb) {
               log("[Facebook]", message);
               break;
             case "message_unsend":
-              if (global.config.enableThanosTimeGems && 
-                Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID) && 
+              if (global.config.enableThanosTimeGems &&
+                Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID) &&
                 message.senderID != facebook.api.getCurrentUserID()) {
                 if (!global.data.thanosBlacklist[message.threadID]) {
                   (function () {
@@ -2637,39 +2463,7 @@ if (global.config.enablefb) {
                     }
                     var att = [];
                     var promiselist = [];
-                    var worker = new Worker(() => {
-                      onmessage = function (event) {
-                        var wait = require("wait-for-stuff");
-                        try {
-                          var NSFWJS = wait.for.promise(require("nsfwjs")
-                            .load(`http://127.0.0.1:${tfjsPort}/`, {
-                              size: (event.data.small ? 224 : 299)
-                            }));
-                        } catch (ex) {
-                          var NSFWJS = wait.for.promise(require("nsfwjs")
-                            .load("https://lequanglam.github.io/nsfwjs-model/", {
-                              size: 299
-                            }));
-                        }
-                        var data = event.data;
-                        try {
-                          var cl = wait.for.promise(NSFWJS.classify({
-                            data: new Uint8Array(data.data),
-                            width: data.width,
-                            height: data.height
-                          }, 5));
-                          postMessage({
-                            class: cl,
-                            id: data.id
-                          });
-                        } catch (ex) {
-                          postMessage({
-                            error: ex.toString(),
-                            id: data.id
-                          });
-                        }
-                      }
-                    }, [], {
+                    var worker = new Worker("NSFWJSWorker.js", [], {
                       silent: true
                     });
                     worker.onmessage = function (event) {
@@ -2680,7 +2474,7 @@ if (global.config.enablefb) {
                       if (data.error) {
                         log("[Facebook]", "Error in image classifier:", data.error);
                       }
-                    }
+                    };
                     var idlist = [];
                     for (var n in attachmentArray) {
                       var imagesx = new streamBuffers.ReadableStreamBuffer({
@@ -2716,7 +2510,8 @@ if (global.config.enablefb) {
                           data: Array.from(new Uint8Array(image.bitmap.data)),
                           width: image.bitmap.width,
                           height: image.bitmap.height,
-                          small: global.config.nsfwjsSmallModel
+                          small: global.config.nsfwjsSmallModel,
+                          tfjsPort: tfjsPort
                         });
                         // eslint-disable-next-line no-loop-func
                         global.nsfwjsdata[id].promise = new Promise(resolve => {
@@ -2969,7 +2764,7 @@ if (global.config.enablefb) {
       }
     });
     log("[Facebook]", "Started Facebook listener");
-  }
+  };
   var temporaryAppState = {};
   var fbloginobj = {};
   fbloginobj.email = global.config.fbemail;
@@ -2985,7 +2780,7 @@ if (global.config.enablefb) {
     updatePresence: false,
     autoMarkRead: false,
     autoMarkDelivery: false
-  }
+  };
   if (global.config.facebookProxy != null) {
     if (global.config.facebookProxyUseSOCKS) {
       //configobj.proxy = "http://127.0.0.1:2813";
@@ -2996,8 +2791,8 @@ if (global.config.enablefb) {
   }
   try {
     log("[Facebook]", "Logging in...");
-    var fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
-    forceReconnect = function forceReconnect(error) {
+    var _fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
+    var _forceReconnect = function forceReconnect(error) {
       if (!error) {
         log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (12 hours clock)");
       }
@@ -3010,10 +2805,10 @@ if (global.config.enablefb) {
         clearInterval(facebook.removePendingClock);
         clearInterval(facebook.deliveryClock);
       } catch (ex) { }
-      fbinstance = undefined;
+      _fbinstance = null;
       delete require.cache[require.resolve("fca-unofficial")];
       delete require.cache[require.resolve("mqtt")];
-      fbinstance = require("fca-unofficial")({
+      _fbinstance = require("fca-unofficial")({
         appState: temporaryAppState
       }, configobj, facebookcb);
       log("[Facebook]", "New instance created.");
@@ -3024,7 +2819,7 @@ if (global.config.enablefb) {
           fr(true);
         }
       }, 30000, forceReconnect);
-    }
+    };
     //setInterval(forceReconnect, 43200000);
   } catch (ex) {
     log("[Facebook]", "Error found in codebase:", ex);
@@ -3090,12 +2885,13 @@ if (global.config.enableSSHRemoteConsole) {
     })
       .on('ready', function () {
         log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated successfully.");
-        client.on('session', function (accept, reject) {
+        client.on('session', function (accept, _reject) {
           var session = accept();
           //SFTP Protocol
-          session.on('sftp', function (accept, reject) {
+          session.on('sftp', function (_accept, reject) {
             return reject();
-            // eslint-disable-next-line no-unreachable
+
+            /*
             log(
               "[SSH]", conninfo.ip + ":" + conninfo.port,
               "requested to establish SFTP connection (File Editor)."
@@ -3344,6 +3140,7 @@ if (global.config.enableSSHRemoteConsole) {
                       .toString());
                 }
               });
+              */
           });
           //SSH Shell
           session.once('shell', function (accept, _reject) {
@@ -3418,7 +3215,7 @@ if (global.config.enablediscord) {
     log("[Discord]", "Crashed with error: ", error);
     log("[Discord]", "Trying to reconnect... Some commands might not work correctly.");
   });
-  discordMessageHandler = function (message) {
+  var discordMessageHandler = function (message) {
     var nointernalresolve = false;
     var receivetime = new Date();
     for (var n in global.chatHook) {
@@ -3447,7 +3244,7 @@ if (global.config.enablediscord) {
             },
             // eslint-disable-next-line no-loop-func
             return: function returndata(returndata) {
-              if (!returndata) return undefined;
+              if (!returndata) return;
               if (returndata.handler == "internal" && typeof returndata.data == "string") {
                 message.reply((returndata.data || ""), {
                   split: true
@@ -3506,7 +3303,7 @@ if (global.config.enablediscord) {
             try {
               if (facebook) {
                 if (!facebook.api) {
-                  facebook.api = {}
+                  facebook.api = {};
                 }
               } else {
                 facebook = {};
@@ -3528,7 +3325,7 @@ if (global.config.enablediscord) {
                   ].concat(message));
                 },
                 return: function returndata(returndata) {
-                  if (!returndata) return undefined;
+                  if (!returndata) return;
                   if (returndata.handler == "internal" && typeof returndata.data == "string") {
                     message.reply((returndata.data || ""), {
                       split: true
@@ -3546,7 +3343,7 @@ if (global.config.enablediscord) {
               var returndata = {
                 handler: "internal",
                 data: "plerr: " + ex.stack
-              }
+              };
             }
             if (typeof returndata == "object") {
               if (returndata.handler == "internal" && typeof returndata.data == "string") {
@@ -3582,11 +3379,11 @@ if (global.config.enablediscord) {
         message.content, (message.attachments.size > 0 ? message.attachments : "")
       );
     }
-  }
+  };
   client.on('message', discordMessageHandler);
   log("[Discord]", "Logging in...");
   client.login(global.config.discordtoken);
-  global.config.discordtoken = "<censored, security measures>"
+  global.config.discordtoken = "<censored, security measures>";
 }
 //Handling exit
 var shutdownHandler = function (errorlevel) {
@@ -3656,12 +3453,12 @@ var shutdownHandler = function (errorlevel) {
   log("[INTERNAL]", "Closing bot with code " + errorlevel + "..." + "\x1b[m\r\n");
   rl.setPrompt("\x1b[m");
   console.log();
-}
+};
 //Handle SIGINT and SIGTERM
 var signalHandler = function (signal) {
   log("[INTERNAL]", signal, "detected, triggering exit function...");
   process.exit();
-}
+};
 process.on('SIGTERM', () => signalHandler("SIGTERM")); //Ctrl+C but not on Windows?
 process.on('SIGINT', function () {
   signalHandler("SIGINT");
@@ -3707,7 +3504,7 @@ if (global.config.enableMetric) {
                 .toFixed(0),
               botname: global.config.botname,
               prefix: global.config.commandPrefix
-            }
+            };
             if (global.config.metricHideBotAccountLink) {
               send.hide = true;
             }
@@ -3729,7 +3526,7 @@ if (global.config.enableMetric) {
                       .toFixed(0),
                     botname: global.config.botname,
                     prefix: global.config.commandPrefix
-                  }
+                  };
                   if (global.config.metricHideBotAccountLink) {
                     send.hide = true;
                   }
@@ -3739,26 +3536,26 @@ if (global.config.enableMetric) {
                       `Successfully ping Metric server with Metric ID ${metricData.metricID}.`
                     ))
                     .catch(ret => {
-                      var [err, notneterr] = ret;
+                      var [err] = ret;
                       log("[Metric]", `Error while pinging with Metric ID ${metricData.metricID}`, err);
                     });
                 }, 50000, ping);
               })
               .catch(ret => {
-                var [err, notneterr] = ret;
-                log("[Metric]", "Error while pinging with new Metric ID & Secret:", err)
+                var [err] = ret;
+                log("[Metric]", "Error while pinging with new Metric ID & Secret:", err);
               });
           })
           .catch(ret => {
-            var [err, notneterr] = ret;
-            log("[Metric]", "Error while authenticating with new Metric ID & Secret:", err)
+            var [err] = ret;
+            log("[Metric]", "Error while authenticating with new Metric ID & Secret:", err);
           });
       })
       .catch(ret => {
-        var [err, notneterr] = ret;
-        log("[Metric]", "Error while generating new Metric ID & Secret:", err)
+        var [err] = ret;
+        log("[Metric]", "Error while generating new Metric ID & Secret:", err);
       });
-  }
+  };
   if (typeof global.data.metricID != "string" || typeof global.data.metricSecret != "string") {
     metricNewLogic();
   } else {
@@ -3779,7 +3576,7 @@ if (global.config.enableMetric) {
               .toFixed(0),
             botname: global.config.botname,
             prefix: global.config.commandPrefix
-          }
+          };
           if (global.config.metricHideBotAccountLink) {
             send.hide = true;
           }
@@ -3801,7 +3598,7 @@ if (global.config.enableMetric) {
                     .toFixed(0),
                   botname: global.config.botname,
                   prefix: global.config.commandPrefix
-                }
+                };
                 if (global.config.metricHideBotAccountLink) {
                   send.hide = true;
                 }
@@ -3811,13 +3608,13 @@ if (global.config.enableMetric) {
                     `Successfully ping Metric server with Metric ID ${global.data.metricID}.`
                   ))
                   .catch(ret => {
-                    var [err, notneterr] = ret;
-                    log("[Metric]", `Error while pinging with Metric ID ${global.data.metricID}`, err)
+                    var [err] = ret;
+                    log("[Metric]", `Error while pinging with Metric ID ${global.data.metricID}`, err);
                   });
               }, 50000, ping);
             })
             .catch(ret => {
-              var [err, notneterr] = ret;
+              var [err] = ret;
               log("[Metric]", `Error while pinging with Metric ID ${global.data.metricID}:`, err);
             });
         })
@@ -3831,7 +3628,7 @@ if (global.config.enableMetric) {
             setTimeout(metricAuth, 0);
           }
         });
-    }
+    };
     metricAuth();
   }
 }
