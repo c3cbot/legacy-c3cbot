@@ -3,7 +3,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-redeclare */
 
-require("ClassModifier.js");
+require("./ClassModifier.js");
 var _sizeObject = function (object) {
   return Object.keys(object)
     .length;
