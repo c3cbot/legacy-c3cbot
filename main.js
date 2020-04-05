@@ -279,9 +279,11 @@ setInterval(() => {
   }
   global.stderrdata = "";
 }, 499);
+
+var autoUpdater = require("./autoUpdater.js");
+var cUpdate = autoUpdater.checkForUpdate();
 //Outputs version 
-var version = require("./package.json")
-  .version;
+var version = cUpdate.currVersion;
 log("Starting C3CBot version", version, "...");
 var defaultconfig = {
   testmode: false,
@@ -757,11 +759,10 @@ function requireFromString(src, filename) {
   m._compile(src, filename);
   return m.exports;
 }
-//Auto updater
-var autoUpdater = require("./autoUpdater.js");
 
-function checkUpdate(silent) {
-  var newUpdate = autoUpdater.checkForUpdate();
+//Auto updater
+function checkUpdate(silent, cUpdate) {
+  var newUpdate = cUpdate || autoUpdater.checkForUpdate();
   if (!silent || newUpdate.newUpdate) {
     log(
       "[Updater]",
@@ -785,7 +786,8 @@ function checkUpdate(silent) {
       });
   }
 }
-checkUpdate(false);
+checkUpdate(false, cUpdate);
+
 if (global.config.autoUpdateTimer > 0 && global.config.autoUpdate) {
   setInterval(checkUpdate, global.config.autoUpdateTimer * 60 * 1000, true);
 }
