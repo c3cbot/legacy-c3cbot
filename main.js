@@ -331,8 +331,6 @@ var defaultconfig = {
   sshPassword: "c3cbot@ADMIN",
   nsfwjsSmallModel: true, //! DO NOT SET THIS TO FALSE UNLESS YOU HAVE A BEEFY SERVER!
   commandPrefix: "/",
-  autoRestartTimerMinutes: 0, //Disabling it by default.
-  noAutoRestartIfFBNotLogggedIn: true,
   autoUpdate: true,
   autoUpdateTimer: 60,
   configVersion: 1,
@@ -3469,16 +3467,7 @@ process.on('SIGHUP', function () {
 rl.on('SIGTERM', () => process.emit('SIGINT'));
 rl.on('SIGINT', () => process.emit('SIGINT'));
 process.on('exit', shutdownHandler);
-//Auto restart clock
-if (Math.abs(global.config.autoRestartTimerMinutes) != 0) {
-  setTimeout(function () {
-    if (!(global.config.noAutoRestartIfFBNotLogggedIn && (facebookid == "Not logged in" || facebookid ==
-      "Disabled"))) {
-      log("[INTERNAL]", "Auto restart timer triggered. Restarting... (by throwing code 7378278)");
-      process.exit(7378278);
-    }
-  }, Math.abs(global.config.autoRestartTimerMinutes) * 60 * 1000);
-}
+
 if (global.config.enableMetric) {
   var metric = require("./metric.js");
   var metricNewLogic = function metricNewLogic() {
