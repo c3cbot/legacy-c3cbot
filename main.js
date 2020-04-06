@@ -53,6 +53,16 @@ try {
   );
   console.log("[NOT LOGGED]", "Handling setPriority error:", ex);
 }
+const reload = () => {
+  unloadPlugin();
+  var error = loadPlugin();
+  log(`Reloaded ${error.length == 0 ? "" : ("with error at: " + JSON.stringify(error))}`);
+};
+const chat = (id, mess) => {
+  facebook.api.sendMessage(mess, id);
+  log('Sent message: "'+mess+'" to Thread '+id);
+};
+const restart = () => {setTimeout(function () { process.exit(7378278); }, 1000);};
 /**
  * Find every file in a directory
  *
