@@ -53,6 +53,26 @@ try {
   );
   console.log("[NOT LOGGED]", "Handling setPriority error:", ex);
 }
+const reload = () => {
+  unloadPlugin();
+  var error = loadPlugin();
+  return `Reloaded${error.length == 0 ? " " : (" with error at: " + JSON.stringify(error, null, 2))}`;
+};
+const fbchat = (id, mess) => {
+  if (typeof facebook.api == "object") {
+    var isGroup = (id.toString().length == 16);
+    facebook.api.sendMessage(mess, id, () => {}, null, isGroup);
+    return `Sent message: ${mess} to ${isGroup ? "Thread" : "User"} ID ${id}`;
+  } else {
+    return "Error: Account not logged in!"
+  }
+};
+const restart = () => {
+  setTimeout(function () { 
+    process.exit(7378278); 
+  }, 1000);
+  return "Restarting...";
+};
 /**
  * Find every file in a directory
  *
