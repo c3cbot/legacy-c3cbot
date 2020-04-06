@@ -1722,6 +1722,9 @@ if (global.config.enablefb) {
           });
         }
         api.httpPost("https://www.facebook.com/ajax/mercury/delivery_receipts.php", form, function (err, data) {
+          try {
+            data = JSON.parse(data);
+          } catch (ex) {};	
           if (data.error) {
             return log("[Facebook] Error on delivery_receipts:", data);
           }
