@@ -2792,9 +2792,9 @@ if (global.config.enablefb) {
   try {
     log("[Facebook]", "Logging in...");
     var _fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
-    var _forceReconnect = function forceReconnect(error) {
+    var forceReconnect = function forceReconnect(error) {
       if (!error) {
-        log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (12 hours clock)");
+        log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (50 minutes clock)");
       }
       if (typeof facebook.listener == "function") {
         facebook.listener.stopListening();
@@ -2813,14 +2813,14 @@ if (global.config.enablefb) {
       }, configobj, facebookcb);
       log("[Facebook]", "New instance created.");
       log("[Facebook]", "Logging in...");
-      setTimeout(function (fr) {
+      setTimeout(function () {
         if (facebook.error && !facebook.listener) {
           log("[Facebook]", "Detected error. Attempting to reconnect...");
-          fr(true);
+          forceReconnect(true);
         }
-      }, 30000, forceReconnect);
+      }, 30000);
     };
-    //setInterval(forceReconnect, 43200000);
+    setInterval(forceReconnect, 2899999);
   } catch (ex) {
     log("[Facebook]", "Error found in codebase:", ex);
   }
