@@ -2819,10 +2819,14 @@ if (global.config.enablefb) {
       if (!error) {
         log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (50 minutes clock)");
       }
-      if (typeof facebook.listener == "function") {
+      if (typeof facebook.listener == "object" && typeof facebook.listener.stopListening == "function") {
         facebook.listener.stopListening();
         log("[Facebook]", "Stopped Facebook listener");
-        temporaryAppState = facebook.api.getAppState();
+      }
+      if (typeof facebook.api.getAppState == "function") {
+        var temporaryAppState = facebook.api.getAppState();
+      } else {
+        log("[Facebook]", "Cannot get appstate to reconnect (account not logged in?).");
       }
       try {
         clearInterval(facebook.removePendingClock);
