@@ -2827,6 +2827,7 @@ if (global.config.enablefb) {
         var temporaryAppState = facebook.api.getAppState();
       } else {
         log("[Facebook]", "Cannot get appstate to reconnect (account not logged in?).");
+        return;
       }
       try {
         clearInterval(facebook.removePendingClock);
