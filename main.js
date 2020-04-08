@@ -53,12 +53,12 @@ try {
   );
   console.log("[NOT LOGGED]", "Handling setPriority error:", ex);
 }
-const reload = () => {
+global.reload = () => {
   unloadPlugin();
   var error = loadPlugin();
   return `Reloaded${error.length == 0 ? " " : (" with error at: " + JSON.stringify(error, null, 2))}`;
 };
-const fbchat = (id, mess) => {
+global.fbchat = (id, mess) => {
   if (typeof facebook.api == "object") {
     var isGroup = (id.toString().length == 16);
     facebook.api.sendMessage(mess, id, () => {}, null, isGroup);
@@ -67,7 +67,7 @@ const fbchat = (id, mess) => {
     return "Error: Account not logged in!"
   }
 };
-const restart = () => {
+global.restart = () => {
   setTimeout(function () { 
     process.exit(7378278); 
   }, 1000);
@@ -1724,7 +1724,7 @@ if (global.config.enablefb) {
         api.httpPost("https://www.facebook.com/ajax/mercury/delivery_receipts.php", form, function (err, data) {
           try {
             data = JSON.parse(data);
-          } catch (ex) {};	
+          } catch (ex) {}
           if (data.error) {
             return log("[Facebook] Error on delivery_receipts:", data);
           }
@@ -2788,7 +2788,6 @@ if (global.config.enablefb) {
     });
     log("[Facebook]", "Started Facebook listener");
   };
-  var temporaryAppState = {};
   var fbloginobj = {};
   fbloginobj.email = global.config.fbemail;
   fbloginobj.password = global.config.fbpassword;
@@ -2817,7 +2816,7 @@ if (global.config.enablefb) {
     var _fbinstance = require("fca-unofficial")(fbloginobj, configobj, facebookcb);
     var forceReconnect = function forceReconnect(error) {
       if (!error) {
-        log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (50 minutes clock)");
+        log("[Facebook]", "Destroying Facebook Chat instance and creating a new one... (~50 minutes clock)");
       }
       if (typeof facebook.listener == "object" && typeof facebook.listener.stopListening == "function") {
         facebook.listener.stopListening();
@@ -2848,7 +2847,7 @@ if (global.config.enablefb) {
         }
       }, 30000);
     };
-    setInterval(forceReconnect, 2899999);
+    setInterval(forceReconnect, 2799999 + random(0, 1980000));
   } catch (ex) {
     log("[Facebook]", "Error found in codebase:", ex);
   }
