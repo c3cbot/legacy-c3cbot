@@ -35,11 +35,10 @@ List of *might be* supported/tested OS (not tested: \*):
     - Ubuntu 16.10\*
     - Ubuntu 17.04\*
     - Ubuntu 17.10\*
-    - Ubuntu 18.04\*
-    - Ubuntu 18.10
-    - Ubuntu 19.04\*
-    - Ubuntu 19.10
-    - Ubuntu 20.04 (beta)\*
+    - Ubuntu 18.04
+    - Ubuntu 18.10\*
+    - Ubuntu 19.04
+    - Ubuntu 19.10\*
   - Linux distros which are able to run Node 12 (x86/x64/ARMv7/ARM64/...)\*
 - Android (through TermUX) (warning: unstable!)
 
@@ -86,7 +85,6 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "fblisten": [
     "0"
   ],
-  "facebookAutoRestartLoggedOut": true,
   "facebookProxy": null,
   "facebookProxyUseSOCKS": false,
   "portSOCK2HTTP": 0,
@@ -120,7 +118,6 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "sshPassword": "c3cbot@ADMIN",
   "nsfwjsSmallModel": true,
   "commandPrefix": "/",
-  "autoRestartTimerMinutes": 50,
   "autoUpdate": true,
   "configVersion": 1,
   "enableMetric": true,

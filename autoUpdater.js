@@ -210,7 +210,9 @@ module.exports = {
         })
         .catch(str => {
           if (str == "OK") {
-            fs.unlinkSync("package-lock.json");
+            try {
+              fs.unlinkSync("package-lock.json");
+            } catch (ex) {}
             spawn("npm", ["install"])
               .then(code => {
                 if (code != 0) {
@@ -224,7 +226,9 @@ module.exports = {
                   resolvePromise([false, "npm update: Error " + code]);
                   throw null;
                 }
-                fs.unlinkSync("package-lock.json");
+                try {
+                  fs.unlinkSync("package-lock.json");
+                } catch (ex) {}
                 resolvePromise([true, "?"]);
               })
               .catch(_ => { });
