@@ -41,6 +41,7 @@ List of *might be* supported/tested OS (not tested: \*):
     - Ubuntu 19.10\*
   - Linux distros which are able to run Node 12 (x86/x64/ARMv7/ARM64/...)\*
 - Android (through TermUX) (warning: unstable!)
+- Chrome OS w/ Google Play (through TermUX)
 
 Notice for Ubuntu/Linux & macOS users: Please add `sudo` before every commands. (if your OS has sudo, that is.)
 
