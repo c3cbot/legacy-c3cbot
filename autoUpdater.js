@@ -124,12 +124,12 @@ module.exports = {
         return this.checkForUpdate(true);
       }
       try {
-        var githubVersion = JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
+        var githubVersion = semver.valid(semver.coerce(JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
           headers: {
             "User-Agent": `C3CBot/${currVersion} request/0.0-sync`,
             "Accept": "application/vnd.github.v3.full+json"
           }
-        }).body.toString()).version;
+        }).body.toString()).version));
         var githubHash = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/ref/heads/master", {
           headers: {
             "User-Agent": `C3CBot/${currVersion} request/0.0-sync`,
