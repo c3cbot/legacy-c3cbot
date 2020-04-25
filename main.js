@@ -2982,9 +2982,7 @@ var shutdownHandler = function (errorlevel) {
       log("[SSH]", conn, "is already closed. Skipping...");
     }
   }
-  //Stop model server
-  TFJS_MODEL_SERVER.close();
-  log("[INTERNAL]", "Closed local HTTP Model Server.");
+
   //Stop local SOCK2HTTP
   if (typeof localSocksProxy != "undefined") {
     localSocksProxy.close();
