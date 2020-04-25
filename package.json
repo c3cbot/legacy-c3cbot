@@ -47,7 +47,6 @@
     "stream-buffers": "^3.0.2",
     "sync-request": "^6.1.0",
     "tar-stream": "^2.1.2",
-    "tiny-worker": "^2.3.0",
     "utf-8-validate": "^5.0.2",
     "wait-for-stuff": "^1.4.0",
     "zlib-sync": "^0.1.6"
