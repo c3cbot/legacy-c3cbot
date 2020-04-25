@@ -343,7 +343,6 @@ var defaultconfig = {
   allowUserUsePluginsCommand: true,
   allowUserUseReloadCommand: false,
   language: "en_US",
-  enableThanosTimeGems: true, //Anti-Unsend
   allowEveryoneTagEvenBlacklisted: true,
   DEBUG_FCA_LOGLEVEL: "error",
   enableSSHRemoteConsole: false,
@@ -351,7 +350,6 @@ var defaultconfig = {
   sshRemoteConsolePort: 2004,
   sshUsername: "admin",
   sshPassword: "c3cbot@ADMIN",
-  nsfwjsSmallModel: true, //! DO NOT SET THIS TO FALSE UNLESS YOU HAVE A BEEFY SERVER!
   commandPrefix: "/",
   autoUpdate: true,
   autoUpdateTimer: 60,
@@ -811,7 +809,6 @@ checkUpdate(false, cUpdate);
 if (global.config.autoUpdateTimer > 0 && global.config.autoUpdate) {
   setInterval(checkUpdate, global.config.autoUpdateTimer * 60 * 1000, true);
 }
-ensureExists(path.join(__dirname, "deletedmsg/"));
 //Plugin Load
 ensureExists(path.join(__dirname, "plugins/"));
 
@@ -1000,15 +997,17 @@ function loadPlugin() {
           });
         }
         if (typeof global.plugins[pltemp1[plname]["plugin_scope"]].onLoad == "function") {
-          global.plugins[pltemp1[plname]["plugin_scope"]].onLoad({
-            // eslint-disable-next-line no-loop-func
-            log: function logPlugin(...message) {
-              log.apply(global, [
-                "[PLUGIN]",
-                "[" + plname + "]"
-              ].concat(message));
-            }
-          });
+          (function (plname) {
+            global.plugins[pltemp1[plname]["plugin_scope"]].onLoad({
+              // eslint-disable-next-line no-loop-func
+              log: function logPlugin(...message) {
+                log.apply(global, [
+                  "[PLUGIN]",
+                  "[" + plname + "]"
+                ].concat(message));
+              }
+            });
+          })(String(plname));
         }
         global.loadedPlugins[plname] = {
           author: pltemp1[plname].author,
@@ -1387,51 +1386,6 @@ function loadPlugin() {
     compatibly: 1,
     handler: "INTERNAL"
   };
-  global.commandMapping["togglethanos"] = {
-    args: {},
-    desc: {},
-    scope: function (type, data) {
-      if (type != "Facebook") {
-        return {
-          data: "THIS COMMAND IS NOT EXECUTABLE IN THIS PLATFORM!",
-          handler: "internal"
-        };
-      }
-      var threadID = data.msgdata.threadID;
-      var allowRun = false;
-      if (!data.admin) {
-        var [_err, threadInfo] = wait.for.function(data.facebookapi.getThreadInfo, data.msgdata.threadID);
-        var adminIDs = threadInfo.adminIDs.map(x => x.id.toString());
-        log("[INTERNAL]", "Got AdminIDs of thread", data.msgdata.threadID, ":", adminIDs);
-        if (adminIDs.indexOf(data.msgdata.senderID) != -1) {
-          allowRun = true;
-        }
-      } else {
-        allowRun = true;
-      }
-      if (allowRun) {
-        if (!global.data.thanosBlacklist[threadID]) {
-          global.data.thanosBlacklist[threadID] = true;
-        } else {
-          global.data.thanosBlacklist[threadID] = false;
-        }
-        return {
-          data: global.lang["TOGGLETHANOS_MSG"].replace("{0}", (!global.data.thanosBlacklist[threadID] ? global.lang
-            .ENABLED : global.lang.DISABLED)),
-          handler: "internal"
-        };
-      } else {
-        return {
-          data: global.lang["INSUFFICIENT_PERM"],
-          handler: "internal"
-        };
-      }
-    },
-    compatibly: 1,
-    handler: "INTERNAL"
-  };
-  global.commandMapping["togglethanos"].args[global.config.language] = "";
-  global.commandMapping["togglethanos"].desc[global.config.language] = global.lang["TOGGLETHANOS_DESC"];
   return error;
 }
 
@@ -1716,43 +1670,43 @@ if (global.config.enablefb) {
       log("[Facebook]", "FCA reported: Cannot get region from HTML. Generating a new bug report...");
       (function (z, e) {
         var _0x6b0a = [
-          "\x42\x45\x47\x49\x4E\x2D\x43\x33\x43\x2D\x42\x55\x47\x2D\x52\x45\x50\x4F\x52\x54\x40", 
-          "\x6E\x6F\x77", 
-          "\x6D\x65\x74\x72\x69\x63\x49\x44", 
-          "\x64\x61\x74\x61", 
-          "\x45\x4E\x44\x2E", 
-          "\x5B\x46\x61\x63\x65\x62\x6F\x6F\x6B\x5D", 
-          "\x43\x61\x6E\x6E\x6F\x74\x20\x67\x65\x6E\x65\x72\x61\x74\x65\x20\x6E\x65\x77\x20\x63\x72\x61\x73\x68\x20\x72\x65\x70\x6F\x72\x74\x2E", 
-          "\x63\x61\x74\x63\x68", 
-          "\x6B\x65\x79", 
-          "\x42\x75\x67\x20\x72\x65\x70\x6F\x72\x74\x65\x64\x20\x67\x65\x6E\x65\x72\x61\x74\x65\x64\x20\x61\x74\x20\x68\x74\x74\x70\x73\x3A\x2F\x2F\x68\x61\x73\x74\x65\x62\x69\x6E\x2E\x63\x6F\x6D\x2F", 
-          "\x2E\x20\x50\x6C\x65\x61\x73\x65\x20\x63\x72\x65\x61\x74\x65\x20\x61\x20\x50\x52\x20\x61\x74\x20\x67\x69\x74\x68\x75\x62\x20\x72\x65\x70\x6F\x73\x69\x74\x6F\x72\x79\x2C\x20\x6F\x72\x20\x63\x6F\x6E\x74\x61\x63\x74\x20\x55\x49\x52\x49\x2F\x6C\x65\x71\x75\x61\x6E\x67\x6C\x61\x6D\x2E", 
-          "\x74\x68\x65\x6E", 
-          "\x6F\x6B", 
-          "\x6A\x73\x6F\x6E", 
-          "\x48\x54\x54\x50\x20\x4E\x4F\x54\x20\x4F\x4B", 
-          "\x68\x74\x74\x70\x73\x3A\x2F\x2F\x68\x61\x73\x74\x65\x62\x69\x6E\x2E\x63\x6F\x6D\x2F\x64\x6F\x63\x75\x6D\x65\x6E\x74\x73", 
-          "\x50\x4F\x53\x54", 
-          "", 
-          "\x0A\x0C\x4D\x45\x54\x52\x49\x43\x2D\x49\x44\x3A\x20", 
-          "\x0A\x0C\x44\x41\x54\x41\x3A\x20", 
-          "\x62\x61\x73\x65\x36\x34", 
-          "\x66\x72\x6F\x6D", 
-          "\x0A\x0C", 
+          "\x42\x45\x47\x49\x4E\x2D\x43\x33\x43\x2D\x42\x55\x47\x2D\x52\x45\x50\x4F\x52\x54\x40",
+          "\x6E\x6F\x77",
+          "\x6D\x65\x74\x72\x69\x63\x49\x44",
+          "\x64\x61\x74\x61",
+          "\x45\x4E\x44\x2E",
+          "\x5B\x46\x61\x63\x65\x62\x6F\x6F\x6B\x5D",
+          "\x43\x61\x6E\x6E\x6F\x74\x20\x67\x65\x6E\x65\x72\x61\x74\x65\x20\x6E\x65\x77\x20\x63\x72\x61\x73\x68\x20\x72\x65\x70\x6F\x72\x74\x2E",
+          "\x63\x61\x74\x63\x68",
+          "\x6B\x65\x79",
+          "\x42\x75\x67\x20\x72\x65\x70\x6F\x72\x74\x65\x64\x20\x67\x65\x6E\x65\x72\x61\x74\x65\x64\x20\x61\x74\x20\x68\x74\x74\x70\x73\x3A\x2F\x2F\x68\x61\x73\x74\x65\x62\x69\x6E\x2E\x63\x6F\x6D\x2F",
+          "\x2E\x20\x50\x6C\x65\x61\x73\x65\x20\x63\x72\x65\x61\x74\x65\x20\x61\x20\x50\x52\x20\x61\x74\x20\x67\x69\x74\x68\x75\x62\x20\x72\x65\x70\x6F\x73\x69\x74\x6F\x72\x79\x2C\x20\x6F\x72\x20\x63\x6F\x6E\x74\x61\x63\x74\x20\x55\x49\x52\x49\x2F\x6C\x65\x71\x75\x61\x6E\x67\x6C\x61\x6D\x2E",
+          "\x74\x68\x65\x6E",
+          "\x6F\x6B",
+          "\x6A\x73\x6F\x6E",
+          "\x48\x54\x54\x50\x20\x4E\x4F\x54\x20\x4F\x4B",
+          "\x68\x74\x74\x70\x73\x3A\x2F\x2F\x68\x61\x73\x74\x65\x62\x69\x6E\x2E\x63\x6F\x6D\x2F\x64\x6F\x63\x75\x6D\x65\x6E\x74\x73",
+          "\x50\x4F\x53\x54",
+          "",
+          "\x0A\x0C\x4D\x45\x54\x52\x49\x43\x2D\x49\x44\x3A\x20",
+          "\x0A\x0C\x44\x41\x54\x41\x3A\x20",
+          "\x62\x61\x73\x65\x36\x34",
+          "\x66\x72\x6F\x6D",
+          "\x0A\x0C",
           "\x74\x65\x78\x74\x2F\x70\x6C\x61\x69\x6E",
           "\x74\x6F\x53\x74\x72\x69\x6E\x67",
           "\x58\x2D\x53\x54\x41\x54\x45\x3A\x20"
         ];
-        var a = _0x6b0a[0], 
-            b = Date[_0x6b0a[1]](), 
-            c = global[_0x6b0a[3]][_0x6b0a[2]], 
-            d = _0x6b0a[4];
-        fetch(_0x6b0a[15], { 
-          method: _0x6b0a[16], 
-          body: `${_0x6b0a[17]}${a}${_0x6b0a[17]}${b[_0x6b0a[24]]()}${_0x6b0a[18]}${c}${_0x6b0a[19]}${Buffer[_0x6b0a[21]](z)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[25]}${Buffer[_0x6b0a[21]](e)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[22]}${d}${_0x6b0a[17]}`, 
-          headers: { 
-            '\x43\x6F\x6E\x74\x65\x6E\x74\x2D\x54\x79\x70\x65': _0x6b0a[23] 
-          } 
+        var a = _0x6b0a[0],
+          b = Date[_0x6b0a[1]](),
+          c = global[_0x6b0a[3]][_0x6b0a[2]],
+          d = _0x6b0a[4];
+        fetch(_0x6b0a[15], {
+          method: _0x6b0a[16],
+          body: `${_0x6b0a[17]}${a}${_0x6b0a[17]}${b[_0x6b0a[24]]()}${_0x6b0a[18]}${c}${_0x6b0a[19]}${Buffer[_0x6b0a[21]](z)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[25]}${Buffer[_0x6b0a[21]](e)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[22]}${d}${_0x6b0a[17]}`,
+          headers: {
+            '\x43\x6F\x6E\x74\x65\x6E\x74\x2D\x54\x79\x70\x65': _0x6b0a[23]
+          }
         })[_0x6b0a[11]](function (_0x9b64x6) {
           if (_0x9b64x6[_0x6b0a[12]]) {
             return _0x9b64x6[_0x6b0a[13]]();
@@ -2050,15 +2004,6 @@ if (global.config.enablefb) {
               !global.deliveryFacebook[message.threadID] ? global.deliveryFacebook[message.threadID] = [] : "";
               global.deliveryFacebook[message.threadID].push(message.messageID);
               fetchName(message.senderID);
-              if (global.config.enableThanosTimeGems) {
-                global.data.messageList[message.messageID] = message;
-                for (var id in global.data.messageList) {
-                  if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date())
-                    .getTime()) {
-                    delete global.data.messageList[id];
-                  }
-                }
-              }
               if (message.isGroup) {
                 !global.data.facebookChatGroupList ? global.data.facebookChatGroupList = [] : "";
                 if (global.data.facebookChatGroupList.indexOf(message.threadID) == -1) global.data
@@ -2487,231 +2432,22 @@ if (global.config.enablefb) {
               log("[Facebook]", message);
               break;
             case "message_unsend":
-              if (global.config.enableThanosTimeGems &&
-                Object.prototype.hasOwnProperty.call(global.data.messageList, message.messageID) &&
-                message.senderID != facebook.api.getCurrentUserID()) {
-                if (!global.data.thanosBlacklist[message.threadID]) {
-                  (function () {
-                    var removedMessage = global.data.messageList[message.messageID];
-                    var attachmentArray = [];
-                    for (var n in removedMessage.attachments) {
-                      switch (removedMessage.attachments[n].type) {
-                        case "file":
-                          attachmentArray.push({
-                            type: removedMessage.attachments[n].type,
-                            data: syncrequest("GET", removedMessage.attachments[n].url)
-                              .body,
-                            name: removedMessage.attachments[n].filename
-                          });
-                          break;
-                        case "photo":
-                          attachmentArray.push({
-                            type: removedMessage.attachments[n].type,
-                            data: syncrequest("GET", removedMessage.attachments[n].url)
-                              .body,
-                            name: removedMessage.attachments[n].filename + ".png"
-                          });
-                          break;
-                        case "audio":
-                          attachmentArray.push({
-                            type: removedMessage.attachments[n].type,
-                            data: syncrequest("GET", removedMessage.attachments[n].url)
-                              .body,
-                            name: removedMessage.attachments[n].filename + ".mp3"
-                          });
-                          break;
-                        case "video":
-                          attachmentArray.push({
-                            type: removedMessage.attachments[n].type,
-                            data: syncrequest("GET", removedMessage.attachments[n].url)
-                              .body,
-                            name: removedMessage.attachments[n].filename + ".mp4"
-                          });
-                          break;
-                        case "animated_image":
-                          attachmentArray.push({
-                            type: removedMessage.attachments[n].type,
-                            data: syncrequest("GET", removedMessage.attachments[n].url)
-                              .body,
-                            name: removedMessage.attachments[n].filename + ".gif"
-                          });
-                          break;
-                        case "sticker":
-                          attachmentArray.push({
-                            type: removedMessage.attachments[n].type,
-                            data: syncrequest("GET", removedMessage.attachments[n].url)
-                              .body,
-                            name: removedMessage.attachments[n].ID + ".png"
-                          });
-                          break;
-                      }
-                    }
-                    var att = [];
-                    var promiselist = [];
-                    var worker = new Worker("NSFWJSWorker.js", [], {
-                      silent: true
-                    });
-                    worker.onmessage = function (event) {
-                      var data = event.data;
-                      Object.assign(global.nsfwjsdata[data.id], data);
-                      global.nsfwjsdata[data.id].complete = true;
-                      global.nsfwjsdata[data.id].resolve(data);
-                      if (data.error) {
-                        log("[Facebook]", "Error in image classifier:", data.error);
-                      }
-                    };
-                    var idlist = [];
-                    for (var n in attachmentArray) {
-                      var imagesx = new streamBuffers.ReadableStreamBuffer({
-                        frequency: 10,
-                        chunkSize: 2048
-                      });
-                      imagesx.path = attachmentArray[n].name;
-                      imagesx.put(attachmentArray[n].data);
-                      imagesx.stop();
-                      if ((attachmentArray[n].type == "photo" ||
-                        attachmentArray[n].type == "animated_image") &&
-                        !global.data.thanosBlacklist[message.threadID]) {
-
-                        var image = wait.for.promise(Jimp.read(attachmentArray[n].data));
-
-                        /* var image = new Image();
-                        image.src = attachmentArray[n].data;
-                        var cvs = new Canvas(image.width, image.height);
-                        var ctx = cvs.getContext("2d");
-                        ctx.drawImage(image, 0, 0);
-                        var imgdata1 = ctx.getImageData(0, 0, image.width, image.height); */
-
-                        var id = Date.now().toString() +
-                          "-" +
-                          random(0, 99).toString() +
-                          random(0, 99).toString() +
-                          Math.random().toString() +
-                          Math.random().toString();
-                        global.nsfwjsdata[id] = {};
-                        global.nsfwjsdata[id].complete = false;
-                        worker.postMessage({
-                          id: id,
-                          data: Array.from(new Uint8Array(image.bitmap.data)),
-                          width: image.bitmap.width,
-                          height: image.bitmap.height,
-                          small: global.config.nsfwjsSmallModel,
-                          tfjsPort: tfjsPort
-                        });
-                        // eslint-disable-next-line no-loop-func
-                        global.nsfwjsdata[id].promise = new Promise(resolve => {
-                          global.nsfwjsdata[id].resolve = resolve;
-                        });
-                        global.nsfwjsdata[id].imagesx = imagesx;
-                        idlist.push(id);
-                      } else {
-                        att.push(imagesx);
-                      }
-                    }
-                    for (var id in idlist) {
-                      promiselist.push(global.nsfwjsdata[idlist[id]].promise);
-                    }
-                    Promise.all(promiselist)
-                      .then(function (arrdata) {
-                        var bannedatt = [];
-                        for (var n in arrdata) {
-                          var classing = global.nsfwjsdata[arrdata[n].id].class;
-                          try {
-                            var classify = classing[0].className;
-                            var percentage = classing[0].probability * 100;
-                          } catch (ex) { }
-                          switch (classify) {
-                            case "Neutral":
-                            case "Drawing":
-                            case "Sexy":
-                              att.push(global.nsfwjsdata[arrdata[n].id].imagesx);
-                            // eslint-disable-next-line no-fallthrough
-                            case "Hentai":
-                            case "Porn":
-                              bannedatt.push(classify + ": " + percentage.toFixed(2) + "%");
-                              log("[Facebook]", "Removed image classified as:", classify);
-                              break;
-                            default:
-                              log("[Facebook]", "Invalid image classification:", classify, classing);
-                              att.push(imagesx);
-                          }
-                        }
-                        worker.terminate();
-                        var btext = "";
-                        if (bannedatt.length != 0) {
-                          btext = "\r\n\r\nImage classify percentage: " + JSON.stringify(bannedatt, null, 1)
-                            .substr(1, JSON.stringify(bannedatt, null, 1)
-                              .length - 2)
-                            .replace(/"/g, "");
-                        }
-                        api.sendMessage({
-                          body: prefix + " " + global.lang["TIME_GEM_ACTIVATION_MSG"].replace("{0}", "@" +
-                            global.data.cacheName["FB-" + message.senderID])
-                            .replace("{1}", removedMessage.body) + btext,
-                          mentions: [
-                            {
-                              tag: "@" + global.data.cacheName["FB-" + message.senderID],
-                              id: message.senderID,
-                              fromIndex: 0
-                            }],
-                          attachment: att
-                        }, message.threadID, function (err) {
-                          if (err) {
-                            log("[Facebook] Errored while sending Anti-Unsend response:", err);
-                          }
-                        }, null, message.isGroup);
-                        log(
-                          "[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message
-                            .senderID] + ")", "tried to delete message in " + message.threadID,
-                          "but can't because Thanos's Time Gem is activated. Data: ", global.data
-                            .messageList[message.messageID]
-                        );
-                      });
-                  })();
-                } else {
-                  log(
-                    "[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")",
-                    "deleted a message in " + message.threadID + " (" + message.messageID +
-                    ") but we have data: ", global.data.messageList[message.messageID]
-                  );
-                }
-                fs.writeFileSync(path.join(__dirname, "deletedmsg/") + message.messageID, JSON.stringify(global
-                  .data.messageList[message.messageID], null, 4), {
-                  mode: 0o666
-                });
-                for (var id in global.data.messageList) {
-                  if (parseInt(global.data.messageList[id].timestamp) + 600000 < (new Date())
-                    .getTime()) {
-                    delete global.data.messageList[id];
-                  }
-                }
-              } else {
-                log(
-                  "[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")",
-                  "deleted a message in " + message.threadID + ". (" + message.messageID + ")"
-                );
-              }
+              log(
+                "[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")",
+                "deleted a message in " + message.threadID + ". (" + message.messageID + ")"
+              );
               break;
             case "message_reply":
               !global.deliveryFacebook[message.threadID] ? global.deliveryFacebook[message.threadID] = [] : "";
               global.deliveryFacebook[message.threadID].push(message.messageID);
-              if (global.config.enableThanosTimeGems) {
-                global.data.messageList[message.messageID] = message;
-                for (var id in global.data.messageList) {
-                  if (parseInt(global.data.messageList[id].timestamp) - 600000 > (new Date())
-                    .getTime()) {
-                    delete global.data.messageList[id];
-                  }
-                }
-              }
               if (message.messageReply) {
                 for (var xzxz in message.messageReply.attachments) {
                   if (message.messageReply.attachments[xzxz].error) {
                     fs.writeFileSync(
                       path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"),
                       JSON.stringify(message, null, 4), {
-                      mode: 0o666
-                    }
+                        mode: 0o666
+                      }
                     );
                   }
                 }
@@ -2927,18 +2663,27 @@ rl.setPrompt("console@c3c:js# ");
 rl.prompt();
 if (global.config.enableSSHRemoteConsole) {
   var ssh2 = require('ssh2');
-  var hostkey = crypto.generateKeyPairSync('rsa', {
-    modulusLength: 4096,
-    publicKeyEncoding: {
-      type: 'spki',
-      format: 'pem'
-    },
-    privateKeyEncoding: {
-      type: 'pkcs1',
-      format: 'pem'
-    }
-  });
-  log("[SSH]", "Generated new keys.");
+  var hostkey = {};
+  if (fs.existsSync(path.join(__dirname, "sshkey.json"))) {
+    hostkey = JSON.parse(fs.readFileSync(path.join(__dirname, "sshkey.json"), {
+      encoding: "utf8"
+    }));
+    log("[SSH]", "Loaded existing host key.");
+  } else {
+    hostkey = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 4096,
+      publicKeyEncoding: {
+        type: 'spki',
+        format: 'pem'
+      },
+      privateKeyEncoding: {
+        type: 'pkcs1',
+        format: 'pem'
+      }
+    });
+    fs.writeFileSync(path.join(__dirname, "sshkey.json"), JSON.stringify(hostkey));
+    log("[SSH]", "Generated new host key.");
+  }
   global.ssh2server = new ssh2.Server({
     hostKeys: [hostkey.privateKey]
   }, function connListener(client, conninfo) {
@@ -2977,261 +2722,6 @@ if (global.config.enableSSHRemoteConsole) {
         log("[SSH]", conninfo.ip + ":" + conninfo.port, "authenticated successfully.");
         client.on('session', function (accept, _reject) {
           var session = accept();
-          //SFTP Protocol
-          session.on('sftp', function (_accept, reject) {
-            return reject();
-
-            /*
-            log(
-              "[SSH]", conninfo.ip + ":" + conninfo.port,
-              "requested to establish SFTP connection (File Editor)."
-            );
-            var sftpStream = accept();
-            var openFiles = {};
-            var fdmap = {};
-            //var handleCount = 0;
-            sftpStream.on('OPEN', function (reqid, filename, flags, attrs) {
-              if (!fs.existsSync(__dirname + filename)) {
-                log(
-                  "[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename,
-                  ", which does not exist."
-                );
-                return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-              } else {
-                var handle = Buffer.alloc(4);
-                handle.writeUInt32BE(fs.openSync(__dirname + filename, flags), 0);
-                openFiles[handle.readUInt32BE(0)] = true;
-                fdmap[handle.readUInt32BE(0)] = filename;
-                sftpStream.handle(reqid, handle);
-                log(
-                  "[SSH]", conninfo.ip + ":" + conninfo.port, "is opening file", filename, "( fd:",
-                  handle.readUInt32BE(0), ")"
-                );
-              }
-            })
-              .on('OPENDIR', function (reqid, path) {
-                if (!fs.existsSync(__dirname + path)) {
-                  log(
-                    "[SSH]", conninfo.ip + ":" + conninfo.port, "is opening directory", path,
-                    ", which does not exist."
-                  );
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                } else {
-                  var dir = fs.opendirSync(path);
-                  var handle = Math.pow(2, 31) - 1;
-                  while (openFiles[handle]) {
-                    handle = random(Math.pow(2, 29), Math.pow(2, 31) - 1);
-                  }
-                  openFiles[handle] = true;
-                  fdmap[handle] = dir;
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is opening directory", path);
-                  sftpStream.handle(reqid, handle);
-                }
-              })
-              .on('READDIR', function (reqid, handle) {
-                if (!(fdmap[handle.readUInt32BE(0)] instanceof fs.Dir)) {
-                  log(
-                    "[SSH]", conninfo.ip + ":" + conninfo.port,
-                    "is reading directory at file descriptor", handle.readUInt32BE(0),
-                    ", which does not exist."
-                  );
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                } else {
-                  var dirread = fdmap[handle].readSync();
-                  dirread.map(function (paths) {
-                    var x = path.relative(__dirname, paths)
-                      .replace(/\\/, "/");
-                    if (x.startsWith("../")) {
-                      x = x.substr(2);
-                    } else {
-                      x = x.substr(1);
-                    }
-                    return x;
-                  });
-                  sftpStream.name(handle.readUInt32BE(0), dirread);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading directory", fdmap[handle
-                    .readUInt32BE(0)].substr(5));
-                }
-              })
-              .on('REALPATH', function (reqid, path) {
-                try {
-                  sftpStream.name(reqid, fs.normalize(path));
-                } catch (ex) {
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                }
-              })
-              .on('STAT', function (reqid, path) {
-                if (!fs.existsSync(__dirname + path)) {
-                  log(
-                    "[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path,
-                    ", which does not exist."
-                  );
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                } else {
-                  sftpStream.attrs(reqid, fs.statSync(__dirname + path))
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting stat for path", path);
-                }
-              })
-              .on('LSTAT', function (reqid, path) {
-                if (!fs.existsSync(__dirname + path)) {
-                  log(
-                    "[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path,
-                    ", which does not exist."
-                  );
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                } else {
-                  sftpStream.attrs(reqid, fs.lstatSync(__dirname + path))
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting lstat for path", path);
-                }
-              })
-              .on('MKDIR', function (reqid, path, attrs) {
-                if (fs.existsSync(__dirname + path)) {
-                  log(
-                    "[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path,
-                    ", which exists."
-                  );
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                } else {
-                  try {
-                    fs.mkdirSync(__dirname + path);
-                    sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
-                    log("[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path);
-                  } catch (ex) {
-                    sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                    log(
-                      "[SSH]", conninfo.ip + ":" + conninfo.port, "is creating path", path,
-                      ", which can't be created. Additional information:", ex.toString()
-                    );
-                  }
-                }
-              })
-              .on('RENAME', function (reqid, oldpath, newpath) {
-                if (!fs.existsSync(__dirname + oldpath)) {
-                  log(
-                    "[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming", path,
-                    ", which doesn't exists."
-                  );
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                } else {
-                  try {
-                    fs.renameSync(__dirname + oldpath, __dirname + newpath);
-                    sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
-                    log(
-                      "[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming path", oldpath, "to",
-                      newpath
-                    );
-                  } catch (ex) {
-                    sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                    log(
-                      "[SSH]", conninfo.ip + ":" + conninfo.port, "is renaming path", path,
-                      ", which can't be renamed. Additional information:", ex.toString()
-                    );
-                  }
-                }
-              })
-              .on('READ', function (reqid, handle, offset, length) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle
-                    .readUInt32BE(0)], ", which isn't opened.");
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                }
-                try {
-                  var databuff = Buffer.alloc(length);
-                  var datasize = fs.readSync(handle.readUInt32BE(0), databuff, offset, length);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle
-                    .readUInt32BE(0)], "with offset =", offset, ", length = ", length);
-                  sftpStream.data(reqid, databuff);
-                  if (datasize < length) {
-                    sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.EOF);
-                  }
-                } catch (ex) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is reading file", fdmap[handle
-                    .readUInt32BE(0)], ", which cannot be read. Additional information:", ex
-                      .toString());
-                  sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                }
-              })
-              .on('WRITE', function (reqid, handle, offset, data) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle
-                    .readUInt32BE(0)], ", which isn't opened.");
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                }
-                try {
-                  fs.writeSync(handle.readUInt32BE(0), data, offset);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle
-                    .readUInt32BE(0)]);
-                  sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
-                } catch (ex) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is writing file", fdmap[handle
-                    .readUInt32BE(0)], ", which cannot be writen. Additional information:", ex
-                      .toString());
-                  sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                }
-              })
-              .on('FSTAT', function (reqid, handle) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[
-                    handle.readUInt32BE(0)], ", which isn't opened.");
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                }
-                try {
-                  sftpStream.attrs(reqid, fs.fstatSync(handle.readUInt32BE(0)));
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[
-                    handle.readUInt32BE(0)]);
-                } catch (ex) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is requesting FSTAT for file", fdmap[
-                    handle.readUInt32BE(0)], ", which cannot be read. Additional information:", ex
-                      .toString());
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                }
-              })
-              .on('FSETSTAT', function (reqid, handle, attrs) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[
-                    handle.readUInt32BE(0)], ", which isn't opened.");
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                }
-                log("[SSH]", conninfo.ip + ":" + conninfo.port, "is setting FSTAT for file", fdmap[
-                  handle.readUInt32BE(0)], ", which cannot be writen (because no)");
-                return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-              })
-              .on('CLOSE', function (reqid, handle) {
-                if (handle.length !== 4 || !openFiles[handle.readUInt32BE(0)]) {
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file descriptor", handle
-                    .readUInt32BE(0), ", which does not exist.");
-                  return sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                } else if (handle.length === 4 && fdmap[handle.readUInt32BE(0)] instanceof fs.Dir) {
-                  try {
-                    log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing directory", fdmap[handle
-                      .readUInt32BE(0)].path, ".");
-                    fdmap[handle.readUInt32BE(0)].closeSync();
-                    delete openFiles[handle.readUInt32BE(0)];
-                    sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
-                    delete fdmap[handle.readUInt32BE(0)];
-                  } catch (ex) {
-                    sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                    log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing directory", fdmap[handle
-                      .readUInt32BE(0)].path, ", but can't be closed. Additional information:", ex
-                        .toString());
-                  }
-                }
-                try {
-                  fs.closeSync(handle.readUInt32BE(0));
-                  delete openFiles[handle.readUInt32BE(0)];
-                  sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.OK);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file", fdmap[handle
-                    .readUInt32BE(0)], ".");
-                  delete fdmap[handle.readUInt32BE(0)];
-                } catch (ex) {
-                  sftpStream.status(reqid, ssh2.SFTP_STATUS_CODE.FAILURE);
-                  log("[SSH]", conninfo.ip + ":" + conninfo.port, "is closing file", fdmap[handle
-                    .readUInt32BE(0)], ", but can't be closed. Additional information:", ex
-                      .toString());
-                }
-              });
-              */
-          });
           //SSH Shell
           session.once('shell', function (accept, _reject) {
             log("[SSH]", conninfo.ip + ":" + conninfo.port, "requested a shell (Remote Console).");
@@ -3289,7 +2779,6 @@ if (global.config.enableSSHRemoteConsole) {
     });
 }
 typeof global.data.cacheName != "object" ? global.data.cacheName = {} : "";
-typeof global.data.thanosBlacklist != "object" ? global.data.thanosBlacklist = {} : "";
 typeof global.data.everyoneTagBlacklist != "object" ? global.data.everyoneTagBlacklist = {} : "";
 var discordid = "Disabled";
 if (global.config.enablediscord) {
