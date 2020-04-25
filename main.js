@@ -42,7 +42,6 @@ const StreamZip = require('node-stream-zip');
 ////var tf = require("@tensorflow/tfjs");
 global.sshcurrsession = {};
 global.sshstream = {};
-global.nsfwjsdata = {};
 //! Changing this process's priority
 try {
   os.setPriority(-17); //os.constants.priority.PRIORITY_HIGH
@@ -702,43 +701,6 @@ var autosave = setInterval(function (testmode, log) {
     }
   }
 }, 10000, testmode, log);
-//* NSFW detection API load
-/* while (!tempFinishedNSFWHTTP) {
-  nsfwPort = random(50000, 65535);
-  tempFinishedNSFWHTTP = await checkPort(nsfwPort, "127.0.0.1");
-} */
-var TFJS_MODEL_SERVER = http.createServer((req, res) => {
-  if (fs.existsSync(path.join(__dirname, `nsfwjs-models${global.config.nsfwjsSmallModel ? "-small" : ""}`, path.resolve("/", req.url)))) {
-    res.writeHead(200, {
-      'Content-Type': 'text/plain'
-    });
-    fs.createReadStream(path.join(__dirname, `nsfwjs-models${global.config.nsfwjsSmallModel ? "-small" : ""}`, path
-      .resolve("/", req.url)))
-      .pipe(res, {
-        end: true
-      });
-  } else {
-    res.writeHead(404, {
-      'Content-Type': 'text/plain'
-    });
-    res.write(`404 Not found.\r\n\r\nC3CBot ${version}`);
-    res.end();
-  }
-})
-  .listen(0, "127.0.0.1");
-var resolveTFJS = function () { };
-var waitPromise = new Promise(resolve => {
-  resolveTFJS = resolve;
-});
-TFJS_MODEL_SERVER.on("listening", () => {
-  resolveTFJS(TFJS_MODEL_SERVER.address()
-    .port);
-})
-  .on("error", err => {
-    log("[TFJS-MODEL-HTTP]", err);
-  });
-var tfjsPort = wait.for.promise(waitPromise);
-log("[TFJS-MODEL-HTTP]", `Listening at localhost:${tfjsPort}`);
 
 var currentCPUPercentage = 0;
 var _titleClocking = setInterval(async () => {
