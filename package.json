@@ -27,6 +27,7 @@
     "@tensorflow/tfjs": "^1.7.1",
     "adm-zip": "^0.4.14",
     "bufferutil": "^4.0.1",
+    "deasync": "^0.1.19",
     "discord.js": "^12.1.1",
     "erlpack": "^0.1.3",
     "fca-unofficial": "^1.2.8",
