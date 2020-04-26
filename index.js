@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+/* eslint-disable no-process-env */
+
 var childProcess = require("child_process");
 var http = require("http");
 
