@@ -9,7 +9,7 @@ var herokuCompatible = http.createServer(function (req, res) {
   res.writeHead(200, "OK", {
     "Content-Type": "text/plain"
   })
-  res.write(`This is just a dummy HTTP server to fool Heroku. https://i.imgur.com/KgsYleA.png`);
+  res.write(`This is just a dummy HTTP server to fool Heroku. https://i.imgur.com/KgsYleA.png \r\nC3CBot - ttps://github.com/lequanglam/c3c`);
   res.end();
 });
 herokuCompatible.listen(process.env.PORT || 0, "0.0.0.0");
