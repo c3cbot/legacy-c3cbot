@@ -4,6 +4,8 @@
 
 A bot that can be customized using plugins. Currently supports Facebook Messenger (using fca-unofficial, a repo forked from facebook-chat-api and maintained by me) and Discord (using discord.js)
 
+_Now Heroku compatible!_ (you may need to manually create a config file, through.)
+
 ## Before you install
 Make sure you have Administrator/root permission on your terminal, otherwise you can't start bot. (reason: process priority).
 Also you need to install (first => last):
@@ -109,7 +111,6 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "allowUserUsePluginsCommand": true,
   "allowUserUseReloadCommand": false,
   "language": "en_US",
-  "enableThanosTimeGems": true, 
   "allowEveryoneTagEvenBlacklisted": true,
   "DEBUG_FCA_LOGLEVEL": "error",
   "enableSSHRemoteConsole": false,
@@ -117,7 +118,6 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "sshRemoteConsolePort": 2004,
   "sshUsername": "admin",
   "sshPassword": "c3cbot@ADMIN",
-  "nsfwjsSmallModel": true,
   "commandPrefix": "/",
   "autoUpdate": true,
   "configVersion": 1,
