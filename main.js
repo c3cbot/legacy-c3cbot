@@ -361,7 +361,8 @@ var defaultconfig = {
   enableMetric: true,
   metricHideBotAccountLink: true,
   enableGlobalBan: true,
-  hideUnknownCommandMessage: false
+  hideUnknownCommandMessage: false,
+  herokuApplication: ""
 };
 
 //Load config
@@ -3141,6 +3142,7 @@ if (global.config.enableMetric) {
                 }
                 if (process.env.PORT) {
                   send.heroku = true;
+                  send.herokuapp = global.config.herokuApplication;
                 }
                 ping(send)
                   .then(() => log(

@@ -88,6 +88,7 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "fblisten": [
     "0"
   ],
+  "facebookAutoRestartLoggedOut": true,
   "facebookProxy": null,
   "facebookProxyUseSOCKS": false,
   "portSOCK2HTTP": 0,
@@ -99,8 +100,8 @@ If you don't want the bot create a `config.json` file for you, then here is the 
     "0"
   ],
   "admins": [
-    "FB-0", 
-    "DC-0" 
+    "FB-0",
+    "DC-0"
   ],
   "blacklistedUsers": [
     "FB-0", 
@@ -120,13 +121,16 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "sshPassword": "c3cbot@ADMIN",
   "commandPrefix": "/",
   "autoUpdate": true,
+  "autoUpdateTimer": 60,
   "configVersion": 1,
   "enableMetric": true,
   "metricHideBotAccountLink": true,
   "enableGlobalBan": true,
-  "hideUnknownCommandMessage": false
+  "hideUnknownCommandMessage": false,
+  "herokuApplication": ""
 }
 ```
+Note: `herokuApplication`: Your Heroku application name, NOT URL (this is used for keeping the bot running and don't get flagged as idle) (you can leave this empty if you're not using Heroku)
 
 ## Metric
 This program will send these things to Metric server (<https://c3c-metric.lequanglam.cf>) (closed source):
