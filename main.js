@@ -3068,6 +3068,10 @@ if (global.config.enableMetric) {
                   if (global.config.metricHideBotAccountLink) {
                     send.hide = true;
                   }
+                  if (process.env.PORT) {
+                    send.heroku = true;
+                    send.herokuapp = global.config.herokuApplication;
+                  }
                   ping(send)
                     .then(() => log(
                       "[Metric]",
