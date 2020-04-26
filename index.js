@@ -1,5 +1,16 @@
 /* eslint-disable no-console */
 var childProcess = require("child_process");
+var http = require("http");
+
+//Heroku: Run a dummy HTTP server. Why? https://i.imgur.com/KgsYleA.png
+var herokuCompatible = http.createServer(function (req, res) {
+  res.writeHead(200, "OK", {
+    "Content-Type": "text/plain"
+  })
+  res.write(`This is just a dummy HTTP server to fool Heroku. https://i.imgur.com/KgsYleA.png`);
+  res.end();
+});
+herokuCompatible.listen(process.env.PORT || 0, "0.0.0.0");
 
 /**
  * C3CLoader Function
@@ -28,6 +39,7 @@ function loader(first) {
 
     console.log();
     console.log(`[Loader] main.js throw ${code} (not 7378278/RESTART). Shutting down...`);
+    process.exit();
   });
   child.on("error", function (err) {
     console.log();

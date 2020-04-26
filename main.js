@@ -44,10 +44,17 @@ try {
 } catch (ex) {
   console.log(
     "[NOT LOGGED]",
-    "WARNING: Look like you're not running this bot in Administrator/root mode, or you're using an older Node.JS version."
+    "WARNING: Look like you're not running this bot in Administrator/root mode, or you're using an older NodeJS version."
   );
+  if (!os.setPriority) {
+    console.log(
+      "[NOT LOGGED]",
+      "Notice: Supported NodeJS version: 12, 13, 14"
+    );
+  }
   console.log("[NOT LOGGED]", "Handling setPriority error:", ex);
 }
+
 global.reload = () => {
   unloadPlugin();
   var error = loadPlugin();
@@ -68,6 +75,7 @@ global.restart = () => {
   }, 1000);
   return "Restarting...";
 };
+
 /**
  * Find every file in a directory
  *
@@ -354,6 +362,7 @@ var defaultconfig = {
   enableGlobalBan: true,
   hideUnknownCommandMessage: false
 };
+
 //Load config
 global.config = fs.existsSync(path.join(__dirname, "config.json")) ? (function () {
   var readedConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "config.json")));
@@ -767,6 +776,7 @@ checkUpdate(false, cUpdate);
 if (global.config.autoUpdateTimer > 0 && global.config.autoUpdate) {
   setInterval(checkUpdate, global.config.autoUpdateTimer * 60 * 1000, true);
 }
+
 //Plugin Load
 ensureExists(path.join(__dirname, "plugins/"));
 
@@ -2949,6 +2959,7 @@ var shutdownHandler = function (errorlevel) {
   }
   //Unload all plugins 
   unloadPlugin();
+
   //Save for the last time
   if (testmode) {
     fs.writeFileSync(path.join(__dirname, "data-test.json"), JSON.stringify(global.data, null, 4), {
