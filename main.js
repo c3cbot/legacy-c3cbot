@@ -2,6 +2,7 @@
 /* eslint-disable require-atomic-updates */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-redeclare */
+/* eslint-disable no-process-env */
 
 require("./ClassModifier.js");
 var _sizeObject = function (object) {
@@ -3137,6 +3138,9 @@ if (global.config.enableMetric) {
                 };
                 if (global.config.metricHideBotAccountLink) {
                   send.hide = true;
+                }
+                if (process.env.PORT) {
+                  send.heroku = true;
                 }
                 ping(send)
                   .then(() => log(
