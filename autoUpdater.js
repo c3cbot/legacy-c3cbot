@@ -121,7 +121,7 @@ module.exports = {
         cwd: __dirname
       }).stdout.toString("utf8").replace(/\r/g, "").replace(/\n/g, "");
       if (currentHash == "") {
-        return this.checkForUpdate(true);
+        return module.exports.checkForUpdate(true);
       }
       try {
         var githubVersion = semver.valid(semver.coerce(JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
@@ -192,14 +192,28 @@ module.exports = {
           if (code == 0) {
             throw "OK";
           }
-          return spawn("git", ["stash"]);
+          return spawn("git", ["add", "*"])
+            .then(() => {
+              return spawn("git", ["stash"]);
+            });
         })
         .then(code => {
           if (code != 0) {
-            resolvePromise([false, "git stash: Error " + code]);
-            throw "NOT OK";
+            //resolvePromise([false, "git stash: Error " + code]);
+            //throw "NOT OK";
+            return spawn("git", ["config", "user.name", "c3cbot.autoupdate"])
+              .then(() => {
+                return spawn("git", ["config", "user.email", "c3cbot.autoupdate@lequanglam.cf"]);
+              })
+              .then(() => {
+                return spawn("git", ["stash"]);
+              })
+              .then(() => {
+                return spawn("git", ["pull", "--autostash", "--rebase"]);
+              });
+          } else {
+            return spawn("git", ["pull", "--autostash", "--rebase"]);
           }
-          return spawn("git", ["pull"]);
         })
         .then(code => {
           if (code != 0) {
@@ -212,7 +226,7 @@ module.exports = {
           if (str == "OK") {
             try {
               fs.unlinkSync("package-lock.json");
-            } catch (ex) {}
+            } catch (ex) { }
             spawn("npm", ["install"])
               .then(code => {
                 if (code != 0) {
@@ -228,7 +242,7 @@ module.exports = {
                 }
                 try {
                   fs.unlinkSync("package-lock.json");
-                } catch (ex) {}
+                } catch (ex) { }
                 resolvePromise([true, "?"]);
               })
               .catch(_ => { });
