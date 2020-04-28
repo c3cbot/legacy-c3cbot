@@ -1142,27 +1142,38 @@ function loadPlugin() {
         if (type == "Discord") {
           mts += "\r\n```HTTP";
         }
+        var compatiblyFlag = 0;
+        switch (type) {
+          case "Facebook":
+            compatiblyFlag = 1;
+            break;
+          case "Discord":
+            compatiblyFlag = 2;
+            break;
+        }
         for (var i = 15 * (page - 1); i < 15 * (page - 1) + 15; i++) {
           if (i < hl.length) {
-            if (data.admin) {
-              mts += "\r\n" + (i + 1)
-                .toString() + ". " + global.config.commandPrefix + hl[i].command;
-              if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i]
-                .args[global.config.language].toString()
-                .replace(/ /g)
-                .length != 0) {
-                mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
-              }
-              //mts += ": " + hl[i].desc[global.config.language];
-            } else {
-              if (!hl[i].adminCmd) {
+            if (hl[i].compatibly == 0 || (hl[i].compatibly & compatiblyFlag)) {
+              if (data.admin) {
                 mts += "\r\n" + (i + 1)
                   .toString() + ". " + global.config.commandPrefix + hl[i].command;
-                if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[
-                  i].args[global.config.language].toString()
+                if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i]
+                  .args[global.config.language].toString()
                   .replace(/ /g)
                   .length != 0) {
                   mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+                }
+                //mts += ": " + hl[i].desc[global.config.language];
+              } else {
+                if (!hl[i].adminCmd) {
+                  mts += "\r\n" + (i + 1)
+                    .toString() + ". " + global.config.commandPrefix + hl[i].command;
+                  if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[
+                    i].args[global.config.language].toString()
+                    .replace(/ /g)
+                    .length != 0) {
+                    mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+                  }
                 }
               }
             }
