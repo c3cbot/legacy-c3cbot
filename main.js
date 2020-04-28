@@ -991,18 +991,19 @@ function loadPlugin() {
           "contains an malformed executable code and cannot be loaded. Plugin depend on this code may not work correctly. Additional information:",
           ex
         );
+        error.push(pltemp1[plname].filename);
       }
     }
   }
   global.commandMapping["systeminfo"] = {
     args: {},
     desc: "Show system info",
-    scope: function (_type, _data) {
+    scope: function () {
       var uptime = os.uptime();
       var utdate = new Date(uptime);
       return {
         handler: "internal",
-        data: `System info:\r\n- CPU arch: ${os.arch()}\r\n- OS type: ${os.type()} (Platform: ${os.platform()})\r\n- OS version: ${os.release()}\r\n- Uptime: ${(uptime / 3600 / 24).floor(0).pad(2)}:${utdate.getUTCHours().pad(2)}:${utdate.getUTCMinutes().pad(2)}:${utdate.getUTCSeconds().pad(2)}\r\n- Total memory: ${os.totalmem() / 1048576} MB`
+        data: `System info:\r\n- CPU arch: ${os.arch()}\r\n- OS type: ${os.type()} (Platform: ${os.platform()})\r\n- OS version: ${os.release()}\r\n- Uptime: ${(uptime / 3600 / 24).floor(0).pad(2)}:${utdate.getUTCHours().pad(2)}:${utdate.getUTCMinutes().pad(2)}:${utdate.getUTCSeconds().pad(2)}\r\n- Total memory: ${os.totalmem() / 1048576} MB\r\n- Heroku: ${(!!process.env.PORT).toString()}`
       };
     },
     compatibly: 0,
