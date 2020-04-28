@@ -2603,7 +2603,7 @@ if (global.config.enablefb) {
         facebook.listener.stopListening();
         log("[Facebook]", "Stopped Facebook listener");
       }
-      if (typeof facebook.api.getAppState == "function") {
+      if (typeof (facebook.api || {}).getAppState == "function") {
         var temporaryAppState = facebook.api.getAppState();
       } else {
         log("[Facebook]", "Cannot get appstate to reconnect (account not logged in?).");
