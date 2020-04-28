@@ -173,8 +173,8 @@ module.exports = {
     } else {
       //Handling custom version?
       return {
-        newUpdate: true,
-        version: "0.0.0-no-beta-zip",
+        newUpdate: !process.env.PORT,
+        version: process.env.PORT ? "0.0.0-heroku-cant-update" : "0.0.0-no-beta-zip",
         currVersion: currVersion
       };
     }
