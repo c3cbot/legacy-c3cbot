@@ -2825,7 +2825,7 @@ if (global.config.enablediscord) {
     if (message.content.startsWith(global.config.commandPrefix) && !nointernalresolve) {
       if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) ||
         (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) &&
-        message.author.tag != client.user.tag && !Object.prototype.hasOwnProperty.call(
+        !message.author.bot && !Object.prototype.hasOwnProperty.call(
           global.config.blacklistedUsers,
           ("DC-" + message.author.id)
         )) {

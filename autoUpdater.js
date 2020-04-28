@@ -202,9 +202,9 @@ module.exports = {
             return spawn("git", ["config", "user.name", "c3cbot.autoupdate"])
               .then(() => spawn("git", ["config", "user.email", "c3cbot.autoupdate@lequanglam.cf"]))
               .then(() => spawn("git", ["stash"]))
-              .then(() => spawn("git", ["pull", "--autostash", "--rebase"]));
+              .then(() => spawn("git", ["pull"]));
           } else {
-            return spawn("git", ["pull", "--autostash", "--rebase"]);
+            return spawn("git", ["pull"]);
           }
         })
         .then(code => {
