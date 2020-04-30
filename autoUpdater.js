@@ -1,4 +1,6 @@
 /* eslint-disable object-curly-spacing */
+/* eslint-disable no-process-env */
+
 var semver = require("semver");
 var currVersion = require("./package.json").version;
 var syncrequest = require("sync-request");
