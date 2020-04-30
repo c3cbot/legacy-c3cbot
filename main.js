@@ -2636,7 +2636,7 @@ if (global.config.enablefb) {
 rl.on('line', (message) => {
   log("[INTERNAL]", "CONSOLE issued javascript code:", message);
   try {
-    log("[JAVASCRIPT]", eval(message));
+    log("[JAVASCRIPT]", (1, eval)(message));
   } catch (ex) {
     log("[JAVASCRIPT]", ex);
   }
