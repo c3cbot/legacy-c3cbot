@@ -1,3 +1,4 @@
+/* eslint-disable consistent-this */
 /* eslint-disable no-loop-func */
 /* eslint-disable require-atomic-updates */
 /* eslint-disable class-methods-use-this */
@@ -2633,16 +2634,20 @@ if (global.config.enablefb) {
     log("[Facebook]", "Error found in codebase:", ex);
   }
 }
-rl.on('line', (message) => {
-  log("[INTERNAL]", "CONSOLE issued javascript code:", message);
-  try {
-    log("[JAVASCRIPT]", (1, eval)(message));
-  } catch (ex) {
-    log("[JAVASCRIPT]", ex);
-  }
+
+rl.on('line', function (message) {
+  (function () {
+    log("[INTERNAL]", "CONSOLE issued javascript code:", message);
+    try {
+      log("[JAVASCRIPT]", eval(message));
+    } catch (ex) {
+      log("[JAVASCRIPT]", ex);
+    }
+  })();
 });
 rl.setPrompt("console@c3c:js# ");
 rl.prompt();
+
 if (global.config.enableSSHRemoteConsole) {
   var ssh2 = require('ssh2');
   var hostkey = {};
@@ -2765,7 +2770,8 @@ typeof global.data.everyoneTagBlacklist != "object" ? global.data.everyoneTagBla
 var discordid = "Disabled";
 if (global.config.enablediscord) {
   discordid = "Not logged in";
-  const Discord = require('discord.js');
+  var Discord = require('discord.js');
+  global.Discord = Discord;
   client = new Discord.Client();
   client.on('ready', () => {
     log("[Discord]", "Logged in as", client.user.tag + ".");
@@ -2773,7 +2779,7 @@ if (global.config.enablediscord) {
   });
   client.on('error', error => {
     log("[Discord]", "Crashed with error: ", error);
-    log("[Discord]", "Trying to reconnect... Some commands might not work correctly.");
+    log("[Discord]", "Trying to reconnect... Some plugins might not work correctly.");
   });
   var discordMessageHandler = function (message) {
     var nointernalresolve = false;
