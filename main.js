@@ -1397,9 +1397,11 @@ function unloadPlugin() {
     delete global.loadedPlugins[name];
   }
 }
+
 //Load plugin
 //Async loading is a bad idea, or is it?
 setTimeout(loadPlugin, 1);
+
 var client = {};
 var facebook = {};
 var tried2FA = false;
