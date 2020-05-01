@@ -4,7 +4,8 @@
 
 A bot that can be customized using plugins. Currently supports Facebook Messenger (using fca-unofficial, a repo forked from facebook-chat-api and maintained by me) and Discord (using discord.js)
 
-_Now Heroku compatible!_ (you may need to manually create a config file, through.)
+~~_Now Heroku compatible!_ (you may need to manually create a config file, through.)~~ Heroku blocked Metric server's IP, will change that soon.
+If you want to run on Heroku, use other external service to request to dummy HTTP server located on your domain.
 
 ## Before you install
 Make sure you have Administrator/root permission on your terminal, otherwise you can't start bot. (reason: process priority).
@@ -41,6 +42,7 @@ List of *might be* supported/tested OS (not tested: \*):
     - Ubuntu 18.10\*
     - Ubuntu 19.04
     - Ubuntu 19.10\*
+    - Ubuntu 20.04
   - Linux distros which are able to run Node 12 (x86/x64/ARMv7/ARM64/...)\*
 - Android (through TermUX) (warning: unstable!)
 - Chrome OS w/ Google Play (through TermUX)
