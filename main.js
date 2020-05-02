@@ -2637,15 +2637,16 @@ if (global.config.enablefb) {
   }
 }
 
+var consoleHandle = function (message) {
+  log("[INTERNAL]", "CONSOLE issued javascript code:", message);
+  try {
+    log("[JAVASCRIPT]", eval(message));
+  } catch (ex) {
+    log("[JAVASCRIPT]", ex);
+  }
+};
 rl.on('line', function (message) {
-  (function () {
-    log("[INTERNAL]", "CONSOLE issued javascript code:", message);
-    try {
-      log("[JAVASCRIPT]", eval(message));
-    } catch (ex) {
-      log("[JAVASCRIPT]", ex);
-    }
-  })();
+  consoleHandle(message);
 });
 rl.setPrompt("console@c3c:js# ");
 rl.prompt();
