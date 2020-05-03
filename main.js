@@ -3042,7 +3042,36 @@ rl.on('SIGINT', () => process.emit('SIGINT'));
 process.on('exit', shutdownHandler);
 
 if (global.config.enableMetric) {
+  var { osName } = require("./getOSInfo.js");
   var metric = require("./metric.js");
+
+  var fPing = function ping(func) {
+    var send = {
+      version,
+      facebookid,
+      discordid,
+      ram: os.totalmem(),
+      ostype: os.type(),
+      osplatform: os.platform()
+        .toString(),
+      osrelease: os.release(),
+      cpuarch: os.arch(),
+      cpuload: (currentCPUPercentage * 100)
+        .toFixed(0),
+      botname: global.config.botname,
+      prefix: global.config.commandPrefix,
+      osname: osName
+    };
+    if (global.config.metricHideBotAccountLink) {
+      send.hide = true;
+    }
+    if (process.env.PORT && global.config.herokuApplication != "") {
+      send.heroku = true;
+      send.herokuapp = global.config.herokuApplication;
+    }
+    return func(send);
+  }
+
   var metricNewLogic = function metricNewLogic() {
     log("[Metric]", "Generating new Metric ID...");
     metric.createNew(version, global.config.metricHideBotAccountLink)
@@ -3052,51 +3081,11 @@ if (global.config.enableMetric) {
         global.data.metricSecret = metricData.metricSecret;
         metric.authenticate(metricData.metricID, metricData.metricSecret)
           .then(ping => {
-            var send = {
-              version: version,
-              facebookid: facebookid,
-              discordid: discordid,
-              ram: os.totalmem(),
-              ostype: os.type(),
-              osplatform: os.platform()
-                .toString(),
-              osrelease: os.release(),
-              cpuarch: os.arch(),
-              cpuload: (currentCPUPercentage * 100)
-                .toFixed(0),
-              botname: global.config.botname,
-              prefix: global.config.commandPrefix
-            };
-            if (global.config.metricHideBotAccountLink) {
-              send.hide = true;
-            }
-            ping(send)
+            fPing(ping)
               .then(function () {
                 log("[Metric]", `Successfully ping Metric server with new Metric ID (${metricData.metricID}).`);
                 setInterval(function (ping) {
-                  var send = {
-                    version: version,
-                    facebookid: facebookid,
-                    discordid: discordid,
-                    ram: os.totalmem(),
-                    ostype: os.type(),
-                    osplatform: os.platform()
-                      .toString(),
-                    osrelease: os.release(),
-                    cpuarch: os.arch(),
-                    cpuload: (currentCPUPercentage * 100)
-                      .toFixed(0),
-                    botname: global.config.botname,
-                    prefix: global.config.commandPrefix
-                  };
-                  if (global.config.metricHideBotAccountLink) {
-                    send.hide = true;
-                  }
-                  if (process.env.PORT) {
-                    send.heroku = true;
-                    send.herokuapp = global.config.herokuApplication;
-                  }
-                  ping(send)
+                  fPing(ping)
                     .then(() => log(
                       "[Metric]",
                       `Successfully ping Metric server with Metric ID ${metricData.metricID}.`
@@ -3128,51 +3117,11 @@ if (global.config.enableMetric) {
     var metricAuth = function () {
       metric.authenticate(global.data.metricID, global.data.metricSecret)
         .then(ping => {
-          var send = {
-            version: version,
-            facebookid: facebookid,
-            discordid: discordid,
-            ram: os.totalmem(),
-            ostype: os.type(),
-            osplatform: os.platform()
-              .toString(),
-            osrelease: os.release(),
-            cpuarch: os.arch(),
-            cpuload: (currentCPUPercentage * 100)
-              .toFixed(0),
-            botname: global.config.botname,
-            prefix: global.config.commandPrefix
-          };
-          if (global.config.metricHideBotAccountLink) {
-            send.hide = true;
-          }
-          ping(send)
+          fPing(ping)
             .then(function () {
               log("[Metric]", `Successfully ping Metric server with Metric ID ${global.data.metricID}.`);
               setInterval(function (ping) {
-                var send = {
-                  version: version,
-                  facebookid: facebookid,
-                  discordid: discordid,
-                  ram: os.totalmem(),
-                  ostype: os.type(),
-                  osplatform: os.platform()
-                    .toString(),
-                  osrelease: os.release(),
-                  cpuarch: os.arch(),
-                  cpuload: (currentCPUPercentage * 100)
-                    .toFixed(0),
-                  botname: global.config.botname,
-                  prefix: global.config.commandPrefix
-                };
-                if (global.config.metricHideBotAccountLink) {
-                  send.hide = true;
-                }
-                if (process.env.PORT) {
-                  send.heroku = true;
-                  send.herokuapp = global.config.herokuApplication;
-                }
-                ping(send)
+                fPing(ping)
                   .then(() => log(
                     "[Metric]",
                     `Successfully ping Metric server with Metric ID ${global.data.metricID}.`
@@ -3194,7 +3143,7 @@ if (global.config.enableMetric) {
           if (notneterr) {
             metricNewLogic();
           } else {
-            log("[Metric]", `Reauthenticating with Metric ID ${global.data.metricID} because of network error.`);
+            log("[Metric]", `Reauthenticating with Metric ID ${global.data.metricID} because of network/server error.`);
             setTimeout(metricAuth, 0);
           }
         });
