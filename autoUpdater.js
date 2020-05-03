@@ -219,7 +219,7 @@ module.exports = {
         .catch(str => {
           if (str == "OK") {
             try {
-              fs.unlinkSync("package-lock.json");
+              //fs.unlinkSync("package-lock.json");
             } catch (ex) { }
             spawn("npm", ["install"])
               .then(code => {
@@ -235,7 +235,7 @@ module.exports = {
                   throw null;
                 }
                 try {
-                  fs.unlinkSync("package-lock.json");
+                  //fs.unlinkSync("package-lock.json");
                 } catch (ex) { }
                 resolvePromise([true, "?"]);
               })
@@ -287,7 +287,7 @@ module.exports = {
           //Removing the directory where ZIP files are extracted.
           rimraf.sync(path.join(__dirname, `c3c-${latestRelease}`));
           try {
-            fs.unlinkSync("package-lock.json");
+            //fs.unlinkSync("package-lock.json");
           } catch (ex) { }
           spawn("npm", ["install"])
             .then(code => {
@@ -302,7 +302,7 @@ module.exports = {
                 resolvePromise([false, "npm update: Error " + code]);
                 throw null;
               }
-              fs.unlinkSync("package-lock.json");
+              //fs.unlinkSync("package-lock.json");
               resolvePromise([true, zip.getEntryCount()]);
             })
             .catch(_ => { });

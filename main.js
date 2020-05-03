@@ -25,6 +25,7 @@ var zlib = require("zlib");
 var tar = require("tar-stream");
 const readline = require('readline');
 var speakeasy = require("speakeasy"); //2FA
+var stripBom = require("strip-bom");
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -368,7 +369,9 @@ var defaultconfig = {
 
 //Load config
 global.config = fs.existsSync(path.join(__dirname, "config.json")) ? (function () {
-  var readedConfig = JSON.parse(fs.readFileSync(path.join(__dirname, "config.json")));
+  var readedConfig = JSON.parse(stripBom(fs.readFileSync(path.join(__dirname, "config.json"), {
+    encoding: "utf8"
+  })));
   for (var configName in defaultconfig) {
     if (!Object.prototype.hasOwnProperty.call(readedConfig, configName)) {
       readedConfig[configName] = defaultconfig[configName];
@@ -2637,12 +2640,12 @@ if (global.config.enablefb) {
   }
 }
 
-var consoleHandle = function (message) {
-  log("[INTERNAL]", "CONSOLE issued javascript code:", message);
+var consoleHandle = function (message, SSH) {
+  log("[INTERNAL]", `${SSH ? SSH : "CONSOLE"} issued javascript code:`, message);
   try {
-    log("[JAVASCRIPT]", eval(message));
+    log(`[${SSH ? "SSH-" : ""}JAVASCRIPT]`, eval(message));
   } catch (ex) {
-    log("[JAVASCRIPT]", ex);
+    log(`[${SSH ? "SSH-" : ""}JAVASCRIPT]`, ex);
   }
 };
 rl.on('line', function (message) {
