@@ -1,55 +1,85 @@
 var os = require("os");
 var childProcess = require("child_process");
 var semver = require("semver");
-
 var osName = "";
-
 switch (os.platform()) {
   case "win32":
     osName = childProcess
-      .execSync("wmic os get caption", { shell: true })
+      .execSync("wmic os get caption", {
+        shell: true
+      })
       .toString()
       .split("\r\n")[1]
       .replace((/”/g), "\"")
       .replace((/“/g), "\"")
       .split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/)
-      .filter(function (el) {
-        return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '').length);
+      .filter(function(el) {
+        return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '')
+          .length);
       })
-      .map(function (z) {
+      .map(function(z) {
         return z.replace(/"/g, "");
       })
       .join(" ");
     break;
   case "linux":
-    osName = childProcess
-      .execSync("lsb_release -d", { shell: true })
-      .toString()
-      .split("\n")[0]
-      .replace((/”/g), "\"")
-      .replace((/“/g), "\"")
-      .split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/)
-      .filter(function (el) {
-        return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '').length);
-      })
-      .map(function (z) {
-        return z.replace(/"/g, "");
-      })
-      .slice(1)
-      .join(" ");
+    // Edited on iPhone 5s. kill me plz
+    // https://playerduo.com/c3cbotadmin
+    try {
+      osName = childProcess
+        .execSync("lsb_release -d", {
+          shell: true
+        })
+        .toString()
+        .split("\n")[0]
+        .replace((/”/g), "\"")
+        .replace((/“/g), "\"")
+        .split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/)
+        .filter(function(el) {
+          return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '')
+            .length);
+        })
+        .map(function(z) {
+          return z.replace(/"/g, "");
+        })
+        .slice(1)
+        .join(" ");
+    } catch (ex) {
+      osName = childProcess
+        .execSync("cat /etc/*-release", {
+          shell: true
+        })
+        .toString()
+        .split("\n")[0]
+        .replace((/”/g), "\"")
+        .replace((/“/g), "\"")
+        .split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/)
+        .filter(function(el) {
+          return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '')
+            .length);
+        })
+        .map(function(z) {
+          return z.replace(/"/g, "");
+        })
+        .slice(1)
+        .join(" ");
+    }
     break;
   case "cygwin":
     osName = childProcess
-      .execSync("systeminfo | sed -n 's/^OS Name:[[:blank:]]*//p'", { shell: true })
+      .execSync("systeminfo | sed -n 's/^OS Name:[[:blank:]]*//p'", {
+        shell: true
+      })
       .toString()
       .split("\n")[0]
       .replace((/”/g), "\"")
       .replace((/“/g), "\"")
       .split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/)
-      .filter(function (el) {
-        return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '').length);
+      .filter(function(el) {
+        return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '')
+          .length);
       })
-      .map(function (z) {
+      .map(function(z) {
         return z.replace(/"/g, "");
       })
       .join(" ");
@@ -71,16 +101,19 @@ switch (os.platform()) {
     break;
   case "aix":
     var version = childProcess
-      .execSync("oslevel", { shell: true })
+      .execSync("oslevel", {
+        shell: true
+      })
       .toString()
       .split("\r\n")[0]
       .replace((/”/g), "\"")
       .replace((/“/g), "\"")
       .split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/)
-      .filter(function (el) {
-        return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '').length);
+      .filter(function(el) {
+        return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '')
+          .length);
       })
-      .map(function (z) {
+      .map(function(z) {
         return z.replace(/"/g, "");
       })
       .join(" ");
@@ -90,7 +123,6 @@ switch (os.platform()) {
     osName = `Solaris version parsing not implented`;
     break;
 }
-
 module.exports = {
   osName
 }
