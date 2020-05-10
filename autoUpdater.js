@@ -226,15 +226,7 @@ module.exports = {
         .then(code => {
           if (code != 0) {
             return spawn("git", ["add", "*"])
-              .then(() => spawn("git", ["stash"]))
-              .then(() => spawn("git", ["stash", "pop"]));
-          }
-          throw "OK";
-        })
-        .then(code => {
-          if (code != 0) {
-            return spawn("git", ["add", "*"])
-              .then(() => spawn("git", ["merge"]))
+              .then(() => spawn("git", ["merge", "--no-commit", "-Xtheirs", "-Xpatience"]))
               .then(() => spawn("git", ["stash"]))
               .then(() => spawn("git", ["stash", "pop"]))
           }
