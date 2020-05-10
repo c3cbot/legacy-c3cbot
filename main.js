@@ -1922,7 +1922,7 @@ if (global.config.enablefb) {
                     log: function logPlugin(...message) {
                       log.apply(global, [
                         "[PLUGIN]",
-                        "[" + chhandling.handler + "]"
+                        "[" + String(chhandling.handler) + "]"
                       ].concat(message));
                     },
                     // eslint-disable-next-line no-loop-func
@@ -2811,7 +2811,7 @@ if (global.config.enablediscord) {
             log: function logPlugin(...message) {
               log.apply(global, [
                 "[PLUGIN]",
-                "[" + chhandling.handler + "]"
+                "[" + String(chhandling.handler) + "]"
               ].concat(message));
             },
             // eslint-disable-next-line no-loop-func
