@@ -1612,8 +1612,8 @@ if (global.config.enablefb) {
           "[Facebook]",
           "Login approval detected. You can verify it manually by using 'facebook.error.continue(your_code)'."
         );
+        tried2FA = true;
         if (global.config.fb2fasecret != "BASE32OFSECRETKEY") {
-          tried2FA = true;
           log("[Facebook]", "Attempting to verify using 2FA secret in config...");
           var key2fa = global.config.fb2fasecret.replace(/ /g, "");
           var verifycode = speakeasy.totp({

@@ -196,17 +196,15 @@ module.exports = {
             throw "OK";
           }
           stashNeeded = true;
-          return spawn("git", ["add", "*"])
-            .then(() => spawn("git", ["stash"]));
+          return spawn("git", ["stash", "-u"])
         })
         .then(code => {
           if (code != 0) {
             //resolvePromise([false, "git stash: Error " + code]);
             //throw "NOT OK";
-            stashNeeded = true;
             return spawn("git", ["config", "user.name", "c3cbot.autoupdate"])
               .then(() => spawn("git", ["config", "user.email", "c3cbot.autoupdate@lequanglam.cf"]))
-              .then(() => spawn("git", ["stash"]))
+              .then(() => spawn("git", ["stash", "-u"]))
               .then(() => spawn("git", ["pull"]))
           } else {
             return spawn("git", ["pull"]);
