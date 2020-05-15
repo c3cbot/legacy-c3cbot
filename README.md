@@ -149,8 +149,6 @@ If you really want to completely disable Metric, set `enableMetric` in `config.j
 
 ## Donation
 ```
-Bitcoin:  1TTCLqLHSNegudfS7Ub7dUEGxUurGs8uH
-Litecoin: LQLTTCLUG9g7EfnpanwPH5MFjr7jdQRzfs
-Dogecoin: DTTCLQLeCGDmKmwyy2Nn2SYgbLAyE662ua
-Ethereum: 0x11C1014fA416c585DE0BA41900056fB9407D57a2
+Cryptocurrency: <temporary removed, sorry!>
+PlayerDuo: https://playerduo.com/c3cbotadmin
 ```

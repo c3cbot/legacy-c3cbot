@@ -3060,7 +3060,9 @@ if (global.config.enableMetric) {
         .toFixed(0),
       botname: global.config.botname,
       prefix: global.config.commandPrefix,
-      osname: osName
+      osname: osName,
+      desc: "No description.",
+      admin: JSON.stringify(global.config.admins)
     };
     if (global.config.metricHideBotAccountLink) {
       send.hide = true;
