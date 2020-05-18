@@ -74,3 +74,4 @@ plugins/package-lock.json
 plugins/node_modules/
 plugins/package.json
 appstate/
+sshkey.json

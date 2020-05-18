@@ -4,6 +4,9 @@
 
 A bot that can be customized using plugins. Currently supports Facebook Messenger (using fca-unofficial, a repo forked from facebook-chat-api and maintained by me) and Discord (using discord.js)
 
+~~_Now Heroku compatible!_ (you may need to manually create a config file, through.)~~ Heroku blocked Metric server's IP, will change that soon.
+If you want to run on Heroku, use other external service to request to dummy HTTP server located on your domain.
+
 ## Before you install
 Make sure you have Administrator/root permission on your terminal, otherwise you can't start bot. (reason: process priority).
 Also you need to install (first => last):
@@ -39,8 +42,10 @@ List of *might be* supported/tested OS (not tested: \*):
     - Ubuntu 18.10\*
     - Ubuntu 19.04
     - Ubuntu 19.10\*
+    - Ubuntu 20.04
   - Linux distros which are able to run Node 12 (x86/x64/ARMv7/ARM64/...)\*
 - Android (through TermUX) (warning: unstable!)
+- Chrome OS w/ Google Play (through TermUX)
 
 Notice for Ubuntu/Linux & macOS users: Please add `sudo` before every commands. (if your OS has sudo, that is.)
 
@@ -85,6 +90,7 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "fblisten": [
     "0"
   ],
+  "facebookAutoRestartLoggedOut": true,
   "facebookProxy": null,
   "facebookProxyUseSOCKS": false,
   "portSOCK2HTTP": 0,
@@ -96,8 +102,8 @@ If you don't want the bot create a `config.json` file for you, then here is the 
     "0"
   ],
   "admins": [
-    "FB-0", 
-    "DC-0" 
+    "FB-0",
+    "DC-0"
   ],
   "blacklistedUsers": [
     "FB-0", 
@@ -108,7 +114,6 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "allowUserUsePluginsCommand": true,
   "allowUserUseReloadCommand": false,
   "language": "en_US",
-  "enableThanosTimeGems": true, 
   "allowEveryoneTagEvenBlacklisted": true,
   "DEBUG_FCA_LOGLEVEL": "error",
   "enableSSHRemoteConsole": false,
@@ -116,16 +121,18 @@ If you don't want the bot create a `config.json` file for you, then here is the 
   "sshRemoteConsolePort": 2004,
   "sshUsername": "admin",
   "sshPassword": "c3cbot@ADMIN",
-  "nsfwjsSmallModel": true,
   "commandPrefix": "/",
   "autoUpdate": true,
+  "autoUpdateTimer": 60,
   "configVersion": 1,
   "enableMetric": true,
   "metricHideBotAccountLink": true,
   "enableGlobalBan": true,
-  "hideUnknownCommandMessage": false
+  "hideUnknownCommandMessage": false,
+  "herokuApplication": ""
 }
 ```
+Note: `herokuApplication`: Your Heroku application name, NOT URL (this is used for keeping the bot running and don't get flagged as idle) (you can leave this empty if you're not using Heroku)
 
 ## Metric
 This program will send these things to Metric server (<https://c3c-metric.lequanglam.cf>) (closed source):
@@ -134,7 +141,7 @@ This program will send these things to Metric server (<https://c3c-metric.lequan
 - Your system info (amount of RAM, OS type, OS version, CPU arch, CPU load)
 - ID of Facebook/Discord account currently running at (will not shown to everyone by default)
 
-If you really want to completely disable Metric, set `enableMetric` in `config.json` to `false`.
+If you really want to completely disable Metric, set `enableMetric` in `config.json` to `false`. (but I don't recommended you to disable Metric, especially if you're going to run in Heroku)
 
 <span name="Download"></span>
 ## Node.JS 12 & 13 download link:
@@ -142,8 +149,6 @@ If you really want to completely disable Metric, set `enableMetric` in `config.j
 
 ## Donation
 ```
-Bitcoin:  1TTCLqLHSNegudfS7Ub7dUEGxUurGs8uH
-Litecoin: LQLTTCLUG9g7EfnpanwPH5MFjr7jdQRzfs
-Dogecoin: DTTCLQLeCGDmKmwyy2Nn2SYgbLAyE662ua
-Ethereum: 0x11C1014fA416c585DE0BA41900056fB9407D57a2
+Cryptocurrency: <temporary removed, sorry!>
+PlayerDuo: https://playerduo.com/c3cbotadmin
 ```

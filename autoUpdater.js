@@ -1,4 +1,6 @@
 /* eslint-disable object-curly-spacing */
+/* eslint-disable no-process-env */
+
 var semver = require("semver");
 var currVersion = require("./package.json").version;
 var syncrequest = require("sync-request");
@@ -121,15 +123,15 @@ module.exports = {
         cwd: __dirname
       }).stdout.toString("utf8").replace(/\r/g, "").replace(/\n/g, "");
       if (currentHash == "") {
-        return this.checkForUpdate(true);
+        return module.exports.checkForUpdate(true);
       }
       try {
-        var githubVersion = JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
+        var githubVersion = semver.valid(semver.coerce(JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
           headers: {
             "User-Agent": `C3CBot/${currVersion} request/0.0-sync`,
             "Accept": "application/vnd.github.v3.full+json"
           }
-        }).body.toString()).version;
+        }).body.toString()).version));
         var githubHash = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/ref/heads/master", {
           headers: {
             "User-Agent": `C3CBot/${currVersion} request/0.0-sync`,
@@ -173,8 +175,8 @@ module.exports = {
     } else {
       //Handling custom version?
       return {
-        newUpdate: true,
-        version: "0.0.0-no-beta-zip",
+        newUpdate: !process.env.PORT,
+        version: process.env.PORT ? "0.0.0-heroku-cant-update" : "0.0.0-no-beta-zip",
         currVersion: currVersion
       };
     }
@@ -187,23 +189,50 @@ module.exports = {
     var latestRelease = "";
     if (gitCheckX) {
       latestRelease = "latest";
+      var stashNeeded = false;
       spawn("git", ["pull"])
         .then(code => {
           if (code == 0) {
             throw "OK";
           }
-          return spawn("git", ["stash"]);
+          stashNeeded = true;
+          return spawn("git", ["stash", "-u"])
         })
         .then(code => {
           if (code != 0) {
-            resolvePromise([false, "git stash: Error " + code]);
-            throw "NOT OK";
+            //resolvePromise([false, "git stash: Error " + code]);
+            //throw "NOT OK";
+            return spawn("git", ["config", "user.name", "c3cbot.autoupdate"])
+              .then(() => spawn("git", ["config", "user.email", "c3cbot.autoupdate@lequanglam.cf"]))
+              .then(() => spawn("git", ["stash", "-u"]))
+              .then(() => spawn("git", ["pull"]))
+          } else {
+            return spawn("git", ["pull"]);
           }
-          return spawn("git", ["pull"]);
         })
         .then(code => {
           if (code != 0) {
             resolvePromise([false, "git pull: Error " + code]);
+            throw "NOT OK";
+          }
+          if (stashNeeded) {
+            return spawn("git", ["stash", "pop"]);
+          } else {
+            throw "OK";
+          }
+        })
+        .then(code => {
+          if (code != 0) {
+            return spawn("git", ["add", "*"])
+              .then(() => spawn("git", ["merge", "--no-commit", "-Xtheirs", "-Xpatience"]))
+              .then(() => spawn("git", ["stash"]))
+              .then(() => spawn("git", ["stash", "pop"]))
+          }
+          throw "OK";
+        })
+        .then(code => {
+          if (code != 0) {
+            resolvePromise([false, "git stash pop: Error " + code]);
             throw "NOT OK";
           }
           throw "OK";
@@ -211,8 +240,8 @@ module.exports = {
         .catch(str => {
           if (str == "OK") {
             try {
-              fs.unlinkSync("package-lock.json");
-            } catch (ex) {}
+              //fs.unlinkSync("package-lock.json");
+            } catch (ex) { }
             spawn("npm", ["install"])
               .then(code => {
                 if (code != 0) {
@@ -227,8 +256,8 @@ module.exports = {
                   throw null;
                 }
                 try {
-                  fs.unlinkSync("package-lock.json");
-                } catch (ex) {}
+                  //fs.unlinkSync("package-lock.json");
+                } catch (ex) { }
                 resolvePromise([true, "?"]);
               })
               .catch(_ => { });
@@ -279,7 +308,7 @@ module.exports = {
           //Removing the directory where ZIP files are extracted.
           rimraf.sync(path.join(__dirname, `c3c-${latestRelease}`));
           try {
-            fs.unlinkSync("package-lock.json");
+            //fs.unlinkSync("package-lock.json");
           } catch (ex) { }
           spawn("npm", ["install"])
             .then(code => {
@@ -294,7 +323,7 @@ module.exports = {
                 resolvePromise([false, "npm update: Error " + code]);
                 throw null;
               }
-              fs.unlinkSync("package-lock.json");
+              //fs.unlinkSync("package-lock.json");
               resolvePromise([true, zip.getEntryCount()]);
             })
             .catch(_ => { });
