@@ -94,7 +94,23 @@ switch (os.platform()) {
     osName = `OpenBSD ${os.release()}`;
     break;
   case "darwin":
-    osName = `macOS version parsing not implented`;
+    osName = childProcess
+      .execSync(`$(sw_vers -productVersion | awk -F '.' '{print $1 "." $2 "." $3}')`, {
+        shell: true
+      })
+      .toString()
+      .split("\n")[0]
+      .replace((/”/g), "\"")
+      .replace((/“/g), "\"")
+      .split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/)
+      .filter(function(el) {
+        return !(el == null || el == "" || el == " " || !el.replace(/\s/g, '')
+          .length);
+      })
+      .map(function(z) {
+        return z.replace(/"/g, "");
+      })
+      .join(" ");
     break;
   case "android":
     osName = `Android version parsing not implented`;
