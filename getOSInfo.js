@@ -23,8 +23,6 @@ switch (os.platform()) {
       .join(" ");
     break;
   case "linux":
-    // Edited on iPhone 5s. kill me plz
-    // https://playerduo.com/c3cbotadmin
     try {
       osName = childProcess
         .execSync("lsb_release -d", {
@@ -44,6 +42,7 @@ switch (os.platform()) {
         })
         .slice(1)
         .join(" ");
+      if (os.release().endsWith("+")) osName += " (Android/TermUX)";
     } catch (ex) {
       osName = childProcess
         .execSync("cat /etc/*-release", {
