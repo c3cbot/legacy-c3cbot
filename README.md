@@ -13,10 +13,10 @@ Also you need to install (first => last):
 
 1. .NET Framework 4+ (Windows **7** only)
 2. make, gcc (Linux/Ubuntu only)
-3. Node.JS 12+ (of course because this thing was writen in JS) (download link <a href="#Download">here</a>)
+3. Node.JS 12+ (recommended: use Node 14) (download link <a href="#Download">here</a>)
 4. Xcode (if you are using macOS)
-5. Python 2/3 (Windows users can install this using `npm i --add-python-to-path windows-build-tools`)
-6. Visual C++ Build Tools (Windows users only, use `npm i --add-python-to-path windows-build-tools` to install this)
+5. Python 2/3 (Windows users: Use `wibuildtools.bat`, alternatively you can use `npm i --add-python-to-path windows-build-tools`)
+6. Visual C++ Build Tools (Windows users only, same as Python)
 
 
 List of *might be* supported/tested OS (not tested: \*):
