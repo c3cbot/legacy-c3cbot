@@ -2588,7 +2588,7 @@ if (global.config.enablefb) {
     updatePresence: false,
     autoMarkRead: false,
     autoMarkDelivery: false,
-    forceLogin: true
+    forceLogin: false
   };
   if (global.config.facebookProxy != null) {
     if (global.config.facebookProxyUseSOCKS) {
