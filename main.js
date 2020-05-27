@@ -1767,83 +1767,19 @@ if (global.config.enablefb) {
     }
     facebook.api.fetchName = fetchName;
     facebook.removePendingClock = setInterval(function (log, botname, connectedmsg) {
-      api.getThreadList(10, null, ["PENDING"], function (err, list) {
-        if (err) {
-          log("[Facebook]", "Remove Pending Messages encountered an error (at getThreadList:PENDING):", err);
-          if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-            log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-            facebookloggedIn = false;
-            process.exit(7378278);
-          }
-          return null;
-        }
+      function handleList(list, type) {
         for (var i in list) {
-          setTimeout(function (id) {
-            api.handleMessageRequest(id, true, function (err) {
-              if (err) {
-                log(
-                  "[Facebook]",
-                  "Remove Pending Messages encountered an error (at handleMessageRequest:PENDING):",
-                  err
-                );
-                if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                  log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                  facebookloggedIn = false;
-                  process.exit(7378278);
-                }
-                return null;
-              }
-              api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
-                if (err) {
-                  log(
-                    "[Facebook]",
-                    "Remove Pending Messages encountered an error (at sendMessage:PENDING):",
-                    err
-                  );
-                  if (err.error == "Not logged in." && global.config
-                    .facebookAutoRestartLoggedOut) {
-                    log(
-                      "[Facebook]",
-                      "Detected not logged in. Throwing 7378278 to restarting..."
-                    );
-                    facebookloggedIn = false;
-                    process.exit(7378278);
-                  }
-                  return null;
-                }
-                log("[Facebook]", "Bot added to", id);
-              });
-            });
-          }, i * 2000, list[i].threadID);
-        }
-        api.getThreadList(10, null, ["OTHER"], function (err, list) {
-          if (err) {
-            log(
-              "[Facebook]", "Remove Pending Messages encountered an error (at getThreadList:OTHER):",
-              err
-            );
-            if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-              log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-              facebookloggedIn = false;
-              process.exit(7378278);
-            }
-            return null;
-          }
-          for (var i in list) {
+          if (!list[i].cannotReplyReason) {
             setTimeout(function (id) {
               api.handleMessageRequest(id, true, function (err) {
                 if (err) {
                   log(
                     "[Facebook]",
-                    "Remove Pending Messages encountered an error (at handleMessageRequest:OTHER):",
+                    `Remove Pending Messages encountered an error (at handleMessageRequest:${type}):`,
                     err
                   );
-                  if (err.error == "Not logged in." && global.config
-                    .facebookAutoRestartLoggedOut) {
-                    log(
-                      "[Facebook]",
-                      "Detected not logged in. Throwing 7378278 to restarting..."
-                    );
+                  if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                    log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
                     facebookloggedIn = false;
                     process.exit(7378278);
                   }
@@ -1853,7 +1789,7 @@ if (global.config.enablefb) {
                   if (err) {
                     log(
                       "[Facebook]",
-                      "Remove Pending Messages encountered an error (at sendMessage:OTHER):",
+                      `Remove Pending Messages encountered an error (at sendMessage:${type}):`,
                       err
                     );
                     if (err.error == "Not logged in." && global.config
@@ -1872,6 +1808,36 @@ if (global.config.enablefb) {
               });
             }, i * 2000, list[i].threadID);
           }
+        }
+      }
+
+      api.getThreadList(10, null, ["PENDING"], function (err, list) {
+        if (err) {
+          log("[Facebook]", "Remove Pending Messages encountered an error (at getThreadList:PENDING):", err);
+          if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+            log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+            facebookloggedIn = false;
+            process.exit(7378278);
+          }
+          return null;
+        }
+        handleList(list, "PENDING");
+
+        api.getThreadList(10, null, ["OTHER"], function (err, list) {
+          if (err) {
+            log(
+              "[Facebook]", "Remove Pending Messages encountered an error (at getThreadList:OTHER):",
+              err
+            );
+            if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+              log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+              facebookloggedIn = false;
+              process.exit(7378278);
+            }
+            return null;
+          }
+          handleList(list, "OTHER");
+
           api.markAsReadAll(function (err) {
             if (err) {
               if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
@@ -2434,8 +2400,8 @@ if (global.config.enablefb) {
                     fs.writeFileSync(
                       path.join(__dirname, 'logs', 'message-error-' + message.messageID + ".json"),
                       JSON.stringify(message, null, 4), {
-                        mode: 0o666
-                      }
+                      mode: 0o666
+                    }
                     );
                   }
                 }
@@ -3072,7 +3038,7 @@ if (global.config.enableMetric) {
       send.herokuapp = global.config.herokuApplication;
     }
     return func(send);
-  }
+  };
 
   var metricNewLogic = function metricNewLogic() {
     log("[Metric]", "Generating new Metric ID...");
