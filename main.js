@@ -1848,11 +1848,10 @@ if (global.config.enablefb) {
           });
         });
       });
-    }, 120000, log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config
-      .commandPrefix));
-    // 120s 1 lần scan pending message (không như con bot nào đó đặt tới mấy tiếng)
+    }, 300000, log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix));
+
     typeof global.data.messageList != "object" ? global.data.messageList = {} : "";
-    facebook.listener = api.listenMqtt(function callback(err, message) {
+    facebook.listener = api.listen(function callback(err, message) {
       try {
         if (typeof message != "undefined" && message != null) {
           var nointernalresolve = false;
@@ -2699,22 +2698,27 @@ if (global.config.enableSSHRemoteConsole) {
               prompt: ""
             });
             global.sshcurrsession[conninfo.ip + ":" + conninfo.port] = sshrl;
-            sshrl.on('line', (message) => {
-              log(
-                "[INTERNAL]", conninfo.ip + ":" + conninfo.port, "issued javascript code:",
-                message
-              );
-              try {
-                log("[SSH-JAVASCRIPT]", eval(message));
-              } catch (ex) {
-                log("[SSH-JAVASCRIPT]", ex);
-              }
-            });
+            sshrl.on('line', (message) => consoleHandle(message, conninfo.ip + ":" + conninfo.port));
             sshrl.setPrompt("ssh@c3c:js# ");
             sshrl.prompt();
             // process.stdout.pipe(stream, {end: false});
             // stream.pipe(process.stdin, {end: false});
           });
+
+          session.on('pty', function (accept, _reject, info) {
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, `requested PTY: ${info.cols}x${info.rows} (${info.width}x${info.height} px) | ${info.modes}`);
+            accept();
+          });
+
+          session.on('window-change', function (accept, _reject, info) {
+            log("[SSH]", conninfo.ip + ":" + conninfo.port, `changed PTY size: ${info.cols}x${info.rows} (${info.width}x${info.height} px)`);
+            accept();
+          });
+
+          session.on('signal', function (accept, _reject, info) {
+            accept();
+            process.emit(info.name);
+          })
         });
       })
       .on('end', function () {
