@@ -152,3 +152,4 @@ If you really want to completely disable Metric, set `enableMetric` in `config.j
 Cryptocurrency: <temporary removed, sorry!>
 PlayerDuo: https://playerduo.com/c3cbotadmin
 ```
+ 
