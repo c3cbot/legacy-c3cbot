@@ -2710,7 +2710,7 @@ if (global.config.enableSSHRemoteConsole) {
               "[SSH]", 
               conninfo.ip + ":" + conninfo.port, 
               `requested PTY: ${info.cols}x${info.rows} (${info.width}x${info.height} px)`,
-              /* Object.keys(info.modes).reduce((pv, cv) => {
+              Object.keys(info.modes).reduce((pv, cv) => {
                 if (info.modes[cv]) {
                   if (pv == "") {
                     return cv;
@@ -2718,8 +2718,7 @@ if (global.config.enableSSHRemoteConsole) {
                   return `${pv}, ${cv}`
                 }
                 return pv;
-              }, "") */
-              info.terms
+              }, "") 
             );
             accept();
           });
