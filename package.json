@@ -1,6 +1,6 @@
 {
   "name": "c3cbot",
-  "version": "0.4.0",
+  "version": "0.5.0-beta",
   "description": "A customizable bot that runs on Facebook and Discord.",
   "main": "index.js",
   "scripts": {
