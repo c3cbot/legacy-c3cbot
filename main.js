@@ -177,7 +177,7 @@ logFileList.forEach(dir => {
     });
 });
 
-var log = require("logger.js");
+var log = require("./logger.js");
 
 //Capturing STDERR
 var _stderrold = process.stderr.write;
