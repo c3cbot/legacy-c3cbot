@@ -50,7 +50,7 @@ List of *might be* supported/tested OS (not tested: \*):
 Notice for Ubuntu/Linux & macOS users: Please add `sudo` before every commands. (if your OS has sudo, that is.)
 
 ## Install
-Download latest version (version 0.3.14, as of 22/03/2020) <a href="https://github.com/lequanglam/c3c/archive/0.3.14.zip">by clicking this</a>, and then extract it. Go to the directory where it extracted (assuming you already opened a terminal), then type: 
+Download latest version (version 0.4.0, as of 31/05/2020) <a href="https://github.com/lequanglam/c3c/archive/0.4.0.zip">by clicking this</a>, and then extract it (or, you can clone this repository if you want to run BETA version, but *please* do not use Download ZIP button, use `git clone`). Go to the directory where it extracted (assuming you already opened a terminal), then type: 
 ```bash
 npm install
 ``` 
