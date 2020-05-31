@@ -60,7 +60,7 @@ var defaultconfig = {
 };
 
 module.exports = function getConfig() {
-  fs.existsSync(path.join(__dirname, "config.json")) ? (function () {
+  return fs.existsSync(path.join(__dirname, "config.json")) ? (function () {
     var readedConfig = JSON.parse(stripBom(fs.readFileSync(path.join(__dirname, "config.json"), {
       encoding: "utf8"
     })));
