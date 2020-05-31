@@ -14,7 +14,6 @@ global.nodemodule = {};
 var os = require("os");
 const fs = require('fs');
 var path = require("path");
-const util = require('util');
 var syncrequest = require('sync-request');
 var wait = require('wait-for-stuff');
 var semver = require("semver");
@@ -25,13 +24,13 @@ var zlib = require("zlib");
 var tar = require("tar-stream");
 const readline = require('readline');
 var speakeasy = require("speakeasy"); //2FA
-var stripBom = require("strip-bom");
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
   terminal: true,
   prompt: ""
 });
+global.crl = rl;
 var fetch = require("node-fetch");
 var _checkPort = require("./checkPort.js");
 var CPULoad = require("./CPULoad.js");
@@ -177,113 +176,8 @@ logFileList.forEach(dir => {
       });
     });
 });
-global.logLast = {
-  year: 1970,
-  month: 1,
-  days: 1,
-  loadTimes: 0
-};
-/**
- * Log to console and also write to logs file, print to every ssh console session
- *
- * @param   {any}  message     Anything
- *
- * @return  {undefined}        Function will not return anything
- */
-function log(...message) {
-  var date = new Date();
-  readline.cursorTo(process.stdout, 0);
-  var x = ["\x1b[K" + "\x1b[1;32m" + "\x1b[1;92m" + "\x1b[38;2;0;255;0m" + "[" +
-    (date.getUTCFullYear()
-      .pad(4) + "-" + (date.getUTCMonth() + 1)
-        .pad(2) + "-" + date.getUTCDate()
-          .pad(2) + "T" + date.getUTCHours()
-            .pad(2) + "-" + date.getUTCMinutes()
-              .pad(2) + "-" + date.getUTCSeconds()
-                .pad(2) + "." + date.getUTCMilliseconds()
-                  .pad(3) + "Z") + "]"];
-  console.log.apply(console, x.concat(message)
-    .concat(["\x1b[1;32m"]));
-  rl.prompt(true);
-  var tolog = "[" + (date.getUTCFullYear()
-    .pad(4) + "-" + (date.getUTCMonth() + 1)
-      .pad(2) + "-" + date.getUTCDate()
-        .pad(2) + "T" + date.getUTCHours()
-          .pad(2) + "-" + date.getUTCMinutes()
-            .pad(2) + "-" + date.getUTCSeconds()
-              .pad(2) + "." + date.getUTCMilliseconds()
-                .pad(3) + "Z") + "]";
-  for (var n in message) {
-    if (typeof message[n] == "object") {
-      tolog += " " + util.format("%O", message[n]);
-    } else {
-      tolog += " " + util.format("%s", message[n]);
-    }
-  }
-  var currentLogDate = date.getUTCFullYear()
-    .pad(4) + '-' + (date.getUTCMonth() + 1)
-      .pad(2) + '-' + date.getUTCDate()
-        .pad(2);
-  var lastLogDate = global.logLast.year.pad(4) + "-" + global.logLast.month.pad(2) + "-" + global.logLast.days.pad(2);
-  if (currentLogDate != lastLogDate) {
-    var times = 0;
-    for (; ;) {
-      if (!fs.existsSync(path.join(__dirname, "logs", `log-${currentLogDate}-${times}.tar.gz`)) && !fs.existsSync(path
-        .join(__dirname, "logs", `log-${currentLogDate}-${times}.log`))) {
-        break;
-      }
-      times++;
-    }
-    global.logLast = {
-      year: date.getUTCFullYear(),
-      month: date.getUTCMonth() + 1,
-      days: date.getUTCDate(),
-      loadTimes: times
-    };
-  }
-  fs.appendFile(
-    path.join(__dirname, "logs", `log-${currentLogDate}-${global.logLast.loadTimes}.log`), tolog + "\r\n",
-    function (err) {
-      if (err) {
-        console.log("[CRITICAL] [NOT LOGGED] ERROR WHILE WRITING LOGS: ", err);
-      }
-    }
-  );
-  var tssh = "\x1b[K" + "\x1b[1;32m" + "\x1b[1;92m" + "\x1b[38;2;0;255;0m[" + (date.getUTCFullYear()
-    .pad(4) + "-" + (date.getUTCMonth() + 1)
-      .pad(2) + "-" + date.getUTCDate()
-        .pad(2) + "T" + date.getUTCHours()
-          .pad(2) + "-" + date.getUTCMinutes()
-            .pad(2) + "-" + date.getUTCSeconds()
-              .pad(2) + "." + date.getUTCMilliseconds()
-                .pad(3) + "Z") + "]";
-  for (var n in message) {
-    if (typeof message[n] == "object") {
-      tssh += " " + util.formatWithOptions({
-        colors: true
-      }, "%O", message[n]);
-    } else {
-      tssh += " " + util.formatWithOptions({
-        colors: true
-      }, "%s", message[n]);
-    }
-  }
-  // eslint-disable-next-line no-extra-boolean-cast
-  if (!!global.sshcurrsession) {
-    if (typeof global.sshcurrsession == "object") {
-      for (var session in global.sshstream) {
-        try {
-          global.sshstream[session].stdout.write("\r");
-          global.sshstream[session].stdout.write(tssh.replace(/\r\n/g, "\uFFFF")
-            .replace(/\n/g, "\r\n")
-            .replace(/\uFFFF/g, "\r\n") + "\r\n" + "\x1b[1;32m");
-          global.sshcurrsession[session].prompt(true);
-          //global.sshstream[session].stdout.write(global.sshcurrsession[session].line);
-        } catch (ex) { }
-      }
-    }
-  }
-}
+
+var log = require("logger.js");
 
 //Capturing STDERR
 var _stderrold = process.stderr.write;
@@ -308,100 +202,16 @@ setInterval(() => {
 
 var autoUpdater = require("./autoUpdater.js");
 var cUpdate = autoUpdater.checkForUpdate();
+
 //Outputs version 
 var version = cUpdate.currVersion;
 log("Starting C3CBot version", version, "...");
-var defaultconfig = {
-  testmode: false,
-  baseprefix: "[Bot]",
-  botname: "C3CBot",
-  enablefb: false,
-  usefbappstate: true,
-  fbemail: "",
-  fbpassword: "",
-  fb2fasecret: "BASE32OFSECRETKEY",
-  fbuseragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
-  fblistenwhitelist: false,
-  fblisten: [
-    "0" //Replace 0 with FB Thread ID
-  ],
-  facebookAutoRestartLoggedOut: true,
-  facebookProxy: null,
-  facebookProxyUseSOCKS: false,
-  portSOCK2HTTP: 0,
-  addressSOCK2HTTP: "127.0.0.1",
-  enablediscord: false,
-  discordtoken: "",
-  discordlistenwhitelist: false,
-  discordlisten: [
-    "0" //Replace 0 with Discord channel ID
-  ],
-  admins: [
-    "FB-0", //Replace 0 with FBID
-    "DC-0" //Replace 0 with Discord ID
-  ],
-  blacklistedUsers: [
-    "FB-0", //Replace 0 with FBID
-    "DC-0" //Replace 0 with Discord ID
-  ],
-  allowAdminUseRestartCommand: true,
-  allowAdminUseShutdownCommand: false,
-  allowUserUsePluginsCommand: true,
-  allowUserUseReloadCommand: false,
-  language: "en_US",
-  allowEveryoneTagEvenBlacklisted: true,
-  DEBUG_FCA_LOGLEVEL: "error",
-  enableSSHRemoteConsole: false,
-  sshRemoteConsoleIP: "0.0.0.0",
-  sshRemoteConsolePort: 2004,
-  sshUsername: "admin",
-  sshPassword: "c3cbot@ADMIN",
-  commandPrefix: "/",
-  autoUpdate: true,
-  autoUpdateTimer: 60,
-  configVersion: 1,
-  enableMetric: true,
-  metricHideBotAccountLink: true,
-  enableGlobalBan: true,
-  hideUnknownCommandMessage: false,
-  herokuApplication: ""
-};
 
-//Load config
-global.config = fs.existsSync(path.join(__dirname, "config.json")) ? (function () {
-  var readedConfig = JSON.parse(stripBom(fs.readFileSync(path.join(__dirname, "config.json"), {
-    encoding: "utf8"
-  })));
-  for (var configName in defaultconfig) {
-    if (!Object.prototype.hasOwnProperty.call(readedConfig, configName)) {
-      readedConfig[configName] = defaultconfig[configName];
-      log("[INTERNAL]", "Missing", configName, "in config file. Adding with default value (", defaultconfig[
-        configName], ")...");
-    }
-  }
-  for (var configName in readedConfig) {
-    if (!Object.prototype.hasOwnProperty.call(defaultconfig, configName)) {
-      delete readedConfig[configName];
-      log("[INTERNAL]", "Deleted ", configName, "in config file. (unused)");
-    }
-  }
-  fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(readedConfig, null, 4), {
-    mode: 0o666
-  });
-  return readedConfig;
-})() : (function () {
-  log("[INTERNAL]", "Config file not found. Creating a default one...");
-  try {
-    fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(defaultconfig, null, 4), {
-      mode: 0o666
-    });
-  } catch (ex) {
-    log("[INTERNAL]", "Cannot write default config, returned an error: ", ex);
-  }
-  return defaultconfig;
-})();
+global.config = require("./getConfig.js")();
+
 var testmode = global.config.testmode;
 var prefix = global.config.baseprefix;
+
 global.lang = require('js-yaml')
   .load(fs.existsSync(path.join(__dirname, "lang", global.config.language + ".yml")) ? fs.readFileSync(path.join(__dirname, "lang", global.config.language + ".yml"), {
     encoding: 'utf-8'
@@ -414,6 +224,7 @@ global.lang = require('js-yaml')
       encoding: 'utf-8'
     });
   })());
+
 if (global.config.facebookProxyUseSOCKS) {
   var ProxyServer = require("./SOCK2HTTP.js")(log);
   var fS2HResolve = function () { };
@@ -3043,7 +2854,9 @@ if (global.config.enableMetric) {
       botname: global.config.botname,
       prefix: global.config.commandPrefix,
       osname: osName,
-      desc: "No description.",
+      desc: fs.readFileSync(path.join(__dirname, "bot_description.txt"), {
+        encoding: "utf8"
+      }),
       admin: JSON.stringify(global.config.admins)
     };
     if (global.config.metricHideBotAccountLink) {
