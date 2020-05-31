@@ -75,3 +75,4 @@ plugins/node_modules/
 plugins/package.json
 appstate/
 sshkey.json
+bot_description.txt
