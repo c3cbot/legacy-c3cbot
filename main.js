@@ -251,167 +251,13 @@ if (global.config.facebookProxyUseSOCKS) {
   var sock2httpPort = S2HResponse.port;
   var sock2httpAddress = S2HResponse.address;
 }
-/**
- * Obfuscate a string.
- *
- * @param   {string}  data  A string that you want to obfuscate.
- *
- * @return  {string}        An obfuscated string.
- */
-function obf(data) {
-  function Obfuscator(repl) {
-    this.nrepl = 0;
-    this.replacements = {};
-    this.revreplacements = {};
 
-    function removeDupes(str) {
-      var rv = "";
-      for (var i = 0; i < str.length; i++) {
-        var ch = str.charAt(i);
-        if (rv.indexOf(ch) == -1) {
-          rv += ch;
-        }
-      }
-      return rv;
-    }
-    for (var i = 0; i < repl.length; i++) {
-      var r = repl[i];
-      var original = r.charAt(0);
-      var s = removeDupes(r);
-      if (s.length > 1) {
-        for (var j = 0; j < s.length; j++) {
-          this.replacements[s.charAt(j)] = s.substring(0, j) + s.substring(j + 1);
-          if (s.charAt(j) !== original) {
-            this.revreplacements[s.charAt(j)] = original;
-          }
-          this.nrepl++;
-        }
-      }
-    }
-  }
-  Obfuscator.prototype.obfuscate = function (str) {
-    str = str + "";
-    var rv = "";
-    for (var i = 0; i < str.length; i++) {
-      var c = str.charAt(i);
-      var r = this.replacements[c];
-      if (r) {
-        var j = Math.floor(Math.random() * (r.length - 1));
-        rv += r.charAt(r.charAt(j) == c ? j + 1 : j);
-      } else {
-        rv += c;
-      }
-    }
-    return rv;
-  };
-  Obfuscator.prototype.deobfuscate = function (str) {
-    str = str + "";
-    var rv = "";
-    for (var i = 0; i < str.length; i++) {
-      var c = str.charAt(i);
-      var r = this.revreplacements[c];
-      if (r) {
-        rv += r;
-      } else {
-        rv += c;
-      }
-    }
-    return rv;
-  };
-  var strongObfuscator = new Obfuscator([
-    "AÀÁÂÃÄÅĀĂĄǍǞǠȀȂȦΆΑАѦӐӒḀẠẢẤẦẨẬẶἈἉᾈᾉᾸᾹᾺᾼ₳ÅȺẮẰẲẴἌἎἏᾌΆǺẪ",
-    "BƁΒВḂḄḆ",
-    "CÇĆĈĊČƇʗСҪḈ₢₵ℂⅭϹϾҀ",
-    "DÐĎĐƉƊḊḌḎḐḒⅮ",
-    "EÈÉÊËĒĔĖĘĚȄȆȨΕЀЁЕӖḘḚḜẸẺẼẾỀỆḔḖỂỄԐℇƐἙῈЄ",
-    "FϜḞ₣ҒƑϝғҒ₣",
-    "GĜĞĠĢƓǤǦǴḠ₲",
-    "HĤĦȞΗНҢҤӇӉḢḤḦḨḪῌꜦ",
-    "IΊÌÍÎÏĨĪĬĮİƖƗǏȈȊΙΪІЇӀӏḬḮỈỊἸἹῘῙῚǐ1",
-    "JĴʆЈʃ",
-    "KĶƘǨΚЌКԞḰḲḴ₭K",
-    "LĹĻĽĿŁԼḶḸḺḼℒⅬ˪",
-    "MΜМӍḾṀṂⅯ",
-    "NÑŃŅŇǸΝṄṆṈṊ₦Ɲ",
-    "O0θϑ⍬ÒÓÔÕÖØŌŎŐƆƟƠǑǪǬǾȌȎȪȬȮȰΘΟϴОѲӦӨӪՕỌỎỐỒỔỘỚỜỞỠỢΌΌṌṐṒὈʘṎỖ",
-    "PƤΡРҎṔṖῬ₱ℙ",
-    "QԚℚ",
-    "RŔŖŘȐȒṘṚṜṞ℞ɌⱤ",
-    "SŚŜŞŠȘЅՏṠṢṨṤṦ",
-    "TŢŤŦƮȚΤТҬṪṬṮṰ₮ȾΊΊꚌ",
-    "UÙÚÛÜŨŪŬŮŰŲƯǓǕǗǛȔȖԱՍṲṴṶṸỤỦỨỪỬỮỰǙ⊍⊎Մ⊌Ṻ",
-    "VѴѶṼṾ⋁ⅤƲ",
-    "WŴԜẀẂẄẆẈ₩ƜШ",
-    "XΧХҲẊẌⅩ",
-    "Y¥ÝŶŸƳȲΥΫϓУҮҰẎỲỴỶỸῨῩ",
-    "ZŹŻŽƵȤΖẐẒẔ",
-    "aàáâãäåāăąǎǟǡǻȁȃȧаӑӓḁẚạảấầẩẫậắằẳẵặɑάαἀἁἂἃἄἅἆἇὰάᾀᾁᾂᾃᾄᾅᾆᾇᾰᾱᾲᾳᾴᾶᾷ⍶⍺ɑ",
-    "bƀƃƅɒɓḃḅḇþϸƄьҍ",
-    "cçćĉċčƈςϛсҫḉⅽ¢ϲҁ",
-    "dďđɖɗḋḍḏḑḓⅾƌժ₫ð",
-    "eèéêëēĕėęěȅȇȩеѐёҽҿӗḕḗḙḛḝẹẻẽếềểễệεɛϵєϱѳөӫɵ",
-    "fſḟẛƒғϝ£ƒ",
-    "gĝğġģǥǧǵɠɡգզցḡɕʛɢ",
-    "hĥħȟɦɧћիհḣḥḧḩḫẖℏһʜӊ",
-    "iį¡ìíîïĩīĭįıǐȉȋɨɩΐίιϊіїɪḭḯỉịἰἱἲἳὶίῑΐῐῒῖὶ",
-    "jĵǰȷɟʝјյϳ",
-    "kķĸƙǩκкҝҟḱḳḵ",
-    "lŀĺļľłƚǀɫɬɭḷḹḻḽŀ⎩ḹ",
-    "mɱḿṁṃ₥ⅿ",
-    "nɴñńņňŉŋƞǹɲɳήηπпբդըղոռրṅṇṉṋἠἡἢἣἤἥἦἧὴήᾐᾑᾒᾓᾔᾕᾖᾗῂῃῄῆῇი",
-    "oòóôõöōŏőơǒǫǭȍȏȫȭȯȱʘοόоӧծձօṍṏṑṓọỏốồổỗộớờởỡợὀὁὂὃὄὅὸόσ๐",
-    "pþρрҏթṕṗῤῥ⍴",
-    "qʠԛգզϙ",
-    "rŕŗřȑȓɼɽгѓґӷṙṛṝṟгѓґӷ",
-    "sśŝşšșʂѕԑṡṣṥṧṩ",
-    "tţťŧƫțʈṫṭṯṱẗȶէե†ԷՒէȽҭ",
-    "uµùúûüũūŭůűųưǔǖǘǚǜȕȗɥμυцկմնսվևṳṵṷṹṻụủứừửữự",
-    "vʋνѵѷүұṽṿⅴ∨ΰϋύὐὑὒὓὔὕὖὗὺύῠῡῢΰῦῧʋ",
-    "wŵԝẁẃẅẇẉẘ",
-    "xϰхҳẋẍⅹ",
-    "yýÿŷƴȳγуўӯӱӳẏẙỳỵỷỹʏ",
-    "zźżžƶȥʐʑẑẓẕ",
-    "2ƻƨշ",
-    "3ЗҘӞƷӠЗҘӞՅɜɝзҙӟ",
-    "4ЧЧӴ",
-    "5Ƽ",
-    "6əǝә",
-    "8Ց",
-    // ☌øǿ - ???
-    "БƂ",
-    "ГΓЃҐӶ",
-    "ЖҖӜ",
-    "ИЍӢӤ",
-    "ЙҊ",
-    "ЛӅԒΛ",
-    "ПΠ",
-    "ЦҴ",
-    "ЬƄ",
-    "ЫӸ",
-    "ЪѢՒ",
-    "ЭӬ",
-    "вʙʙɞ",
-    "жҗӂӝ",
-    "зƨɜɝӟ",
-    "иѝӥ",
-    "йҋӣ",
-    "кĸκќқҝҟҡԟ",
-    "лӆԓ",
-    "мӎ",
-    "нʜңҥӈӊ",
-    "цџҵ",
-    "чҷҹӌӵ",
-    "шɯա",
-    "ъѣ",
-    "ыӹ",
-    "эǝɘəӭэӭ"
-  ]);
-  return strongObfuscator.obfuscate(data) || "";
-}
+let obf = require("./obfuscator.js");
 var _prefixObf = setInterval(() => {
   prefix = obf(global.config.baseprefix);
   if (prefix == "") prefix = "\u200C";
 }, 1000);
+
 /**
  * Get a randomized number
  *
@@ -464,12 +310,14 @@ function _HMAC(publick, privatek, algo, output) {
   var value = hmac.digest(output);
   return value;
 }
+
 ////Global data load
 //// global.dataSave = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
 //// global.data = onChange(global.dataSave.data, function(){});
 //// global.watch('data', function (id, oldval, newval) {
 //// global.dataSave.data = global.data;
 //// });
+
 //* Load data
 if (testmode) {
   fs.existsSync(path.join(__dirname, "data-test.json")) ? global.data = JSON.parse(fs.readFileSync(path.join(
@@ -1183,6 +1031,32 @@ function loadPlugin() {
     compatibly: 1,
     handler: "INTERNAL"
   };
+
+  //No purpose because nothing use this thing. yet.
+  (typeof global.data.userLanguage != "object" || Array.isArray(global.data.userLanguage)) ? global.data.userLanguage = {} : "";
+  global.commandMapping["lang"] = {
+    args: "<ISO 639-1>_<ISO 3166-2>",
+    desc: {
+      "vi_VN": "Chỉnh ngôn ngữ phản hồi",
+      "en_US": "Change bot's feedback language"
+    },
+    scope: function (type, data) {
+      if (data.args.length > 1) {
+        global.data.userLanguage = String(data.args[1]);
+        return {
+          handler: "internal",
+          data: `userLanguage = "${data.args[1]}"`
+        }
+      }
+      return {
+        handler: "internal",
+        data: `${global.config.commandPrefix}lang <ISO 639-1>_<ISO 3166-2>`
+      }
+    },
+    compatibly: 0,
+    handler: "INTERNAL"
+  };
+
   return error;
 }
 
