@@ -1,7 +1,7 @@
 var fs = require("fs");
 var path = require("path");
 var stripBom = require("strip-bom");
-var log = require("logger.js");
+var log = require("./logger.js");
 
 var defaultconfig = {
   testmode: false,
