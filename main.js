@@ -1948,7 +1948,7 @@ if (global.config.enablefb) {
                       api.sendMessage(
                         `${prefix} ` + 
                         global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix) +
-                        (nearest.rating >= 0.4 ? `\n${global.lang["UNKNOWN_CMD_DIDYOUMEAN"].replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""), 
+                        (nearest.rating >= 0.4 ? `\n\n${global.lang["UNKNOWN_CMD_DIDYOUMEAN"].replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""), 
                         message.threadID, 
                         function (err) {
                           if (err) {
