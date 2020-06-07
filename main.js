@@ -1739,6 +1739,10 @@ if (global.config.enablefb) {
                     "[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")",
                     "issued command in", message.threadID + ":", message.body
                   );
+                  let admin = false;
+                  if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
+                    admin = true;
+                  }
                   if (global.commandMapping[arg[0].substr(1)]) {
                     if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0]
                       .substr(1)].compatibly != 0) {
@@ -1756,10 +1760,6 @@ if (global.config.enablefb) {
                       );
                     } else {
                       let argv = JSON.parse(JSON.stringify(arg));
-                      let admin = false;
-                      if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
-                        admin = true;
-                      }
                       var mentions = {};
                       for (var y in message.mentions) {
                         mentions["FB-" + y] = message.mentions[y];
@@ -1944,7 +1944,12 @@ if (global.config.enablefb) {
                     }
                   } else {
                     if (!global.config.hideUnknownCommandMessage) {
-                      var nearest = require("./nearAPI.js").findBestMatch(arg[0].slice(global.config.commandPrefix.length), Object.keys(global.commandMapping)).bestMatch;
+                      var nearest = require("./nearAPI.js").findBestMatch(
+                        arg[0].slice(global.config.commandPrefix.length), 
+                        Object.keys(global.commandMapping)
+                          .filter(v => (admin || !global.commandMapping[v].adminCmd))
+                          .filter(v => ((global.commandMapping[v].compatibly & 1) || (global.commandMapping[v].compatibly == 0)))
+                      ).bestMatch;
                       api.sendMessage(
                         `${prefix} ` + 
                         global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix) +
@@ -2470,7 +2475,7 @@ if (global.config.enablediscord) {
       if (global.chatHook[n].listenplatform & 2) {
         var chhandling = global.chatHook[n];
         if (chhandling.listentype == "everything") {
-          var admin = false;
+          let admin = false;
           if (global.config.admins.indexOf("DC-" + message.author.id) != -1) {
             admin = true;
           }
@@ -2531,17 +2536,18 @@ if (global.config.enablediscord) {
             return !(el == null || el == "" || el == " ");
           })
           .map(xy => xy.replace(/"/g, ""));
+
+        let admin = false;
+        for (var no in global.config.admins) {
+          if (global.config.admins[no] == "DC-" + message.author.id) {
+            admin = true;
+          }
+        }
         if (global.commandMapping[arg[0].substr(1)]) {
           if (!(global.commandMapping[arg[0].substr(1)].compatibly & 2) && global.commandMapping[arg[0].substr(1)]
             .compatibly != 0) {
             message.reply(global.lang["UNSUPPORTED_INTERFACE"]);
           } else {
-            let admin = false;
-            for (var no in global.config.admins) {
-              if (global.config.admins[no] == "DC-" + message.author.id) {
-                admin = true;
-              }
-            }
             global.data.cacheName["DC-" + message.author.id] = message.author.tag;
             var mentions = {};
             message.mentions.users.forEach(function (y, x) {
@@ -2611,7 +2617,12 @@ if (global.config.enablediscord) {
           }
         } else {
           if (!global.config.hideUnknownCommandMessage) {
-            var nearest = require("./nearAPI.js").findBestMatch(arg[0].slice(global.config.commandPrefix.length), Object.keys(global.commandMapping)).bestMatch;
+            var nearest = require("./nearAPI.js").findBestMatch(
+              arg[0].slice(global.config.commandPrefix.length), 
+              Object.keys(global.commandMapping)
+                .filter(v => (admin || !global.commandMapping[v].adminCmd))
+                .filter(v => ((global.commandMapping[v].compatibly & 2) || (global.commandMapping[v].compatibly == 0)))
+            ).bestMatch;
             message.reply(global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix) + (nearest.rating >= 0.3 ? `\n\n${global.lang["UNKNOWN_CMD_DIDYOUMEAN"].replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""));
           }
         }
