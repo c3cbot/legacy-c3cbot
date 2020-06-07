@@ -1,4 +1,5 @@
-UNKNOWN_CMD: "Câu lệnh không rõ. Hãy thử {0}help"
+UNKNOWN_CMD: "Sai lệnh. Sử dụng {0}help để hiển thị các lệnh có mặt."
+UNKNOWN_CMD_DIDYOUMEAN: "Có phải bạn muốn nhập lệnh {0}?"
 UNSUPPORTED_INTERFACE: "Xin lỗi, lệnh này không thể thực hiện được tại đây."
 HELP_ARGS: "[trang]"
 HELP_DESC: "Hướng dẫn về các lệnh ở đây."

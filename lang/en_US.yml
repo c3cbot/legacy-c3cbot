@@ -1,4 +1,5 @@
-UNKNOWN_CMD: "Unknown command. Try {0}help"
+UNKNOWN_CMD: "Wrong command. Use {0}help to display all commands available."
+UNKNOWN_CMD_DIDYOUMEAN: "Did you mean to use {0}?"
 UNSUPPORTED_INTERFACE: "Sorry, but that command is not supported in this interface."
 HELP_ARGS: "[page]"
 HELP_DESC: "A guide to commands in here."

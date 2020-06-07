@@ -2,7 +2,6 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable require-atomic-updates */
 /* eslint-disable class-methods-use-this */
-/* eslint-disable no-redeclare */
 /* eslint-disable no-process-env */
 
 require("./ClassModifier.js");
@@ -789,7 +788,7 @@ function loadPlugin() {
         var page = 1;
         page = parseInt(data.args[1]) || 1;
         if (page < 1) page = 1;
-        var mts = "";
+        let mts = "";
         mts += global.lang["HELP_OUTPUT_PREFIX"];
         var helpobj = global.commandMapping["help"];
         helpobj.command = "help";
@@ -1046,12 +1045,12 @@ function loadPlugin() {
         return {
           handler: "internal",
           data: `userLanguage = "${data.args[1]}"`
-        }
+        };
       }
       return {
         handler: "internal",
         data: `${global.config.commandPrefix}lang <ISO 639-1>_<ISO 3166-2>`
-      }
+      };
     },
     compatibly: 0,
     handler: "INTERNAL"
@@ -1069,12 +1068,12 @@ function unloadPlugin() {
         log("[INTERNAL]", `Error while executing ${name}.onUnload: ${ex}`);
       }
     }
-    for (var cmd in global.commandMapping) {
+    for (let cmd in global.commandMapping) {
       if (global.commandMapping[cmd].handler == name) {
         delete global.commandMapping[cmd];
       }
     }
-    for (var cmd in global.chatHook) {
+    for (let cmd in global.chatHook) {
       if (global.chatHook[cmd].handler == name) {
         delete global.chatHook[cmd];
       }
@@ -1604,7 +1603,7 @@ if (global.config.enablefb) {
                           returndata.data.body = "";
                         }
                         returndata.data.body = prefix + " " + returndata.data.body;
-                        var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
+                        let endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
                           .isGroup);
                         setTimeout(
                           function (api, returndata, endTyping, message, log) {
@@ -1756,8 +1755,8 @@ if (global.config.enablefb) {
                         }, message.messageID, message.isGroup
                       );
                     } else {
-                      var argv = JSON.parse(JSON.stringify(arg));
-                      var admin = false;
+                      let argv = JSON.parse(JSON.stringify(arg));
+                      let admin = false;
                       if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
                         admin = true;
                       }
@@ -1831,7 +1830,7 @@ if (global.config.enablefb) {
                                   returndata.data.body = "";
                                 }
                                 returndata.data.body = prefix + " " + returndata.data.body;
-                                var endTyping = api.sendTypingIndicator(
+                                let endTyping = api.sendTypingIndicator(
                                   message.threadID, function () { },
                                   message.isGroup
                                 );
@@ -1896,7 +1895,7 @@ if (global.config.enablefb) {
                               returndata.data.body = "";
                             }
                             returndata.data.body = prefix + " " + returndata.data.body;
-                            var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
+                            let endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
                               .isGroup);
                             setTimeout(
                               function (api, returndata, endTyping, message, log) {
@@ -1945,21 +1944,29 @@ if (global.config.enablefb) {
                     }
                   } else {
                     if (!global.config.hideUnknownCommandMessage) {
-                      api.sendMessage(prefix + " " + global.lang["UNKNOWN_CMD"].replace("{0}", global.config
-                        .commandPrefix), message.threadID, function (err) {
+                      var nearest = require("./nearAPI.js").findBestMatch(arg[0].slice(global.config.commandPrefix.length), Object.keys(global.commandMapping)).bestMatch;
+                      api.sendMessage(
+                        `${prefix} ` + 
+                        global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix) +
+                        nearest.rating >= 0.4 ? `\n${global.lang["UNKNOWN_CMD_DIDYOUMEAN"].replace("{0}", global.config.commandPrefix + nearest.target)}` : "", 
+                        message.threadID, 
+                        function (err) {
                           if (err) {
                             if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                              log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
+                              log("[Facebook]", "Detected not logged in. Throwing 7378278 to restart...");
                               facebookloggedIn = false;
                               process.exit(7378278);
                             }
                           }
-                        }, message.messageID, message.isGroup);
+                        }, 
+                        message.messageID, 
+                        message.isGroup
+                      );
                     }
                   }
                 } else {
                   var str = "";
-                  for (var n in message.attachments) {
+                  for (let n in message.attachments) {
                     var type = message.attachments[n].type;
                     type = type[0].toLocaleUpperCase() + type.substr(1);
                     str += "\r\n  <";
@@ -1996,9 +2003,9 @@ if (global.config.enablefb) {
                   );
                 }
               } else {
-                var str = "";
-                for (var n in message.attachments) {
-                  var type = message.attachments[n].type;
+                let str = "";
+                for (let n in message.attachments) {
+                  let type = message.attachments[n].type;
                   type = type[0].toLocaleUpperCase() + type.substr(1);
                   str += "\r\n  <";
                   str += type;
@@ -2006,7 +2013,8 @@ if (global.config.enablefb) {
                   switch (message.attachments[n].type) {
                     case "audio":
                     case "video":
-                      var dr = new Date(message.attachments[n].duration);
+                      // eslint-disable-next-line no-case-declarations
+                      let dr = new Date(message.attachments[n].duration);
                       str += dr.getUTCHours()
                         .pad(2) + ":" + dr.getUTCMinutes()
                           .pad(2) + ":" + dr.getUTCSeconds()
@@ -2040,7 +2048,7 @@ if (global.config.enablefb) {
                 if (message.logMessageType == "log:subscribe") {
                   var containBot = false;
                   var botID = api.getCurrentUserID();
-                  for (var n in message.logMessageData.addedParticipants) {
+                  for (let n in message.logMessageData.addedParticipants) {
                     if (message.logMessageData.addedParticipants[n].userFbId == botID) {
                       containBot = true;
                     }
@@ -2130,14 +2138,14 @@ if (global.config.enablefb) {
                   delete global.markAsReadFacebook[message.threadID];
                 }, 2000, message);
               }
-              var arg = message.body.replace((/”/g), "\"")
+              var argr = message.body.replace((/”/g), "\"")
                 .replace((/“/g), "\"")
                 .split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/)
                 .filter(function (el) {
                   return !(el == null || el == "" || el == " ");
                 });
-              arg.map(xy => xy.replace(/["]/g, ""));
-              if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global
+              argr.map(xy => xy.replace(/["]/g, ""));
+              if (argr.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global
                 .config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1
                 ) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message
                   .senderID)))) {
@@ -2167,9 +2175,9 @@ if (global.config.enablefb) {
                 });
               }
               try {
-                var str = "";
-                for (var n in message.attachments) {
-                  var type = message.attachments[n].type;
+                let str = "";
+                for (let n in message.attachments) {
+                  let type = message.attachments[n].type;
                   type = type[0].toLocaleUpperCase() + type.substr(1);
                   str += "\r\n  <";
                   str += type;
@@ -2177,7 +2185,8 @@ if (global.config.enablefb) {
                   switch (message.attachments[n].type) {
                     case "audio":
                     case "video":
-                      var dr = new Date(message.attachments[n].duration);
+                      // eslint-disable-next-line no-case-declarations
+                      let dr = new Date(message.attachments[n].duration);
                       str += dr.getUTCHours()
                         .pad(2) + ":" + dr.getUTCMinutes()
                           .pad(2) + ":" + dr.getUTCSeconds()
@@ -2392,18 +2401,18 @@ if (global.config.enableSSHRemoteConsole) {
 
           session.on('pty', function (accept, _reject, info) {
             log(
-              "[SSH]", 
-              conninfo.ip + ":" + conninfo.port, 
+              "[SSH]",
+              conninfo.ip + ":" + conninfo.port,
               `requested PTY: ${info.cols}x${info.rows} (${info.width}x${info.height} px)`,
               Object.keys(info.modes).reduce((pv, cv) => {
                 if (info.modes[cv]) {
                   if (pv == "") {
                     return cv;
                   }
-                  return `${pv}, ${cv}`
+                  return `${pv}, ${cv}`;
                 }
                 return pv;
-              }, "") 
+              }, "")
             );
             accept();
           });
@@ -2415,7 +2424,7 @@ if (global.config.enableSSHRemoteConsole) {
           session.on('signal', function (accept, _reject, info) {
             accept();
             process.emit(info.name);
-          })
+          });
         });
       })
       .on('end', function () {
@@ -2515,7 +2524,7 @@ if (global.config.enablediscord) {
           (message.attachments.size > 0 ? message.attachments : "")
         );
         var currenttime = new Date();
-        var arg = message.content.replace((/”/g), "\"")
+        let arg = message.content.replace((/”/g), "\"")
           .replace((/“/g), "\"")
           .split(/((?:"[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^/\\]*(?:\\[\S\s][^/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S))+)(?=\s|$)/)
           .filter(function (el) {
@@ -2527,7 +2536,7 @@ if (global.config.enablediscord) {
             .compatibly != 0) {
             message.reply(global.lang["UNSUPPORTED_INTERFACE"]);
           } else {
-            var admin = false;
+            let admin = false;
             for (var no in global.config.admins) {
               if (global.config.admins[no] == "DC-" + message.author.id) {
                 admin = true;
@@ -2539,6 +2548,7 @@ if (global.config.enablediscord) {
               mentions["DC-" + x] = y;
               global.data.cacheName["DC-" + x] = y.username + "#" + y.discrimator;
             });
+            var returndata = {};
             try {
               if (facebook) {
                 if (!facebook.api) {
@@ -2548,7 +2558,7 @@ if (global.config.enablediscord) {
                 facebook = {};
                 facebook.api = {};
               }
-              var returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
+              returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
                 args: JSON.parse(JSON.stringify(arg)),
                 time: currenttime,
                 msgdata: message,
@@ -2579,7 +2589,7 @@ if (global.config.enablediscord) {
               });
             } catch (ex) {
               log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex);
-              var returndata = {
+              returndata = {
                 handler: "internal",
                 data: "plerr: " + ex.stack
               };
@@ -2601,7 +2611,8 @@ if (global.config.enablediscord) {
           }
         } else {
           if (!global.config.hideUnknownCommandMessage) {
-            message.reply(global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix));
+            var nearest = require("./nearAPI.js").findBestMatch(arg[0].slice(global.config.commandPrefix.length), Object.keys(global.commandMapping)).bestMatch;
+            message.reply(global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix) + nearest.rating >= 0.4 ? `\n${global.lang["UNKNOWN_CMD_DIDYOUMEAN"].replace("{0}", global.config.commandPrefix + nearest.target)}` : "");
           }
         }
       } else {
