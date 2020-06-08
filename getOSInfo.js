@@ -94,7 +94,7 @@ switch (os.platform()) {
     break;
   case "darwin":
     osName = childProcess
-      .execSync(`$(sw_vers -productVersion | awk -F '.' '{print $1 "." $2 "." $3}')`, {
+      .execSync(`sw_vers -productVersion`, {
         shell: true
       })
       .toString()
