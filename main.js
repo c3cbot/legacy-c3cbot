@@ -1292,19 +1292,26 @@ if (global.config.enablefb) {
     if (err) {
       if (err.error == "login-approval") {
         facebook.error = err;
-        log(
-          "[Facebook]",
-          "Login approval detected. You can verify it manually by using 'facebook.error.continue(your_code)'."
-        );
-        tried2FA = true;
-        if (global.config.fb2fasecret != "BASE32OFSECRETKEY") {
-          log("[Facebook]", "Attempting to verify using 2FA secret in config...");
+        if (global.config.fb2fasecret != "BASE32OFSECRETKEY" && global.config.fb2fasecret != "" && !tried2FA) {
+          log("[Facebook]", "Login approval detected. Attempting to verify using 2FA secret in config...");
+          tried2FA = true;
           var key2fa = global.config.fb2fasecret.replace(/ /g, "");
           var verifycode = speakeasy.totp({
             secret: key2fa,
             encoding: 'base32'
           });
           facebook.error.continue(verifycode);
+        } else if (tried2FA) {
+          log(
+            "[Facebook]",
+            `Cannot verify using 2FA secret in config. You can verify the session manually by typing 'facebook.error.continue("your_code")'.`
+          );
+          tried2FA = false;
+        } else {
+          log(
+            "[Facebook]",
+            `Login approval detected. You can verify the session manually by typing 'facebook.error.continue("your_code")'.`
+          );
         }
       } else {
         log("[Facebook]", err);
