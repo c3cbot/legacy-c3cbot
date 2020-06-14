@@ -195,10 +195,17 @@ module.exports = {
           if (code == 0) {
             throw "OK";
           }
-          stashNeeded = true;
-          return spawn("git", ["stash", "-u"])
+          return spawn("git", ["reset", "--hard"])
         })
+        .then(() => spawn("git", ["pull"]))
         .then(code => {
+          if (code == 0) {
+            throw "OK";
+          }
+          resolvePromise([false, "git reset & pull: code " + code]);
+          throw "NOT OK";
+        })
+        /* .then(code => {
           if (code != 0) {
             //resolvePromise([false, "git stash: Error " + code]);
             //throw "NOT OK";
@@ -236,7 +243,7 @@ module.exports = {
             throw "NOT OK";
           }
           throw "OK";
-        })
+        }) */
         .catch(str => {
           if (str == "OK") {
             try {
