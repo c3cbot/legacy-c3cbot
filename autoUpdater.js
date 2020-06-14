@@ -195,7 +195,7 @@ module.exports = {
           if (code == 0) {
             throw "OK";
           }
-          return spawn("git", ["reset", "--hard"])
+          return spawn("git", ["reset", "--hard"]);
         })
         .then(() => spawn("git", ["pull"]))
         .then(code => {
@@ -252,14 +252,14 @@ module.exports = {
             spawn("npm", ["install"])
               .then(code => {
                 if (code != 0) {
-                  resolvePromise([false, "npm install: Error " + code]);
+                  fs.writeFileSync(path.join(__dirname, "c3c-nextbootupdate"), "");
                   throw null;
                 }
                 return spawn("npm", ["update"]);
               })
               .then(code => {
                 if (code != 0) {
-                  resolvePromise([false, "npm update: Error " + code]);
+                  fs.writeFileSync(path.join(__dirname, "c3c-nextbootupdate"), "");
                   throw null;
                 }
                 try {
@@ -267,7 +267,9 @@ module.exports = {
                 } catch (ex) { }
                 resolvePromise([true, "?"]);
               })
-              .catch(_ => { });
+              .catch(_ => {
+                resolvePromise([true, "?"]);
+              });
           } else if (str instanceof Error) {
             resolvePromise([false, str]);
           }
@@ -320,20 +322,24 @@ module.exports = {
           spawn("npm", ["install"])
             .then(code => {
               if (code != 0) {
-                resolvePromise([false, "npm install: Error " + code]);
+                fs.writeFileSync(path.join(__dirname, "c3c-nextbootupdate"), "");
                 throw null;
               }
               return spawn("npm", ["update"]);
             })
             .then(code => {
               if (code != 0) {
-                resolvePromise([false, "npm update: Error " + code]);
+                fs.writeFileSync(path.join(__dirname, "c3c-nextbootupdate"), "");
                 throw null;
               }
-              //fs.unlinkSync("package-lock.json");
-              resolvePromise([true, zip.getEntryCount()]);
+              try {
+                //fs.unlinkSync("package-lock.json");
+              } catch (ex) { }
+              resolvePromise([true, "?"]);
             })
-            .catch(_ => { });
+            .catch(_ => {
+              resolvePromise([true, "?"]);
+            });
         })
         .catch(err => {
           resolvePromise([false, err]);
