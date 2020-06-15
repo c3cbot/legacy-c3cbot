@@ -195,10 +195,17 @@ module.exports = {
           if (code == 0) {
             throw "OK";
           }
-          stashNeeded = true;
-          return spawn("git", ["stash", "-u"])
+          return spawn("git", ["reset", "--hard"]);
         })
+        .then(() => spawn("git", ["pull"]))
         .then(code => {
+          if (code == 0) {
+            throw "OK";
+          }
+          resolvePromise([false, "git reset & pull: code " + code]);
+          throw "NOT OK";
+        })
+        /* .then(code => {
           if (code != 0) {
             //resolvePromise([false, "git stash: Error " + code]);
             //throw "NOT OK";
@@ -236,7 +243,7 @@ module.exports = {
             throw "NOT OK";
           }
           throw "OK";
-        })
+        }) */
         .catch(str => {
           if (str == "OK") {
             try {
@@ -245,14 +252,14 @@ module.exports = {
             spawn("npm", ["install"])
               .then(code => {
                 if (code != 0) {
-                  resolvePromise([false, "npm install: Error " + code]);
+                  fs.writeFileSync(path.join(__dirname, "c3c-nextbootupdate"), "");
                   throw null;
                 }
                 return spawn("npm", ["update"]);
               })
               .then(code => {
                 if (code != 0) {
-                  resolvePromise([false, "npm update: Error " + code]);
+                  fs.writeFileSync(path.join(__dirname, "c3c-nextbootupdate"), "");
                   throw null;
                 }
                 try {
@@ -260,7 +267,9 @@ module.exports = {
                 } catch (ex) { }
                 resolvePromise([true, "?"]);
               })
-              .catch(_ => { });
+              .catch(_ => {
+                resolvePromise([true, "?"]);
+              });
           } else if (str instanceof Error) {
             resolvePromise([false, str]);
           }
@@ -313,20 +322,24 @@ module.exports = {
           spawn("npm", ["install"])
             .then(code => {
               if (code != 0) {
-                resolvePromise([false, "npm install: Error " + code]);
+                fs.writeFileSync(path.join(__dirname, "c3c-nextbootupdate"), "");
                 throw null;
               }
               return spawn("npm", ["update"]);
             })
             .then(code => {
               if (code != 0) {
-                resolvePromise([false, "npm update: Error " + code]);
+                fs.writeFileSync(path.join(__dirname, "c3c-nextbootupdate"), "");
                 throw null;
               }
-              //fs.unlinkSync("package-lock.json");
-              resolvePromise([true, zip.getEntryCount()]);
+              try {
+                //fs.unlinkSync("package-lock.json");
+              } catch (ex) { }
+              resolvePromise([true, "?"]);
             })
-            .catch(_ => { });
+            .catch(_ => {
+              resolvePromise([true, "?"]);
+            });
         })
         .catch(err => {
           resolvePromise([false, err]);
