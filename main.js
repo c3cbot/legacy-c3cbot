@@ -1308,10 +1308,6 @@ if (global.config.enablefb) {
         }
       } else {
         log("[Facebook]", err);
-        if (!tried2FA) {
-          facebook.error = err;
-          log("[Facebook]", "Error saved to 'facebook.error'.");
-        }
       }
       return null;
     } else {
