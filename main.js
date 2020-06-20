@@ -1433,21 +1433,23 @@ if (global.config.enablefb) {
       if (!callingback) {
         callingback = function () { };
       }
-      if (!global.data.cacheName["FB-" + id] || global.data.cacheName["FB-" + id].startsWith("FETCHING-") || !!force) {
-        if (typeof global.data.cacheName["FB-" + id] == "string" && global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return;
-        global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now()
-          .toString();
-        var res = wait.for.function(api.getUserInfo, id);
-        (function (err, ret) {
+      if (!global.data.cacheName["FB-" + id] ||
+        global.data.cacheName["FB-" + id].startsWith("FETCHING-") ||
+        global.data.cacheNameExpires["FB-" + id] > Date.now() ||
+        !!force) {
+        if (typeof global.data.cacheName["FB-" + id] == "string" && global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return callingback();
+        global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now();
+        api.getUserInfo(id, function (err, ret) {
           if (err) return log("[Facebook] Failed to fetch names:", err);
           log("[CACHENAME]", id + " => " + ret[id].name);
           global.data.cacheName["FB-" + id] = ret[id].name;
+          global.data.cacheNameExpires["FB-" + id] = Date.now() + 604800000; //cacheName expires in 7 days.
           try {
             callingback();
           } catch (ex) {
             log("[INTERNAL]", ex);
           }
-        })(res[0], res[1]);
+        });
       } else {
         callingback();
       }
@@ -1948,16 +1950,16 @@ if (global.config.enablefb) {
                   } else {
                     if (!global.config.hideUnknownCommandMessage) {
                       var nearest = require("./nearAPI.js").findBestMatch(
-                        arg[0].slice(global.config.commandPrefix.length), 
+                        arg[0].slice(global.config.commandPrefix.length),
                         Object.keys(global.commandMapping)
                           .filter(v => (admin || !global.commandMapping[v].adminCmd))
                           .filter(v => ((global.commandMapping[v].compatibly & 1) || (global.commandMapping[v].compatibly == 0)))
                       ).bestMatch;
                       api.sendMessage(
-                        `${prefix} ` + 
+                        `${prefix} ` +
                         global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix) +
-                        (nearest.rating >= 0.3 ? `\n\n${global.lang["UNKNOWN_CMD_DIDYOUMEAN"].replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""), 
-                        message.threadID, 
+                        (nearest.rating >= 0.3 ? `\n\n${global.lang["UNKNOWN_CMD_DIDYOUMEAN"].replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""),
+                        message.threadID,
                         function (err) {
                           if (err) {
                             if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
@@ -1966,8 +1968,8 @@ if (global.config.enablefb) {
                               process.exit(7378278);
                             }
                           }
-                        }, 
-                        message.messageID, 
+                        },
+                        message.messageID,
                         message.isGroup
                       );
                     }
@@ -2455,6 +2457,13 @@ if (global.config.enableSSHRemoteConsole) {
     });
 }
 typeof global.data.cacheName != "object" ? global.data.cacheName = {} : "";
+if (typeof global.data.cacheNameExpires != "object") {
+  global.data.cacheNameExpires = {};
+  var currTime = Date.now();
+  for (var n in global.data.cacheName) {
+    global.data.cacheNameExpires[n] = currTime + 604800000; //cacheName expires in 7 days.
+  }
+}
 typeof global.data.everyoneTagBlacklist != "object" ? global.data.everyoneTagBlacklist = {} : "";
 var discordid = "Disabled";
 if (global.config.enablediscord) {
@@ -2620,7 +2629,7 @@ if (global.config.enablediscord) {
         } else {
           if (!global.config.hideUnknownCommandMessage) {
             var nearest = require("./nearAPI.js").findBestMatch(
-              arg[0].slice(global.config.commandPrefix.length), 
+              arg[0].slice(global.config.commandPrefix.length),
               Object.keys(global.commandMapping)
                 .filter(v => (admin || !global.commandMapping[v].adminCmd))
                 .filter(v => ((global.commandMapping[v].compatibly & 2) || (global.commandMapping[v].compatibly == 0)))
