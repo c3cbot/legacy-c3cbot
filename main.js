@@ -500,8 +500,9 @@ function loadPlugin() {
   log("[INTERNAL]", "Searching for plugins in ./plugins/ ...");
   var pluginFileList = findFromDir(path.join(__dirname, "plugins/"), /.*\.(z3p|zip)$/, true, false);
   for (var n in pluginFileList) {
+    let zip = null;
     try {
-      var zip = new StreamZip({
+      zip = new StreamZip({
         file: pluginFileList[n],
         storeEntries: true
       });
@@ -592,11 +593,15 @@ function loadPlugin() {
       pltemp1[plinfo["plugin_name"]] = plinfo;
       pltemp1[plinfo["plugin_name"]].filename = pluginFileList[n];
       pltemp2[plinfo["plugin_name"]] = plexec;
+      zip.close();
     } catch (ex) {
       log("[INTERNAL]", "Error while loading plugin at \"" + pluginFileList[n] + "\":", ex);
       error.push(pluginFileList[n]);
       delete pltemp1[plinfo["plugin_name"]];
       delete pltemp2[plinfo["plugin_name"]];
+      if (zip) {
+        zip.close();
+      }
     }
   }
   for (var plname in pltemp1) {
