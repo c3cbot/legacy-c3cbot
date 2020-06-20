@@ -2288,7 +2288,6 @@ if (global.config.enablefb) {
       } catch (ex) { }
       _fbinstance = null;
       delete require.cache[require.resolve("fca-unofficial")];
-      delete require.cache[require.resolve("mqtt")];
       _fbinstance = require("fca-unofficial")({
         appState: temporaryAppState
       }, configobj, facebookcb);
@@ -2301,7 +2300,7 @@ if (global.config.enablefb) {
         }
       }, 30000);
     };
-    //setInterval(forceReconnect, 2799999 + random(0, 1980000));
+    setInterval(forceReconnect, 64800000); //relogin every 18 hours
   } catch (ex) {
     log("[Facebook]", "Error found in codebase:", ex);
   }
