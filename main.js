@@ -268,7 +268,7 @@ if (global.config.facebookProxyUseSOCKS) {
 let obf = require("./obfuscator.js");
 var _prefixObf = setInterval(() => {
   prefix = obf(global.config.baseprefix);
-  if (prefix == "") prefix = "\u200C";
+  if (prefix == "") prefix = "\u200B".repeat(random(1, 10));
 }, 1000);
 
 /**
