@@ -187,9 +187,11 @@ module.exports = {
       resolvePromise = resolve;
     });
     var latestRelease = "";
+    
+    var bkDesc = fs.readFileSync(path.join(__dirname, "bot_description.txt"), { encoding: "utf8" });
+
     if (gitCheckX) {
       latestRelease = "latest";
-      var stashNeeded = false;
       spawn("git", ["pull"])
         .then(code => {
           if (code == 0) {
@@ -265,6 +267,8 @@ module.exports = {
                 try {
                   //fs.unlinkSync("package-lock.json");
                 } catch (ex) { }
+
+                fs.writeFileSync(path.join(__dirname, "bot_description.txt"), bkDesc); //restoring bot description
                 resolvePromise([true, "?"]);
               })
               .catch(_ => {
