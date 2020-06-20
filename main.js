@@ -238,6 +238,25 @@ var getLang = function (langVal, id) {
   }
 }
 
+/**
+ * Resolves data received from base and return formatted UserID.
+ *
+ * @param   {string}  type  Platform name
+ * @param   {string}  data  Data to be resolved by plugins
+ *
+ * @return  {string}        Formatted UserID
+ */
+var resolveID = function (type, data) {
+  switch (type) {
+    case "Facebook":
+      return "FB-" + data.msgdata.senderID;
+    case "Discord":
+      return "DC-" + data.msgdata.author.id;
+    default:
+      return "";
+  }
+}
+
 if (global.config.facebookProxyUseSOCKS) {
   var ProxyServer = require("./SOCK2HTTP.js")(log);
   var fS2HResolve = function () { };
@@ -730,7 +749,7 @@ function loadPlugin() {
       } else {
         return {
           handler: "internal",
-          data: getLang("INSUFFICIENT_PERM")
+          data: getLang("INSUFFICIENT_PERM", resolveID(type, data))
         };
       }
     },
@@ -787,7 +806,7 @@ function loadPlugin() {
               global.config.language] : "");
           }
           mts += "\r\n" + global.commandMapping[cmd].desc[global.config.language];
-          mts += "\r\n" + getLang("HELP_ARG_INFO");
+          mts += "\r\n" + getLang("HELP_ARG_INFO", resolveID(type, data));
           return {
             handler: "internal",
             data: mts
@@ -795,7 +814,7 @@ function loadPlugin() {
         } else {
           return {
             handler: "internal",
-            data: global.config.commandPrefix + cmd + "\r\n" + getLang("HELP_CMD_NOT_FOUND")
+            data: global.config.commandPrefix + cmd + "\r\n" + getLang("HELP_CMD_NOT_FOUND", resolveID(type, data))
           };
         }
       } else {
@@ -803,11 +822,11 @@ function loadPlugin() {
         page = parseInt(data.args[1]) || 1;
         if (page < 1) page = 1;
         let mts = "";
-        mts += getLang("HELP_OUTPUT_PREFIX");
+        mts += getLang("HELP_OUTPUT_PREFIX", resolveID(type, data));
         var helpobj = global.commandMapping["help"];
         helpobj.command = "help";
-        helpobj.args[global.config.language] = getLang("HELP_ARGS");
-        helpobj.desc[global.config.language] = getLang("HELP_DESC");
+        helpobj.args[global.config.language] = getLang("HELP_ARGS", resolveID(type, data));
+        helpobj.desc[global.config.language] = getLang("HELP_DESC", resolveID(type, data));
         var hl = [helpobj];
         for (var no in global.commandMapping) {
           if (no !== "help") {
@@ -859,9 +878,9 @@ function loadPlugin() {
         if (type == "Discord") {
           mts += "\r\n```";
         }
-        mts += '\r\n(' + getLang("PAGE") + ' ' + page + '/' + (hl.length / 15)
+        mts += '\r\n(' + getLang("PAGE", resolveID(type, data)) + ' ' + page + '/' + (hl.length / 15)
           .ceil() + ')';
-        mts += "\r\n" + getLang("HELP_MORE_INFO").replace("{0}", global.config.commandPrefix);
+        mts += "\r\n" + getLang("HELP_MORE_INFO", resolveID(type, data)).replace("{0}", global.config.commandPrefix);
         return {
           handler: "internal",
           data: mts
@@ -888,7 +907,7 @@ function loadPlugin() {
       } else {
         return {
           handler: "internal",
-          data: getLang("INSUFFICIENT_PERM")
+          data: getLang("INSUFFICIENT_PERM", resolveID(type, data))
         };
       }
     },
@@ -913,7 +932,7 @@ function loadPlugin() {
       } else {
         return {
           handler: "internal",
-          data: getLang("INSUFFICIENT_PERM")
+          data: getLang("INSUFFICIENT_PERM", resolveID(type, data))
         };
       }
     },
@@ -930,14 +949,14 @@ function loadPlugin() {
       if (!data.admin && !global.config.allowUserUsePluginsCommand) {
         return {
           handler: "internal",
-          data: getLang("INSUFFICIENT_PERM")
+          data: getLang("INSUFFICIENT_PERM", resolveID(type, data))
         };
       }
       var page = 1;
       page = parseInt(data.args[1]) || 1;
       if (page < 1) page = 1;
       var mts = "";
-      mts += getLang("PLUGINS_OUTPUT_PREFIX");
+      mts += getLang("PLUGINS_OUTPUT_PREFIX", resolveID(type, data));
       var hl = [];
       for (var no in global.loadedPlugins) {
         var tempx = global.loadedPlugins[no];
@@ -980,7 +999,7 @@ function loadPlugin() {
       if (!data.admin && !global.config.allowUserUseReloadCommand) {
         return {
           handler: "internal",
-          data: getLang("INSUFFICIENT_PERM")
+          data: getLang("INSUFFICIENT_PERM", resolveID(type, data))
         };
       }
       unloadPlugin();
@@ -1028,7 +1047,7 @@ function loadPlugin() {
           global.data.everyoneTagBlacklist[threadID] = false;
         }
         return {
-          data: getLang("TOGGLEEVERYONE_MSG").replace(
+          data: getLang("TOGGLEEVERYONE_MSG", resolveID(type, data)).replace(
             "{0}",
             (!global.data.everyoneTagBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)
           ),
@@ -1036,7 +1055,7 @@ function loadPlugin() {
         };
       } else {
         return {
-          data: getLang("INSUFFICIENT_PERM"),
+          data: getLang("INSUFFICIENT_PERM", resolveID(type, data)),
           handler: "internal"
         };
       }
@@ -1778,7 +1797,7 @@ if (global.config.enablefb) {
                     if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0]
                       .substr(1)].compatibly != 0) {
                       api.sendMessage(
-                        prefix + " " + getLang("UNSUPPORTED_INTERFACE"), message.threadID,
+                        prefix + " " + getLang("UNSUPPORTED_INTERFACE", "FB-" + message.senderID), message.threadID,
                         function (err) {
                           if (err) {
                             if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
@@ -1983,8 +2002,8 @@ if (global.config.enablefb) {
                       ).bestMatch;
                       api.sendMessage(
                         `${prefix} ` +
-                        getLang("UNKNOWN_CMD").replace("{0}", global.config.commandPrefix) +
-                        (nearest.rating >= 0.3 ? `\n\n${getLang("UNKNOWN_CMD_DIDYOUMEAN").replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""),
+                        getLang("UNKNOWN_CMD", "FB-" + message.senderID).replace("{0}", global.config.commandPrefix) +
+                        (nearest.rating >= 0.3 ? `\n\n${getLang("UNKNOWN_CMD_DIDYOUMEAN", "FB-" + message.senderID).replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""),
                         message.threadID,
                         function (err) {
                           if (err) {
@@ -2583,7 +2602,7 @@ if (global.config.enablediscord) {
         if (global.commandMapping[arg[0].substr(1)]) {
           if (!(global.commandMapping[arg[0].substr(1)].compatibly & 2) && global.commandMapping[arg[0].substr(1)]
             .compatibly != 0) {
-            message.reply(getLang("UNSUPPORTED_INTERFACE"));
+            message.reply(getLang("UNSUPPORTED_INTERFACE", "DC-" + message.author.id));
           } else {
             global.data.cacheName["DC-" + message.author.id] = message.author.tag;
             var mentions = {};
@@ -2660,7 +2679,7 @@ if (global.config.enablediscord) {
                 .filter(v => (admin || !global.commandMapping[v].adminCmd))
                 .filter(v => ((global.commandMapping[v].compatibly & 2) || (global.commandMapping[v].compatibly == 0)))
             ).bestMatch;
-            message.reply(getLang("UNKNOWN_CMD").replace("{0}", global.config.commandPrefix) + (nearest.rating >= 0.3 ? `\n\n${getLang("UNKNOWN_CMD_DIDYOUMEAN").replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""));
+            message.reply(getLang("UNKNOWN_CMD", "DC-" + message.author.id).replace("{0}", global.config.commandPrefix) + (nearest.rating >= 0.3 ? `\n\n${getLang("UNKNOWN_CMD_DIDYOUMEAN", "DC-" + message.author.id).replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""));
           }
         }
       } else {
