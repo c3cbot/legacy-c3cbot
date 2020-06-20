@@ -211,21 +211,6 @@ global.config = require("./getConfig.js")();
 var testmode = global.config.testmode;
 var prefix = global.config.baseprefix;
 
-//#region #Deprecated old global.lang
-global.lang = require('js-yaml')
-  .load(fs.existsSync(path.join(__dirname, "lang", global.config.language + ".yml")) ? fs.readFileSync(path.join(__dirname, "lang", global.config.language + ".yml"), {
-    encoding: 'utf-8'
-  }) : (function () {
-    log(
-      "[INTERNAL]", path.join(__dirname, "lang", global.config.language + ".yml"),
-      ": not found | Defaulting to en_US.yml ..."
-    );
-    return fs.readFileSync(path.join(__dirname, "lang", "en_US.yml"), {
-      encoding: 'utf-8'
-    });
-  })());
-//#endregion
-
 var availableLangFile = findFromDir(path.join(__dirname, "lang"), /.*\.yml$/, true, false);
 var langMap = {};
 var yamlParser = require('js-yaml');
@@ -745,7 +730,7 @@ function loadPlugin() {
       } else {
         return {
           handler: "internal",
-          data: global.lang["INSUFFICIENT_PERM"]
+          data: getLang("INSUFFICIENT_PERM")
         };
       }
     },
@@ -785,7 +770,7 @@ function loadPlugin() {
     handler: "INTERNAL"
   };
   global.commandMapping["version"].args[global.config.language] = "";
-  global.commandMapping["version"].desc[global.config.language] = global.lang["VERSION_DESC"];
+  global.commandMapping["version"].desc[global.config.language] = getLang("VERSION_DESC");
   global.commandMapping["help"] = {
     args: {},
     desc: {},
@@ -802,7 +787,7 @@ function loadPlugin() {
               global.config.language] : "");
           }
           mts += "\r\n" + global.commandMapping[cmd].desc[global.config.language];
-          mts += "\r\n" + global.lang["HELP_ARG_INFO"];
+          mts += "\r\n" + getLang("HELP_ARG_INFO");
           return {
             handler: "internal",
             data: mts
@@ -810,7 +795,7 @@ function loadPlugin() {
         } else {
           return {
             handler: "internal",
-            data: global.config.commandPrefix + cmd + "\r\n" + global.lang["HELP_CMD_NOT_FOUND"]
+            data: global.config.commandPrefix + cmd + "\r\n" + getLang("HELP_CMD_NOT_FOUND")
           };
         }
       } else {
@@ -818,11 +803,11 @@ function loadPlugin() {
         page = parseInt(data.args[1]) || 1;
         if (page < 1) page = 1;
         let mts = "";
-        mts += global.lang["HELP_OUTPUT_PREFIX"];
+        mts += getLang("HELP_OUTPUT_PREFIX");
         var helpobj = global.commandMapping["help"];
         helpobj.command = "help";
-        helpobj.args[global.config.language] = global.lang["HELP_ARGS"];
-        helpobj.desc[global.config.language] = global.lang["HELP_DESC"];
+        helpobj.args[global.config.language] = getLang("HELP_ARGS");
+        helpobj.desc[global.config.language] = getLang("HELP_DESC");
         var hl = [helpobj];
         for (var no in global.commandMapping) {
           if (no !== "help") {
@@ -874,9 +859,9 @@ function loadPlugin() {
         if (type == "Discord") {
           mts += "\r\n```";
         }
-        mts += '\r\n(' + global.lang["PAGE"] + ' ' + page + '/' + (hl.length / 15)
+        mts += '\r\n(' + getLang("PAGE") + ' ' + page + '/' + (hl.length / 15)
           .ceil() + ')';
-        mts += "\r\n" + global.lang["HELP_MORE_INFO"].replace("{0}", global.config.commandPrefix);
+        mts += "\r\n" + getLang("HELP_MORE_INFO").replace("{0}", global.config.commandPrefix);
         return {
           handler: "internal",
           data: mts
@@ -886,8 +871,8 @@ function loadPlugin() {
     compatibly: 0,
     handler: "INTERNAL"
   };
-  global.commandMapping["help"].args[global.config.language] = global.lang["HELP_ARGS"];
-  global.commandMapping["help"].desc[global.config.language] = global.lang["HELP_DESC"];
+  global.commandMapping["help"].args[global.config.language] = getLang("HELP_ARGS");
+  global.commandMapping["help"].desc[global.config.language] = getLang("HELP_DESC");
   global.commandMapping["restart"] = {
     args: {},
     desc: {},
@@ -903,7 +888,7 @@ function loadPlugin() {
       } else {
         return {
           handler: "internal",
-          data: global.lang["INSUFFICIENT_PERM"]
+          data: getLang("INSUFFICIENT_PERM")
         };
       }
     },
@@ -912,7 +897,7 @@ function loadPlugin() {
     adminCmd: true
   };
   global.commandMapping["restart"].args[global.config.language] = "";
-  global.commandMapping["restart"].desc[global.config.language] = global.lang["RESTART_DESC"];
+  global.commandMapping["restart"].desc[global.config.language] = getLang("RESTART_DESC");
   global.commandMapping["shutdown"] = {
     args: {},
     desc: {},
@@ -928,7 +913,7 @@ function loadPlugin() {
       } else {
         return {
           handler: "internal",
-          data: global.lang["INSUFFICIENT_PERM"]
+          data: getLang("INSUFFICIENT_PERM")
         };
       }
     },
@@ -937,7 +922,7 @@ function loadPlugin() {
     adminCmd: true
   };
   global.commandMapping["restart"].args[global.config.language] = "";
-  global.commandMapping["restart"].desc[global.config.language] = global.lang["SHUTDOWN_DESC"];
+  global.commandMapping["restart"].desc[global.config.language] = getLang("SHUTDOWN_DESC");
   global.commandMapping["plugins"] = {
     args: {},
     desc: {},
@@ -945,14 +930,14 @@ function loadPlugin() {
       if (!data.admin && !global.config.allowUserUsePluginsCommand) {
         return {
           handler: "internal",
-          data: global.lang["INSUFFICIENT_PERM"]
+          data: getLang("INSUFFICIENT_PERM")
         };
       }
       var page = 1;
       page = parseInt(data.args[1]) || 1;
       if (page < 1) page = 1;
       var mts = "";
-      mts += global.lang["PLUGINS_OUTPUT_PREFIX"];
+      mts += getLang("PLUGINS_OUTPUT_PREFIX");
       var hl = [];
       for (var no in global.loadedPlugins) {
         var tempx = global.loadedPlugins[no];
@@ -987,7 +972,7 @@ function loadPlugin() {
     adminCmd: !global.config.allowUserUsePluginsCommand
   };
   global.commandMapping["plugins"].args[global.config.language] = "";
-  global.commandMapping["plugins"].desc[global.config.language] = global.lang["PLUGINS_DESC"];
+  global.commandMapping["plugins"].desc[global.config.language] = getLang("PLUGINS_DESC");
   global.commandMapping["reload"] = {
     args: {},
     desc: {},
@@ -995,7 +980,7 @@ function loadPlugin() {
       if (!data.admin && !global.config.allowUserUseReloadCommand) {
         return {
           handler: "internal",
-          data: global.lang["INSUFFICIENT_PERM"]
+          data: getLang("INSUFFICIENT_PERM")
         };
       }
       unloadPlugin();
@@ -1010,7 +995,7 @@ function loadPlugin() {
     adminCmd: !global.config.allowUserUseReloadCommand
   };
   global.commandMapping["reload"].args[global.config.language] = "";
-  global.commandMapping["reload"].desc[global.config.language] = global.lang["RELOAD_DESC"];
+  global.commandMapping["reload"].desc[global.config.language] = getLang("RELOAD_DESC");
   global.commandMapping["toggleeveryone"] = {
     args: "",
     desc: {
@@ -1043,7 +1028,7 @@ function loadPlugin() {
           global.data.everyoneTagBlacklist[threadID] = false;
         }
         return {
-          data: global.lang["TOGGLEEVERYONE_MSG"].replace(
+          data: getLang("TOGGLEEVERYONE_MSG").replace(
             "{0}",
             (!global.data.everyoneTagBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)
           ),
@@ -1051,7 +1036,7 @@ function loadPlugin() {
         };
       } else {
         return {
-          data: global.lang["INSUFFICIENT_PERM"],
+          data: getLang("INSUFFICIENT_PERM"),
           handler: "internal"
         };
       }
@@ -1793,7 +1778,7 @@ if (global.config.enablefb) {
                     if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0]
                       .substr(1)].compatibly != 0) {
                       api.sendMessage(
-                        prefix + " " + global.lang["UNSUPPORTED_INTERFACE"], message.threadID,
+                        prefix + " " + getLang("UNSUPPORTED_INTERFACE"), message.threadID,
                         function (err) {
                           if (err) {
                             if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
@@ -1998,8 +1983,8 @@ if (global.config.enablefb) {
                       ).bestMatch;
                       api.sendMessage(
                         `${prefix} ` +
-                        global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix) +
-                        (nearest.rating >= 0.3 ? `\n\n${global.lang["UNKNOWN_CMD_DIDYOUMEAN"].replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""),
+                        getLang("UNKNOWN_CMD").replace("{0}", global.config.commandPrefix) +
+                        (nearest.rating >= 0.3 ? `\n\n${getLang("UNKNOWN_CMD_DIDYOUMEAN").replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""),
                         message.threadID,
                         function (err) {
                           if (err) {
@@ -2598,7 +2583,7 @@ if (global.config.enablediscord) {
         if (global.commandMapping[arg[0].substr(1)]) {
           if (!(global.commandMapping[arg[0].substr(1)].compatibly & 2) && global.commandMapping[arg[0].substr(1)]
             .compatibly != 0) {
-            message.reply(global.lang["UNSUPPORTED_INTERFACE"]);
+            message.reply(getLang("UNSUPPORTED_INTERFACE"));
           } else {
             global.data.cacheName["DC-" + message.author.id] = message.author.tag;
             var mentions = {};
@@ -2675,7 +2660,7 @@ if (global.config.enablediscord) {
                 .filter(v => (admin || !global.commandMapping[v].adminCmd))
                 .filter(v => ((global.commandMapping[v].compatibly & 2) || (global.commandMapping[v].compatibly == 0)))
             ).bestMatch;
-            message.reply(global.lang["UNKNOWN_CMD"].replace("{0}", global.config.commandPrefix) + (nearest.rating >= 0.3 ? `\n\n${global.lang["UNKNOWN_CMD_DIDYOUMEAN"].replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""));
+            message.reply(getLang("UNKNOWN_CMD").replace("{0}", global.config.commandPrefix) + (nearest.rating >= 0.3 ? `\n\n${getLang("UNKNOWN_CMD_DIDYOUMEAN").replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""));
           }
         }
       } else {
