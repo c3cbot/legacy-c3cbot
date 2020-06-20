@@ -1049,7 +1049,7 @@ function loadPlugin() {
         return {
           data: getLang("TOGGLEEVERYONE_MSG", resolveID(type, data)).replace(
             "{0}",
-            (!global.data.everyoneTagBlacklist[threadID] ? global.lang.ENABLED : global.lang.DISABLED)
+            (!global.data.everyoneTagBlacklist[threadID] ? getLang("ENABLED", resolveID(type, data)) : getLang("DISABLED", resolveID(type, data)))
           ),
           handler: "internal"
         };
@@ -1582,7 +1582,7 @@ if (global.config.enablefb) {
           });
         });
       });
-    }, 300000, log, global.config.botname, global.lang.CONNECTED_MESSAGE.replace("{0}", global.config.commandPrefix));
+    }, 300000, log, global.config.botname, getLang("CONNECTED_MESSAGE").replace("{0}", global.config.commandPrefix));
 
     typeof global.data.messageList != "object" ? global.data.messageList = {} : "";
     facebook.listener = api.listen(function callback(err, message) {
@@ -2110,7 +2110,7 @@ if (global.config.enablefb) {
                   }
                   if (containBot) {
                     api.sendMessage(
-                      global.config.botname + " | Connected. \r\n" + global.lang.CONNECTED_MESSAGE
+                      global.config.botname + " | Connected. \r\n" + getLang("CONNECTED_MESSAGE")
                         .replace("{0}", global.config.commandPrefix), message.threadID,
                       function (err) {
                         if (err) {
