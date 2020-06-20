@@ -211,6 +211,7 @@ global.config = require("./getConfig.js")();
 var testmode = global.config.testmode;
 var prefix = global.config.baseprefix;
 
+//#region #Deprecated old global.lang
 global.lang = require('js-yaml')
   .load(fs.existsSync(path.join(__dirname, "lang", global.config.language + ".yml")) ? fs.readFileSync(path.join(__dirname, "lang", global.config.language + ".yml"), {
     encoding: 'utf-8'
@@ -223,6 +224,34 @@ global.lang = require('js-yaml')
       encoding: 'utf-8'
     });
   })());
+//#endregion
+
+var availableLangFile = findFromDir(path.join(__dirname, "lang"), /.*\.yml$/, true, false);
+var langMap = {};
+var yamlParser = require('js-yaml');
+availableLangFile.forEach(v => {
+  var lang = path.parse(v);
+  log("[INTERNAL]", "Loading language: ", lang.name);
+  var ymlData = fs.readFileSync(v, { encoding: "utf8" });
+  langMap[lang.name] = yamlParser.load(ymlData);
+});
+var getLang = function (langVal, id) {
+  var lang = global.config.language;
+  if (id && global.data.userLanguage[id]) {
+    lang = global.data.userLanguage[id];
+    if (!langMap[lang]) {
+      log("[INTERNAL]", "Warning: Invalid language: ", lang, `; using ${global.config.language} as fallback...`);
+      lang = global.config.language;
+    }
+  }
+
+  if (langMap[lang]) {
+    return String(langMap[lang][langVal]);
+  } else {
+    log("[INTERNAL]", "Warning: Invalid language: ", lang, "; using en_US as fallback...");
+    return String((langMap["en_US"] || {})[langVal]);
+  }
+}
 
 if (global.config.facebookProxyUseSOCKS) {
   var ProxyServer = require("./SOCK2HTTP.js")(log);
@@ -1031,7 +1060,6 @@ function loadPlugin() {
     handler: "INTERNAL"
   };
 
-  //No purpose because nothing use this thing. yet.
   (typeof global.data.userLanguage != "object" || Array.isArray(global.data.userLanguage)) ? global.data.userLanguage = {} : "";
   global.commandMapping["lang"] = {
     args: "<ISO 639-1>_<ISO 3166-2>",
@@ -1040,8 +1068,21 @@ function loadPlugin() {
       "en_US": "Change bot's feedback language"
     },
     scope: function (type, data) {
+      var prefix = "";
+      var id = "";
+      switch (type) {
+        case "Facebook":
+          prefix = "FB-";
+          id = data.msgdata.senderID;
+          break;
+        case "Discord":
+          prefix = "DC-";
+          id = data.msgdata.author.id;
+          break;
+      }
+
       if (data.args.length > 1) {
-        global.data.userLanguage = String(data.args[1]);
+        global.data.userLanguage[prefix + id] = String(data.args[1]);
         return {
           handler: "internal",
           data: `userLanguage = "${data.args[1]}"`
@@ -1049,7 +1090,7 @@ function loadPlugin() {
       }
       return {
         handler: "internal",
-        data: `${global.config.commandPrefix}lang <ISO 639-1>_<ISO 3166-2>`
+        data: `${global.config.commandPrefix}lang <ISO 639-1>_<ISO 3166-2>\n${global.data.userLanguage[prefix + id]}`
       };
     },
     compatibly: 0,
