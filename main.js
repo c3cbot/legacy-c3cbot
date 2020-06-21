@@ -810,7 +810,7 @@ function loadPlugin() {
     args: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["HELP_ARGS"]])),
     desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["HELP_DESC"]])),
     scope: function (type, data) {
-      let ul = global.config.userLanguage[resolveID(type, data)] || global.config.language;
+      let ul = global.data.userLanguage[resolveID(type, data)] || global.config.language;
       if (isNaN(parseInt(data.args[1])) && data.args.length != 1) {
         var cmd = data.args[1];
         if (Object.prototype.hasOwnProperty.call(global.commandMapping, cmd)) {
