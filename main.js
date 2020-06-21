@@ -1486,7 +1486,7 @@ if (global.config.enablefb) {
       }
       if (!global.data.cacheName["FB-" + id] ||
         global.data.cacheName["FB-" + id].startsWith("FETCHING-") ||
-        global.data.cacheNameExpires["FB-" + id] > Date.now() ||
+        global.data.cacheNameExpires["FB-" + id] <= Date.now() ||
         !!force) {
         if (typeof global.data.cacheName["FB-" + id] == "string" && global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return callingback();
         global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now();
