@@ -19,3 +19,5 @@ HELP_MORE_INFO: "Gõ `{0}help [lệnh]` để biết thêm chi tiết về lện
 HELP_ARG_INFO: "\n<>: yêu cầu có\n[]: không yêu cầu có"
 HELP_CMD_NOT_FOUND: "Không tìm thấy lệnh"
 TOGGLEEVERYONE_MSG: "{0} mention everyone cho thread này."
+TEVERYONE_DESC: "Bật/tắt quyền sử dụng mention everyone"
+LANG_DESC: "Chỉnh ngôn ngữ phản hồi"

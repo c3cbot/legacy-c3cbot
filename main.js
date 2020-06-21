@@ -220,14 +220,21 @@ var langMap = {};
 var yamlParser = require('js-yaml');
 availableLangFile.forEach(v => {
   var lang = path.parse(v);
-  log("[INTERNAL]", "Loading language: ", lang.name);
+  log("[INTERNAL]", "Loading language:", lang.name);
   var ymlData = fs.readFileSync(v, { encoding: "utf8" });
   langMap[lang.name] = yamlParser.load(ymlData);
 });
-var getLang = function (langVal, id) {
+var getLang = function (langVal, id, oLang) {
   var lang = global.config.language;
   if (id && global.data.userLanguage[id]) {
     lang = global.data.userLanguage[id];
+    if (!langMap[lang]) {
+      log("[INTERNAL]", "Warning: Invalid language: ", lang, `; using ${global.config.language} as fallback...`);
+      lang = global.config.language;
+    }
+  }
+  if (oLang) {
+    lang = oLang;
     if (!langMap[lang]) {
       log("[INTERNAL]", "Warning: Invalid language: ", lang, `; using ${global.config.language} as fallback...`);
       lang = global.config.language;
@@ -240,7 +247,7 @@ var getLang = function (langVal, id) {
     log("[INTERNAL]", "Warning: Invalid language: ", lang, "; using en_US as fallback...");
     return String((langMap["en_US"] || {})[langVal]);
   }
-}
+};
 
 /**
  * Resolves data received from base and return formatted UserID.
@@ -259,7 +266,7 @@ var resolveID = function (type, data) {
     default:
       return "";
   }
-}
+};
 
 if (global.config.facebookProxyUseSOCKS) {
   var ProxyServer = require("./SOCK2HTTP.js")(log);
@@ -800,21 +807,27 @@ function loadPlugin() {
   global.commandMapping["version"].args[global.config.language] = "";
   global.commandMapping["version"].desc[global.config.language] = getLang("VERSION_DESC");
   global.commandMapping["help"] = {
-    args: {},
-    desc: {},
+    args: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["HELP_ARGS"]])),
+    desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["HELP_DESC"]])),
     scope: function (type, data) {
+      let ul = global.config.userLanguage[resolveID(type, data)] || global.config.language;
       if (isNaN(parseInt(data.args[1])) && data.args.length != 1) {
         var cmd = data.args[1];
         if (Object.prototype.hasOwnProperty.call(global.commandMapping, cmd)) {
           var mts = global.config.commandPrefix + cmd;
-          if (typeof global.commandMapping[cmd].args == "object" && typeof global.commandMapping[cmd].args[global
-            .config.language] != "undefined" && global.commandMapping[cmd].args[global.config.language].toString()
-              .replace(/ /g)
-              .length != 0) {
-            mts += " " + (global.commandMapping[cmd].args[global.config.language] ? global.commandMapping[cmd].args[
-              global.config.language] : "");
+          if (typeof global.commandMapping[cmd].args == "object") {
+            let ha = global.commandMapping[cmd].args;
+            if (typeof ha[ul] == "string") {
+              ha = ha[ul];
+            } else {
+              ha = ha[global.config.language];
+              typeof ha == "undefined" ? ha = "" : "";
+            }
+            if (ha.replace(/ /g).length != 0) {
+              mts += ` ${ha}`;
+            }
           }
-          mts += "\r\n" + global.commandMapping[cmd].desc[global.config.language];
+          mts += "\r\n" + global.commandMapping[cmd].desc[ul] || global.commandMapping[cmd].desc[global.config.language];
           mts += "\r\n" + getLang("HELP_ARG_INFO", resolveID(type, data));
           return {
             handler: "internal",
@@ -834,8 +847,8 @@ function loadPlugin() {
         mts += getLang("HELP_OUTPUT_PREFIX", resolveID(type, data));
         var helpobj = global.commandMapping["help"];
         helpobj.command = "help";
-        helpobj.args[global.config.language] = getLang("HELP_ARGS", resolveID(type, data));
-        helpobj.desc[global.config.language] = getLang("HELP_DESC", resolveID(type, data));
+        helpobj.args[ul] = getLang("HELP_ARGS", resolveID(type, data));
+        helpobj.desc[ul] = getLang("HELP_DESC", resolveID(type, data));
         var hl = [helpobj];
         for (var no in global.commandMapping) {
           if (no !== "help") {
@@ -860,24 +873,33 @@ function loadPlugin() {
           if (i < hl.length) {
             if (hl[i].compatibly == 0 || (hl[i].compatibly & compatiblyFlag)) {
               if (data.admin) {
-                mts += "\r\n" + (i + 1)
-                  .toString() + ". " + global.config.commandPrefix + hl[i].command;
-                if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[i]
-                  .args[global.config.language].toString()
-                  .replace(/ /g)
-                  .length != 0) {
-                  mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+                mts += `\n${i + 1}. ${global.config.commandPrefix}${hl[i].command}`;
+                if (typeof hl[i].args == "object") {
+                  let ha = hl[i].args;
+                  if (typeof ha[ul] == "string") {
+                    ha = ha[ul];
+                  } else {
+                    ha = ha[global.config.language];
+                    typeof ha == "undefined" ? ha = "" : "";
+                  }
+                  if (ha.replace(/ /g).length != 0) {
+                    mts += ` ${ha}`;
+                  }
+                } else if (typeof hl[i].args == "string") {
+                  mts += ` ${hl[i].args}`;
                 }
-                //mts += ": " + hl[i].desc[global.config.language];
-              } else {
-                if (!hl[i].adminCmd) {
-                  mts += "\r\n" + (i + 1)
-                    .toString() + ". " + global.config.commandPrefix + hl[i].command;
-                  if (typeof hl[i].args == "object" && typeof hl[i].args[global.config.language] != "undefined" && hl[
-                    i].args[global.config.language].toString()
-                    .replace(/ /g)
-                    .length != 0) {
-                    mts += " " + (hl[i].args[global.config.language] ? hl[i].args[global.config.language] : "");
+              } else if (!hl[i].adminCmd) {
+                mts += `\n${i + 1}. ${global.config.commandPrefix}${hl[i].command}`;
+                if (typeof hl[i].args == "object") {
+                  let ha = hl[i].args;
+                  if (typeof ha[ul] == "string") {
+                    ha = ha[ul];
+                  } else {
+                    ha = ha[global.config.language];
+                    typeof ha == "undefined" ? ha = "" : "";
+                  }
+                  if (ha.replace(/ /g).length != 0) {
+                    mts += ` ${ha}`;
                   }
                 }
               }
@@ -885,11 +907,10 @@ function loadPlugin() {
           }
         }
         if (type == "Discord") {
-          mts += "\r\n```";
+          mts += "\n```";
         }
-        mts += '\r\n(' + getLang("PAGE", resolveID(type, data)) + ' ' + page + '/' + (hl.length / 15)
-          .ceil() + ')';
-        mts += "\r\n" + getLang("HELP_MORE_INFO", resolveID(type, data)).replace("{0}", global.config.commandPrefix);
+        mts += `\n(${getLang("PAGE", resolveID(type, data))} ${page}/${(hl.length / 15).ceil()})`;
+        mts += `\n${getLang("HELP_MORE_INFO", resolveID(type, data)).replace("{0}", global.config.commandPrefix)}`;
         return {
           handler: "internal",
           data: mts
@@ -899,11 +920,9 @@ function loadPlugin() {
     compatibly: 0,
     handler: "INTERNAL"
   };
-  global.commandMapping["help"].args[global.config.language] = getLang("HELP_ARGS");
-  global.commandMapping["help"].desc[global.config.language] = getLang("HELP_DESC");
+
   global.commandMapping["restart"] = {
-    args: {},
-    desc: {},
+    desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["RESTART_DESC"]])),
     scope: function (type, data) {
       if (data.admin && global.config.allowAdminUseRestartCommand) {
         setTimeout(function () {
@@ -924,11 +943,9 @@ function loadPlugin() {
     handler: "INTERNAL",
     adminCmd: true
   };
-  global.commandMapping["restart"].args[global.config.language] = "";
-  global.commandMapping["restart"].desc[global.config.language] = getLang("RESTART_DESC");
+  
   global.commandMapping["shutdown"] = {
-    args: {},
-    desc: {},
+    desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["SHUTDOWN_DESC"]])),
     scope: function (type, data) {
       if (data.admin && global.config.allowAdminUseShutdownCommand) {
         setTimeout(function () {
@@ -949,11 +966,10 @@ function loadPlugin() {
     handler: "INTERNAL",
     adminCmd: true
   };
-  global.commandMapping["restart"].args[global.config.language] = "";
-  global.commandMapping["restart"].desc[global.config.language] = getLang("SHUTDOWN_DESC");
+
   global.commandMapping["plugins"] = {
-    args: {},
-    desc: {},
+    args: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["HELP_ARGS"]])),
+    desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["PLUGINS_DESC"]])),
     scope: function (type, data) {
       if (!data.admin && !global.config.allowUserUsePluginsCommand) {
         return {
@@ -999,11 +1015,10 @@ function loadPlugin() {
     handler: "INTERNAL",
     adminCmd: !global.config.allowUserUsePluginsCommand
   };
-  global.commandMapping["plugins"].args[global.config.language] = "";
-  global.commandMapping["plugins"].desc[global.config.language] = getLang("PLUGINS_DESC");
+
   global.commandMapping["reload"] = {
     args: {},
-    desc: {},
+    desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["RELOAD_DESC"]])),
     scope: function (type, data) {
       if (!data.admin && !global.config.allowUserUseReloadCommand) {
         return {
@@ -1022,14 +1037,9 @@ function loadPlugin() {
     handler: "INTERNAL",
     adminCmd: !global.config.allowUserUseReloadCommand
   };
-  global.commandMapping["reload"].args[global.config.language] = "";
-  global.commandMapping["reload"].desc[global.config.language] = getLang("RELOAD_DESC");
+
   global.commandMapping["toggleeveryone"] = {
-    args: "",
-    desc: {
-      "vi_VN": "Bật/tắt quyền sử dụng mention everyone",
-      "en_US": "Turn on/off everyone mention tag"
-    },
+    desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["TEVERYONE_DESC"]])),
     scope: function (type, data) {
       if (type != "Facebook") {
         return {
@@ -1076,23 +1086,10 @@ function loadPlugin() {
   (typeof global.data.userLanguage != "object" || Array.isArray(global.data.userLanguage)) ? global.data.userLanguage = {} : "";
   global.commandMapping["lang"] = {
     args: "<ISO 639-1>_<ISO 3166-2>",
-    desc: {
-      "vi_VN": "Chỉnh ngôn ngữ phản hồi",
-      "en_US": "Change bot's feedback language"
-    },
+    desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["LANG_DESC"]])),
     scope: function (type, data) {
-      var prefix = "";
-      var id = "";
-      switch (type) {
-        case "Facebook":
-          prefix = "FB-";
-          id = data.msgdata.senderID;
-          break;
-        case "Discord":
-          prefix = "DC-";
-          id = data.msgdata.author.id;
-          break;
-      }
+      let [prefix, id] = resolveID(type, data).split("-");
+      prefix += "-";
 
       if (data.args.length > 1) {
         global.data.userLanguage[prefix + id] = String(data.args[1]);
