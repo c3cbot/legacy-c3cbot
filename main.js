@@ -198,6 +198,10 @@ setInterval(() => {
   }
   global.stderrdata = "";
 }, 499);
+//Handling rejected promise that are unhandled
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Rejected promise: ', promise, ', reason:', reason);
+});
 
 var autoUpdater = require("./autoUpdater.js");
 var cUpdate = autoUpdater.checkForUpdate();
