@@ -484,8 +484,8 @@ ensureExists(path.join(__dirname, "plugins/"));
 function checkPluginCompatibly(version) {
   version = version.toString();
   try {
-    //* Plugin complied with version 0.3.0 => 0.3.14 and 0.4.0 is allowed
-    var allowedVersion = "0.3.0 - 0.3.14 || 0.4.0";
+    //* Plugin complied with version 0.3.0 => 0.3.14 and 0.4.0 and 0.5.0 is allowed
+    var allowedVersion = "0.3.0 - 0.3.14 || 0.4.0 || 0.5.0";
     return semver.intersects(semver.clean(version), allowedVersion);
   } catch (ex) {
     return false;
