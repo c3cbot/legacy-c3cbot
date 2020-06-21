@@ -144,7 +144,7 @@ This program will send these things to Metric server (<https://c3c-metric.lequan
 If you really want to completely disable Metric, set `enableMetric` in `config.json` to `false`. (but I don't recommended you to disable Metric, especially if you're going to run in Heroku)
 
 <span name="Download"></span>
-## Node.JS 12 & 13 download link:
+## Node.JS download link:
 - Official Node.JS webpage: https://nodejs.org/en/
 
 ## Donation
