@@ -46,7 +46,13 @@ module.exports = {
                       } else {
                         f.text()
                           .then(err => {
-                            prReject([new Error(`HTTP ${f.status}: ${err}`), (f.status == 400), true]);
+                            switch (f.status) {
+                              case 503:
+                              case 521:
+                                return prReject([new Error(`Metric server is under DDoS attack.`), false]);
+                              default:
+                                return prReject([new Error(`HTTP ${f.status}: ${err}`), (f.status == 400)]);
+                            }
                           });
                       }
                     })
@@ -98,7 +104,13 @@ module.exports = {
         } else {
           f.text()
             .then(err => {
-              prReject([new Error(`HTTP ${f.status}: ${err}`), (f.status == 400)]);
+              switch (f.status) {
+                case 503:
+                case 521:
+                  return prReject([new Error(`Metric server is under DDoS attack.`), false]);
+                default:
+                  return prReject([new Error(`HTTP ${f.status}: ${err}`), (f.status == 400)]);
+              }
             });
         }
       })
