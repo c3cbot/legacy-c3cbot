@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 String.prototype.pad = function (width, z) {
   z = z || '0';
   var n = this.valueOf() + '';
@@ -77,6 +78,7 @@ Function.prototype.clone = function() {
     return that.apply(this, args); 
   }
   for (var key in this) {
+    // eslint-disable-next-line no-prototype-builtins
     if (this.hasOwnProperty(key)) {
       temp[key] = this[key];
     }
@@ -96,6 +98,9 @@ global.getType = function getType(arg) {
 }
 
 //Adding BigInt support in JSON (de)serialization
+BigInt.prototype.toJSON = function () {
+  return this.toString() + "n";
+}
 let ogStringify = JSON.stringify.clone();
 JSON.stringify = function stringifyWithBigInt(obj, reviver, spaces) {
   function r(key, value) {
@@ -112,7 +117,7 @@ JSON.stringify = function stringifyWithBigInt(obj, reviver, spaces) {
 let ogParse = JSON.parse.clone();
 JSON.parse = function parseWithBigInt(jsonString, reviver) {
   function r(key, value) {
-    if (global.getType(value) == "String" && /^\d+n$/.test(value)) {
+    if (global.getType(value) == "String" && (/^\d+n$/).test(value)) {
       value = BigInt(value.slice(0, -1));
     }
     if (global.getType(reviver) == "Function") {
