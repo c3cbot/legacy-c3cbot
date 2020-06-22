@@ -15,7 +15,8 @@ module.exports = {
     });
     fetch("https://c3c-metric.com/metric.php", {
         method: "POST",
-        body: params
+        body: params,
+        headers: { 'User-Agent': `C3C-metric` }
       })
       .then(function(f) {
         if (f.status == 200) {
@@ -38,7 +39,8 @@ module.exports = {
                   });
                   fetch("https://c3c-metric.com/metric.php", {
                       method: "POST",
-                      body: params
+                      body: params,
+                      headers: { 'User-Agent': `C3C-metric` }
                     })
                     .then(function(f) {
                       if (f.status == 200) {
@@ -93,7 +95,8 @@ module.exports = {
     });
     fetch("https://c3c-metric.com/metric.php", {
         method: "POST",
-        body: params
+        body: params,
+        headers: { 'User-Agent': `C3C-metric` }
       })
       .then(function(f) {
         if (f.status == 200) {
