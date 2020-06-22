@@ -198,9 +198,15 @@ setInterval(() => {
   }
   global.stderrdata = "";
 }, 499);
+
 //Handling rejected promise that are unhandled
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Rejected promise: ', promise, ', reason:', reason);
+  log("[INTERNAL]", 'Warning: Rejected promise: ', promise, ', reason:', reason);
+});
+//Handling uncaught exception (without try/catch, usually in callback)
+//! DEFINELY NOT SAFE AT ALL, BUT STILL ADDING IT.
+process.on('uncaughtException', (err, origin) => {
+  log("[INTERNAL]", `Warning: ${origin}:`, err);
 });
 
 var autoUpdater = require("./autoUpdater.js");
