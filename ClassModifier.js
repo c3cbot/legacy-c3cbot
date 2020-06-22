@@ -70,3 +70,14 @@ if (!Object.prototype.unwatch) {
     }
   });
 }
+
+/**
+ * Get the type of <arg>
+ *
+ * @param   {any}    arg  <arg>
+ *
+ * @return  {string}      String/Number/Object/Array/Function/AsyncFunction/Null/Undefined
+ */
+global.getType = function getType(arg) {
+  return Object.prototype.toString.call(arg).slice(8, -1);
+}

@@ -341,6 +341,7 @@ var _randomBytes = function (numbytes) {
 };
 //Cryptography
 var crypto = require('crypto');
+
 /**
  * Get a HMAC hash.
  *
@@ -639,8 +640,10 @@ function loadPlugin() {
           var cmdo = pltemp1[plname]["command_map"][cmd];
           if (!cmdo["hdesc"] || !cmdo["fscope"] || isNaN(parseInt(cmdo["compatibly"]))) {
             log("[INTERNAL]", plname, "has a command that isn't have enough information to define (/" + cmd + ")");
-          } else if (!global.plugins[pltemp1[plname]["plugin_scope"]][cmdo
-            .fscope]) {
+          } else if (
+            global.getType(global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope]) != "Function" &&
+            global.getType(global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope] != "AsyncFunction")
+          ) {
             log("[INTERNAL]", plname, "is missing a function for /" + cmd);
           } else {
             var oldstr;
@@ -949,7 +952,7 @@ function loadPlugin() {
     handler: "INTERNAL",
     adminCmd: true
   };
-  
+
   global.commandMapping["shutdown"] = {
     desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["SHUTDOWN_DESC"]])),
     scope: function (type, data) {
@@ -1597,7 +1600,7 @@ if (global.config.enablefb) {
     }, 300000, log, global.config.botname, getLang("CONNECTED_MESSAGE").replace("{0}", global.config.commandPrefix));
 
     typeof global.data.messageList != "object" ? global.data.messageList = {} : "";
-    facebook.listener = api.listen(function callback(err, message) {
+    facebook.listener = api.listen(async function callback(err, message) {
       try {
         if (typeof message != "undefined" && message != null) {
           var nointernalresolve = false;
@@ -1622,54 +1625,29 @@ if (global.config.enablefb) {
                   if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
                     admin = true;
                   }
-                  if (typeof chhandling.resolverFunc == "function" && chhandling.resolverFunc("Facebook", {
-                    time: receivetime,
-                    msgdata: message,
-                    facebookapi: api,
-                    discordapi: client,
-                    prefix: prefix,
-                    admin: admin,
-                    // eslint-disable-next-line no-loop-func
-                    log: function logPlugin(...message) {
-                      log.apply(global, [
-                        "[PLUGIN]",
-                        "[" + String(chhandling.handler) + "]"
-                      ].concat(message));
-                    },
-                    // eslint-disable-next-line no-loop-func
-                    return: function returndata(returndata) {
-                      if (!returndata) return;
-                      if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                        var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
-                          .isGroup);
-                        setTimeout(function (api, returndata, endTyping, message) {
-                          api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                            if (err) {
-                              log("[Facebook] Errored while sending response:", err);
-                              if (err.error == "Not logged in." && global.config
-                                .facebookAutoRestartLoggedOut) {
-                                log(
-                                  "[Facebook]",
-                                  "Detected not logged in. Throwing 7378278 to restarting..."
-                                );
-                                facebookloggedIn = false;
-                                process.exit(7378278);
-                              }
-                            }
-                          }, message.messageID, message.isGroup);
-                          endTyping();
-                        }, returndata.data.length * 30, api, returndata, endTyping, message);
-                      } else if (returndata.handler == "internal-raw" && typeof returndata.data ==
-                        "object") {
-                        if (!returndata.data.body) {
-                          returndata.data.body = "";
-                        }
-                        returndata.data.body = prefix + " " + returndata.data.body;
-                        let endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
-                          .isGroup);
-                        setTimeout(
-                          function (api, returndata, endTyping, message, log) {
-                            api.sendMessage(returndata.data, message.threadID, function (err) {
+                  if (global.getType(chhandling) == "Function" || global.getType(chhandling) == "AsyncFunction") {
+                    nointernalresolve = chhandling.resolverFunc("Facebook", {
+                      time: receivetime,
+                      msgdata: message,
+                      facebookapi: api,
+                      discordapi: client,
+                      prefix: prefix,
+                      admin: admin,
+                      // eslint-disable-next-line no-loop-func
+                      log: function logPlugin(...message) {
+                        log.apply(global, [
+                          "[PLUGIN]",
+                          "[" + String(chhandling.handler) + "]"
+                        ].concat(message));
+                      },
+                      // eslint-disable-next-line no-loop-func
+                      return: function returndata(returndata) {
+                        if (!returndata) return;
+                        if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                          var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
+                            .isGroup);
+                          setTimeout(function (api, returndata, endTyping, message) {
+                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
                               if (err) {
                                 log("[Facebook] Errored while sending response:", err);
                                 if (err.error == "Not logged in." && global.config
@@ -1684,13 +1662,41 @@ if (global.config.enablefb) {
                               }
                             }, message.messageID, message.isGroup);
                             endTyping();
-                          }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message,
-                          log
-                        );
+                          }, returndata.data.length * 30, api, returndata, endTyping, message);
+                        } else if (returndata.handler == "internal-raw" && typeof returndata.data ==
+                          "object") {
+                          if (!returndata.data.body) {
+                            returndata.data.body = "";
+                          }
+                          returndata.data.body = prefix + " " + returndata.data.body;
+                          let endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
+                            .isGroup);
+                          setTimeout(
+                            function (api, returndata, endTyping, message, log) {
+                              api.sendMessage(returndata.data, message.threadID, function (err) {
+                                if (err) {
+                                  log("[Facebook] Errored while sending response:", err);
+                                  if (err.error == "Not logged in." && global.config
+                                    .facebookAutoRestartLoggedOut) {
+                                    log(
+                                      "[Facebook]",
+                                      "Detected not logged in. Throwing 7378278 to restarting..."
+                                    );
+                                    facebookloggedIn = false;
+                                    process.exit(7378278);
+                                  }
+                                }
+                              }, message.messageID, message.isGroup);
+                              endTyping();
+                            }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message,
+                            log
+                          );
+                        }
                       }
-                    }
-                  }) === true) {
-                    nointernalresolve = true;
+                    });
+                    // eslint-disable-next-line no-await-in-loop
+                    if (global.getType(nointernalresolve) == "Promise") nointernalresolve = await nointernalresolve;
+                    nointernalresolve = nointernalresolve === true;
                   }
                 }
               }
@@ -1919,6 +1925,9 @@ if (global.config.enablefb) {
                               }
                             }
                           });
+                          if (global.getType(returndata) == "Promise") {
+                            returndata = await returndata;
+                          }
                         } catch (ex) {
                           log(
                             "[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:",
@@ -2536,7 +2545,7 @@ if (global.config.enablediscord) {
     log("[Discord]", "Crashed with error: ", error);
     log("[Discord]", "Trying to reconnect... Some plugins might not work correctly.");
   });
-  var discordMessageHandler = function (message) {
+  var discordMessageHandler = async function (message) {
     var nointernalresolve = false;
     var receivetime = new Date();
     for (var n in global.chatHook) {
@@ -2547,38 +2556,41 @@ if (global.config.enablediscord) {
           if (global.config.admins.indexOf("DC-" + message.author.id) != -1) {
             admin = true;
           }
-          if (typeof chhandling.resolverFunc == "function" && chhandling.resolverFunc("Discord", {
-            time: receivetime,
-            msgdata: message,
-            discordapi: client,
-            // eslint-disable-next-line no-nested-ternary
-            facebookapi: (typeof facebook == "object" ? (typeof facebook.api == "object" ? facebook
-              .api : {}) : {}),
-            prefix: prefix,
-            admin: admin,
-            // eslint-disable-next-line no-loop-func
-            log: function logPlugin(...message) {
-              log.apply(global, [
-                "[PLUGIN]",
-                "[" + String(chhandling.handler) + "]"
-              ].concat(message));
-            },
-            // eslint-disable-next-line no-loop-func
-            return: function returndata(returndata) {
-              if (!returndata) return;
-              if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                message.reply((returndata.data || ""), {
-                  split: true
-                });
-              } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                var body = returndata.data.body || "";
-                delete returndata.data.body;
-                returndata.data.split = true;
-                message.reply(body, returndata.data);
+          if (global.getType(chhandling) == "Function" || global.getType(chhandling) == "AsyncFunction") {
+            nointernalresolve = chhandling.resolverFunc("Discord", {
+              time: receivetime,
+              msgdata: message,
+              discordapi: client,
+              // eslint-disable-next-line no-nested-ternary
+              facebookapi: (typeof facebook == "object" ? (typeof facebook.api == "object" ? facebook
+                .api : {}) : {}),
+              prefix: prefix,
+              admin: admin,
+              // eslint-disable-next-line no-loop-func
+              log: function logPlugin(...message) {
+                log.apply(global, [
+                  "[PLUGIN]",
+                  "[" + String(chhandling.handler) + "]"
+                ].concat(message));
+              },
+              // eslint-disable-next-line no-loop-func
+              return: function returndata(returndata) {
+                if (!returndata) return;
+                if (returndata.handler == "internal" && typeof returndata.data == "string") {
+                  message.reply((returndata.data || ""), {
+                    split: true
+                  });
+                } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
+                  var body = returndata.data.body || "";
+                  delete returndata.data.body;
+                  returndata.data.split = true;
+                  message.reply(body, returndata.data);
+                }
               }
-            }
-          }) === true) {
-            nointernalresolve = true;
+            });
+            // eslint-disable-next-line no-await-in-loop
+            if (global.getType(nointernalresolve) == "Promise") nointernalresolve = await nointernalresolve;
+            nointernalresolve = nointernalresolve === true;
           }
         }
       }
@@ -2661,6 +2673,7 @@ if (global.config.enablediscord) {
                   }
                 }
               });
+              if (global.getType(returndata) == "Promise") returndata = await returndata;
             } catch (ex) {
               log("[INTERNAL]", global.commandMapping[arg[0].substr(1)].handler, "contain an error:", ex);
               returndata = {
