@@ -33,6 +33,7 @@ C3CBot - Install build tools for Windows. (NodeJS version)
     let script = null;
     while (!downloaded) {
       try {
+        // eslint-disable-next-line no-await-in-loop
         script = await new Promise((resolve, reject) => {
           let data = [];
           https.get('https://chocolatey.org/install.ps1', function(res) {
@@ -57,11 +58,11 @@ C3CBot - Install build tools for Windows. (NodeJS version)
             console.log();
             console.log("Error while trying to download chocolatey install script:", err);
             console.log("Retrying...");
-            reject();
+            reject(new Error());
           });
         });
         downloaded = true;
-      } catch (_) {};
+      } catch (_) {}
     }
     let cInstall = childProcess.spawnSync('powershell -ExecutionPolicy Bypass -Command "-"', {
       input: script,
