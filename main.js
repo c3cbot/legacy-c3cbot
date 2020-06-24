@@ -1632,7 +1632,7 @@ if (global.config.enablefb) {
                     global.getType(chhandling.resolverFunc) == "Function" || 
                     global.getType(chhandling.resolverFunc) == "AsyncFunction"
                   ) {
-                    nointernalresolve = chhandling.resolverFunc("Facebook", {
+                    let chdata = chhandling.resolverFunc("Facebook", {
                       time: receivetime,
                       msgdata: message,
                       facebookapi: api,
@@ -1701,8 +1701,8 @@ if (global.config.enablefb) {
                       }
                     });
                     // eslint-disable-next-line no-await-in-loop
-                    if (global.getType(nointernalresolve) == "Promise") nointernalresolve = (await nointernalresolve);
-                    nointernalresolve = (nointernalresolve || nointernalresolve === true);
+                    if (global.getType(chdata) == "Promise") chdata = await chdata;
+                    nointernalresolve = (nointernalresolve || chdata === true);
                   }
                 }
               }
@@ -2566,7 +2566,7 @@ if (global.config.enablediscord) {
             global.getType(chhandling.resolverFunc) == "Function" || 
             global.getType(chhandling.resolverFunc) == "AsyncFunction"
           ) {
-            nointernalresolve = chhandling.resolverFunc("Discord", {
+            let chdata = chhandling.resolverFunc("Discord", {
               time: receivetime,
               msgdata: message,
               discordapi: client,
@@ -2598,8 +2598,8 @@ if (global.config.enablediscord) {
               }
             });
             // eslint-disable-next-line no-await-in-loop
-            if (global.getType(nointernalresolve) == "Promise") nointernalresolve = await nointernalresolve;
-            nointernalresolve = (nointernalresolve || nointernalresolve === true)
+            if (global.getType(chdata) == "Promise") chdata = await chdata;
+            nointernalresolve = (nointernalresolve || chdata === true);
           }
         }
       }
