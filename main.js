@@ -642,7 +642,7 @@ function loadPlugin() {
             log("[INTERNAL]", plname, "has a command that isn't have enough information to define (/" + cmd + ")");
           } else if (
             global.getType(global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope]) != "Function" &&
-            global.getType(global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope] != "AsyncFunction")
+            global.getType(global.plugins[pltemp1[plname]["plugin_scope"]][cmdo.fscope]) != "AsyncFunction"
           ) {
             log("[INTERNAL]", plname, "is missing a function for /" + cmd);
           } else {
