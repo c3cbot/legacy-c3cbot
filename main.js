@@ -678,7 +678,10 @@ function loadPlugin() {
         if (typeof pltemp1[plname]["chatHook"] == "string" &&
           typeof pltemp1[plname]["chatHookType"] == "string" &&
           !isNaN(parseInt(pltemp1[plname]["chatHookPlatform"])) &&
-          typeof global.plugins[pltemp1[plname]["plugin_scope"]][pltemp1[plname]["chatHook"]] == "function") {
+          (
+            global.getType(global.plugins[pltemp1[plname]["plugin_scope"]][pltemp1[plname]["chatHook"]]) == "Function" ||
+            global.getType(global.plugins[pltemp1[plname]["plugin_scope"]][pltemp1[plname]["chatHook"]]) == "AsyncFunction"
+          )) {
           global.chatHook.push({
             resolverFunc: global.plugins[pltemp1[plname]["plugin_scope"]][pltemp1[plname]["chatHook"]],
             listentype: pltemp1[plname]["chatHookType"],
@@ -1625,7 +1628,10 @@ if (global.config.enablefb) {
                   if (global.config.admins.indexOf("FB-" + (message.senderID || message.author)) != -1) {
                     admin = true;
                   }
-                  if (global.getType(chhandling) == "Function" || global.getType(chhandling) == "AsyncFunction") {
+                  if (
+                    global.getType(chhandling.resolverFunc) == "Function" || 
+                    global.getType(chhandling.resolverFunc) == "AsyncFunction"
+                  ) {
                     nointernalresolve = chhandling.resolverFunc("Facebook", {
                       time: receivetime,
                       msgdata: message,
@@ -2556,7 +2562,10 @@ if (global.config.enablediscord) {
           if (global.config.admins.indexOf("DC-" + message.author.id) != -1) {
             admin = true;
           }
-          if (global.getType(chhandling) == "Function" || global.getType(chhandling) == "AsyncFunction") {
+          if (
+            global.getType(chhandling.resolverFunc) == "Function" || 
+            global.getType(chhandling.resolverFunc) == "AsyncFunction"
+          ) {
             nointernalresolve = chhandling.resolverFunc("Discord", {
               time: receivetime,
               msgdata: message,
