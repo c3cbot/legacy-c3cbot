@@ -1701,7 +1701,7 @@ if (global.config.enablefb) {
                       }
                     });
                     // eslint-disable-next-line no-await-in-loop
-                    if (global.getType(nointernalresolve) == "Promise") nointernalresolve = await nointernalresolve;
+                    if (global.getType(nointernalresolve) == "Promise") nointernalresolve = (await nointernalresolve);
                     nointernalresolve = nointernalresolve === true;
                   }
                 }
