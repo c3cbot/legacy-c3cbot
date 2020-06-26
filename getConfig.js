@@ -54,7 +54,6 @@ var defaultconfig = {
   configVersion: 1,
   enableMetric: true,
   metricHideBotAccountLink: true,
-  enableGlobalBan: true,
   hideUnknownCommandMessage: false,
   herokuApplication: ""
 };

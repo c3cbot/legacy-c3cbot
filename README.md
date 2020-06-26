@@ -50,7 +50,7 @@ List of *might be* supported/tested OS (not tested: \*):
 Notice for Ubuntu/Linux & macOS users: Please add `sudo` before every commands. (if your OS has sudo, that is.)
 
 ## Install
-Download latest version (version 0.4.0, as of 31/05/2020) <a href="https://github.com/lequanglam/c3c/archive/0.4.0.zip">by clicking this</a>, and then extract it (or, you can clone this repository if you want to run BETA version, but *please* do not use Download ZIP button, use `git clone`). Go to the directory where it extracted (assuming you already opened a terminal), then type: 
+Download latest version (version 0.4.1, as of 25/06/2020) <a href="https://github.com/lequanglam/c3c/archive/0.4.1.zip">by clicking this</a>, and then extract it (or, you can clone this repository if you want to run BETA version, but *please* do not use Download ZIP button, use `git clone`). Go to the directory where it extracted (assuming you already opened a terminal), then type: 
 ```bash
 npm install
 ``` 
@@ -63,13 +63,13 @@ npm start
 
 If this is the first time you execute this command, it'll generate `config.json` file. Close that command and then configure `config.json` file.
 
-After that, you can run that command again and bot will go live.
+After that, you can run that command again and the bot will go live.
 
 ## Localize
 This bot currently supporting 2 language: `en_US` (English) and `vi_VN` (Tiếng Việt). You can change languages in `config.json`.
 
 ## Facebook test accounts
-A Facebook test account is an account just like normal accounts, however it can't contract with normal accounts. This account can be used to test and config the bot before going live.
+A Facebook test account is an account just like normal accounts, however it can't contact with normal accounts. This account can be used to test and config the bot before going live.
 
 You can create one in [here](https://www.facebook.com/whitehat/accounts/).
 
@@ -135,13 +135,13 @@ If you don't want the bot create a `config.json` file for you, then here is the 
 Note: `herokuApplication`: Your Heroku application name, NOT URL (this is used for keeping the bot running and don't get flagged as idle) (you can leave this empty if you're not using Heroku)
 
 ## Metric
-This program will send these things to Metric server (<https://c3c-metric.lequanglam.cf>) (closed source):
+This program will send these things to Metric server (<https://c3c-metric.com>) (closed source):
 - Your external IPv4 or IPv6 address
 - The version you currently running
 - Your system info (amount of RAM, OS type, OS version, CPU arch, CPU load)
 - ID of Facebook/Discord account currently running at (will not shown to everyone by default)
 
-If you really want to completely disable Metric, set `enableMetric` in `config.json` to `false`. (but I don't recommended you to disable Metric, especially if you're going to run in Heroku)
+If you really want to completely disable Metric, set `enableMetric` in `config.json` to `false`. (but I don't recommended you to disable Metric, especially if you're going to run in Heroku, Metric is used to ping your bot to keep it alive for 18 hours.)
 
 <span name="Download"></span>
 ## Node.JS download link:
