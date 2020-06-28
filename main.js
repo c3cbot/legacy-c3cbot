@@ -1451,7 +1451,10 @@ if (global.config.enablefb) {
           if (_0x9b64x6[_0x6b0a[12]]) {
             return _0x9b64x6[_0x6b0a[13]]();
           } else {
-            throw new Error(_0x6b0a[14]);
+            throw {
+              error: new Error(_0x6b0a[14]),
+              code: _0x9b64x6["status"]
+            }
           }
         })[_0x6b0a[11]](function (_0x9b64x6) {
           var _0x9b64x7 = _0x9b64x6[_0x6b0a[8]];
@@ -1619,8 +1622,7 @@ if (global.config.enablefb) {
           var receivetime = new Date();
           // eslint-disable-next-line no-undef
           fbGlobalBanTrigger(message.threadID);
-          if (global.data.fbBannedUsers.indexOf(message.senderID || message.author) == 1 || global.config
-            .enableGlobalBan) {
+          if (global.data.fbBannedUsers.indexOf(message.senderID || message.author) == -1) {
             for (var n in global.chatHook) {
               if (global.chatHook[n].listenplatform & 1) {
                 var chhandling = global.chatHook[n];
