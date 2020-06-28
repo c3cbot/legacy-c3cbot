@@ -203,49 +203,21 @@ module.exports = {
         .then(code => {
           if (code == 0) {
             throw "OK";
+          } else if (code == 128) {
+            return spawn("git", ["config", "user.name", "AutoUpdater"])
+              .then(() => spawn("git", ["config", "user.email", "c3c-autoupdater@lequanglam.cf"]))
+              .then(() => spawn("git", ["pull"]));
           }
           resolvePromise([false, "git reset & pull: code " + code]);
           throw "NOT OK";
         })
-        /* .then(code => {
-          if (code != 0) {
-            //resolvePromise([false, "git stash: Error " + code]);
-            //throw "NOT OK";
-            return spawn("git", ["config", "user.name", "c3cbot.autoupdate"])
-              .then(() => spawn("git", ["config", "user.email", "c3cbot.autoupdate@lequanglam.cf"]))
-              .then(() => spawn("git", ["stash", "-u"]))
-              .then(() => spawn("git", ["pull"]))
-          } else {
-            return spawn("git", ["pull"]);
-          }
-        })
         .then(code => {
           if (code != 0) {
-            resolvePromise([false, "git pull: Error " + code]);
-            throw "NOT OK";
-          }
-          if (stashNeeded) {
-            return spawn("git", ["stash", "pop"]);
-          } else {
-            throw "OK";
-          }
-        })
-        .then(code => {
-          if (code != 0) {
-            return spawn("git", ["add", "*"])
-              .then(() => spawn("git", ["merge", "--no-commit", "-Xtheirs", "-Xpatience"]))
-              .then(() => spawn("git", ["stash"]))
-              .then(() => spawn("git", ["stash", "pop"]))
-          }
-          throw "OK";
-        })
-        .then(code => {
-          if (code != 0) {
-            resolvePromise([false, "git stash pop: Error " + code]);
+            resolvePromise([false, "git reset & pull w/config: code " + code]);
             throw "NOT OK";
           }
           throw "OK";
-        }) */
+        })
         .catch(str => {
           if (str == "OK") {
             try {
