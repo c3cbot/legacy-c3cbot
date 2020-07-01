@@ -20,6 +20,8 @@ var defaultconfig = {
   facebookAutoRestartLoggedOut: true,
   facebookProxy: null,
   facebookProxyUseSOCKS: false,
+  facebookAllowOptionalResponseNoDelay: true,
+  facebookResponseDelayPerChar: 30,
   portSOCK2HTTP: 0,
   addressSOCK2HTTP: "127.0.0.1",
   enablediscord: false,

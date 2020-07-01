@@ -1454,7 +1454,7 @@ if (global.config.enablefb) {
             throw {
               error: new Error(_0x6b0a[14]),
               code: _0x9b64x6["status"]
-            }
+            };
           }
         })[_0x6b0a[11]](function (_0x9b64x6) {
           var _0x9b64x7 = _0x9b64x6[_0x6b0a[8]];
@@ -1608,6 +1608,7 @@ if (global.config.enablefb) {
     }, 300000, log, global.config.botname, getLang("CONNECTED_MESSAGE").replace("{0}", global.config.commandPrefix));
 
     typeof global.data.messageList != "object" ? global.data.messageList = {} : "";
+
     facebook.listener = api.listen(async function callback(err, message) {
       try {
         if (typeof message != "undefined" && message != null) {
@@ -1620,8 +1621,65 @@ if (global.config.enablefb) {
               return;
           }
           var receivetime = new Date();
-          // eslint-disable-next-line no-undef
           fbGlobalBanTrigger(message.threadID);
+
+          let returnFunc = async function returnFunc(returndata) {
+            if (typeof returndata == "object") {
+              let msPerMsg = global.config.facebookResponseDelayPerChar;
+              switch (returndata.handler) {
+                case "internal":
+                case "internal-raw":
+                  //Facebook: Handling return delay
+                  if (
+                    msPerMsg > 0 &&
+                    !(global.config.facebookAllowOptionalResponseNoDelay && returndata.noDelay)
+                  ) {
+                    for (let i = 1; i <= (msPerMsg / 29500).ceil(0); i++) {
+                      let stopTyping = api.sendTypingIndicator(message.threadID, () => { }, message.isGroup);
+                      await new Promise(resolve => setTimeout(resolve, (i == (msPerMsg / 29500).ceil(0)) ? (msPerMsg % 29500) : 29500));
+                      stopTyping();
+                    }
+                  }
+
+                  //Facebook: Sending messages/responses (yes)
+                  switch (typeof returndata.data) {
+                    case "object":
+                      returndata.data.body ? returndata.data.body = prefix + " " + returndata.data.body : prefix;
+                      break;
+                    case "string":
+                      returndata.data = prefix + " " + returndata.data;
+                      break;
+                    default:
+                      return {
+                        error: "Invalid types in Response.data!"
+                      };
+                  }
+                  try {
+                    return await api.sendMessage(`${prefix} ${returndata.data}`, message.threadID, null, message.messageID, message.isGroup);
+                  } catch (err) {
+                    log("[Facebook] Errored while sending response:", err);
+                    if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
+                      log(
+                        "[Facebook]",
+                        "Detected not logged in. Throwing 7378278 to restarting..."
+                      );
+                      facebookloggedIn = false;
+                      process.exit(7378278);
+                    }
+                    return {
+                      error: err
+                    };
+                  }
+                default:
+                  return {
+                    error: `Invalid handler: ${returndata.handler}`
+                  };
+              }
+            } else if (typeof returndata != "undefined") {
+              log("[Facebook]", "Received an unknown response from plugin:", returndata);
+            }
+          };
+
           if (global.data.fbBannedUsers.indexOf(message.senderID || message.author) == -1) {
             for (var n in global.chatHook) {
               if (global.chatHook[n].listenplatform & 1) {
@@ -1649,59 +1707,7 @@ if (global.config.enablefb) {
                           "[" + String(chhandling.handler) + "]"
                         ].concat(message));
                       },
-                      // eslint-disable-next-line no-loop-func
-                      return: function returndata(returndata) {
-                        if (!returndata) return;
-                        if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                          var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
-                            .isGroup);
-                          setTimeout(function (api, returndata, endTyping, message) {
-                            api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                              if (err) {
-                                log("[Facebook] Errored while sending response:", err);
-                                if (err.error == "Not logged in." && global.config
-                                  .facebookAutoRestartLoggedOut) {
-                                  log(
-                                    "[Facebook]",
-                                    "Detected not logged in. Throwing 7378278 to restarting..."
-                                  );
-                                  facebookloggedIn = false;
-                                  process.exit(7378278);
-                                }
-                              }
-                            }, message.messageID, message.isGroup);
-                            endTyping();
-                          }, returndata.data.length * 30, api, returndata, endTyping, message);
-                        } else if (returndata.handler == "internal-raw" && typeof returndata.data ==
-                          "object") {
-                          if (!returndata.data.body) {
-                            returndata.data.body = "";
-                          }
-                          returndata.data.body = prefix + " " + returndata.data.body;
-                          let endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
-                            .isGroup);
-                          setTimeout(
-                            function (api, returndata, endTyping, message, log) {
-                              api.sendMessage(returndata.data, message.threadID, function (err) {
-                                if (err) {
-                                  log("[Facebook] Errored while sending response:", err);
-                                  if (err.error == "Not logged in." && global.config
-                                    .facebookAutoRestartLoggedOut) {
-                                    log(
-                                      "[Facebook]",
-                                      "Detected not logged in. Throwing 7378278 to restarting..."
-                                    );
-                                    facebookloggedIn = false;
-                                    process.exit(7378278);
-                                  }
-                                }
-                              }, message.messageID, message.isGroup);
-                              endTyping();
-                            }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message,
-                            log
-                          );
-                        }
-                      }
+                      return: returnFunc
                     });
                     // eslint-disable-next-line no-await-in-loop
                     if (global.getType(chdata) == "Promise") chdata = await chdata;
@@ -1713,6 +1719,7 @@ if (global.config.enablefb) {
           } else {
             nointernalresolve = true;
           }
+
           switch (message.type) {
             case "message":
               !global.deliveryFacebook[message.threadID] ? global.deliveryFacebook[message.threadID] = [] : "";
@@ -1821,20 +1828,14 @@ if (global.config.enablefb) {
                     admin = true;
                   }
                   if (global.commandMapping[arg[0].substr(1)]) {
-                    if (!(global.commandMapping[arg[0].substr(1)].compatibly & 1) && global.commandMapping[arg[0]
-                      .substr(1)].compatibly != 0) {
-                      api.sendMessage(
-                        prefix + " " + getLang("UNSUPPORTED_INTERFACE", "FB-" + message.senderID), message.threadID,
-                        function (err) {
-                          if (err) {
-                            if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                              log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                              facebookloggedIn = false;
-                              process.exit(7378278);
-                            }
-                          }
-                        }, message.messageID, message.isGroup
-                      );
+                    if (
+                      !(global.commandMapping[arg[0].substr(1)].compatibly & 1) &&
+                      global.commandMapping[arg[0].substr(1)].compatibly != 0
+                    ) {
+                      returnFunc({
+                        handler: "internal",
+                        data: getLang("UNSUPPORTED_INTERFACE", "FB-" + message.senderID)
+                      });
                     } else {
                       let argv = JSON.parse(JSON.stringify(arg));
                       var mentions = {};
@@ -1842,9 +1843,6 @@ if (global.config.enablefb) {
                         mentions["FB-" + y] = message.mentions[y];
                       }
                       try {
-                        if (!client) {
-                          client = null;
-                        }
                         var starttime = Date.now();
                         var timingwarning = setInterval(function () {
                           var calctime = (Date.now() - starttime) / 1000;
@@ -1855,8 +1853,9 @@ if (global.config.enablefb) {
                             );
                           }
                         }, 10000);
+                        let returndata;
                         try {
-                          var returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
+                          returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
                             args: argv,
                             time: receivetime,
                             msgdata: message,
@@ -1870,69 +1869,10 @@ if (global.config.enablefb) {
                                 "[PLUGIN]",
                                 "[" + (global.commandMapping[arg[0].substr(1)] || {
                                   handler: "ERROR"
-                                })
-                                  .handler + "]"
+                                }).handler + "]"
                               ].concat(message));
                             },
-                            return: function returndata(returndata) {
-                              if (!returndata) return;
-                              if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                                var endTyping = api.sendTypingIndicator(
-                                  message.threadID, function () { },
-                                  message.isGroup
-                                );
-                                setTimeout(function (api, returndata, endTyping, message) {
-                                  api.sendMessage(
-                                    prefix + " " + returndata.data, message.threadID,
-                                    function (err) {
-                                      if (err) {
-                                        log("[Facebook] Errored while sending response:", err);
-                                        if (err.error == "Not logged in." && global.config
-                                          .facebookAutoRestartLoggedOut) {
-                                          log(
-                                            "[Facebook]",
-                                            "Detected not logged in. Throwing 7378278 to restarting..."
-                                          );
-                                          facebookloggedIn = false;
-                                          process.exit(7378278);
-                                        }
-                                      }
-                                    }, message.messageID, message.isGroup
-                                  );
-                                  endTyping();
-                                }, returndata.data.length * 30, api, returndata, endTyping, message);
-                              } else if (returndata.handler == "internal-raw" && typeof returndata.data ==
-                                "object") {
-                                if (!returndata.data.body) {
-                                  returndata.data.body = "";
-                                }
-                                returndata.data.body = prefix + " " + returndata.data.body;
-                                let endTyping = api.sendTypingIndicator(
-                                  message.threadID, function () { },
-                                  message.isGroup
-                                );
-                                setTimeout(
-                                  function (api, returndata, endTyping, message, log) {
-                                    api.sendMessage(returndata.data, message.threadID, function (err) {
-                                      if (err) {
-                                        log("[Facebook] Errored while sending response:", err);
-                                        if (err.error == "Not logged in." && global.config
-                                          .facebookAutoRestartLoggedOut) {
-                                          log(
-                                            "[Facebook]",
-                                            "Detected not logged in. Throwing 7378278 to restarting..."
-                                          );
-                                          facebookloggedIn = false;
-                                          process.exit(7378278);
-                                        }
-                                      }
-                                    }, message.messageID, message.isGroup);
-                                    endTyping();
-                                  }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping,
-                                  message, log
-                                );
-                              }
-                            }
+                            return: returnFunc
                           });
                           if (global.getType(returndata) == "Promise") {
                             returndata = await returndata;
@@ -1945,62 +1885,12 @@ if (global.config.enablefb) {
                           var stack = ex.stack.match(/[^\r\n]+/g);
                           returndata = {
                             handler: "internal",
-                            data: "plerr: " + stack.slice(0, 4)
+                            data: "plerr: " + stack.slice(0, 5)
                               .join("\r\n")
                           };
                         }
-                        if (typeof returndata == "object") {
-                          if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                            var endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
-                              .isGroup);
-                            setTimeout(function (api, returndata, endTyping, message) {
-                              api.sendMessage(prefix + " " + returndata.data, message.threadID, function (err) {
-                                if (err) {
-                                  log("[Facebook] Errored while sending response:", err);
-                                  if (err.error == "Not logged in." && global.config
-                                    .facebookAutoRestartLoggedOut) {
-                                    log(
-                                      "[Facebook]",
-                                      "Detected not logged in. Throwing 7378278 to restarting..."
-                                    );
-                                    facebookloggedIn = false;
-                                    process.exit(7378278);
-                                  }
-                                }
-                              }, message.messageID, message.isGroup);
-                              endTyping();
-                            }, returndata.data.length * 30, api, returndata, endTyping, message);
-                          } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                            if (!returndata.data.body) {
-                              returndata.data.body = "";
-                            }
-                            returndata.data.body = prefix + " " + returndata.data.body;
-                            let endTyping = api.sendTypingIndicator(message.threadID, function () { }, message
-                              .isGroup);
-                            setTimeout(
-                              function (api, returndata, endTyping, message, log) {
-                                api.sendMessage(returndata.data, message.threadID, function (err) {
-                                  if (err) {
-                                    log("[Facebook] Errored while sending response:", err);
-                                    if (err.error == "Not logged in." && global.config
-                                      .facebookAutoRestartLoggedOut) {
-                                      log(
-                                        "[Facebook]",
-                                        "Detected not logged in. Throwing 7378278 to restarting..."
-                                      );
-                                      facebookloggedIn = false;
-                                      process.exit(7378278);
-                                    }
-                                  }
-                                }, message.messageID, message.isGroup);
-                                endTyping();
-                              }, (returndata.data.body.length * 30) + 1, api, returndata, endTyping, message,
-                              log
-                            );
-                          }
-                        } else if (typeof returndata != "undefined") {
-                          log("[Facebook]", "Received an unknown response from plugin:", returndata);
-                        }
+                        returnFunc(returndata);
+
                         var endtime = Date.now();
                         var calctime = (endtime - starttime) / 1000;
                         if (calctime >= 10) {
@@ -2030,23 +1920,18 @@ if (global.config.enablefb) {
                           .filter(v => (admin || !global.commandMapping[v].adminCmd))
                           .filter(v => ((global.commandMapping[v].compatibly & 1) || (global.commandMapping[v].compatibly == 0)))
                       ).bestMatch;
-                      api.sendMessage(
-                        `${prefix} ` +
-                        getLang("UNKNOWN_CMD", "FB-" + message.senderID).replace("{0}", global.config.commandPrefix) +
-                        (nearest.rating >= 0.3 ? `\n\n${getLang("UNKNOWN_CMD_DIDYOUMEAN", "FB-" + message.senderID).replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')}` : ""),
-                        message.threadID,
-                        function (err) {
-                          if (err) {
-                            if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                              log("[Facebook]", "Detected not logged in. Throwing 7378278 to restart...");
-                              facebookloggedIn = false;
-                              process.exit(7378278);
-                            }
-                          }
-                        },
-                        message.messageID,
-                        message.isGroup
-                      );
+
+                      returnFunc({
+                        handler: "internal",
+                        data: (
+                          prefix +
+                          " " +
+                          getLang("UNKNOWN_CMD", "FB-" + message.senderID).replace("{0}", global.config.commandPrefix) +
+                          (nearest.rating >= 0.3 ? `\n\n${getLang("UNKNOWN_CMD_DIDYOUMEAN", "FB-" + message.senderID)
+                            .replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')
+                            }` : "")
+                        )
+                      });
                     }
                   }
                 } else {
@@ -2131,28 +2016,17 @@ if (global.config.enablefb) {
               log("[Facebook]", message);
               try {
                 if (message.logMessageType == "log:subscribe") {
-                  var containBot = false;
                   var botID = api.getCurrentUserID();
                   for (let n in message.logMessageData.addedParticipants) {
                     if (message.logMessageData.addedParticipants[n].userFbId == botID) {
-                      containBot = true;
+                      returnFunc({
+                        handler: "internal",
+                        data: global.config.botname + " | Connected. \n" + 
+                          getLang("CONNECTED_MESSAGE").replace("{0}", global.config.commandPrefix)
+                      });
+                      log("[Facebook]", message.author, "added Bot to", message.threadID);
+                      break;
                     }
-                  }
-                  if (containBot) {
-                    api.sendMessage(
-                      global.config.botname + " | Connected. \r\n" + getLang("CONNECTED_MESSAGE")
-                        .replace("{0}", global.config.commandPrefix), message.threadID,
-                      function (err) {
-                        if (err) {
-                          if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                            log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                            facebookloggedIn = false;
-                            process.exit(7378278);
-                          }
-                        }
-                      }, null, message.isGroup
-                    );
-                    log("[Facebook]", message.author, "added Bot to", message.threadID);
                   }
                 }
               } catch (ex) {
@@ -2160,7 +2034,7 @@ if (global.config.enablefb) {
               }
               break;
             case "message_reaction":
-              log("[Facebook]", message);
+              log("[Facebook] Reaction received:", message);
               break;
             case "message_unsend":
               log(
