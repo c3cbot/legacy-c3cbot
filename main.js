@@ -1655,7 +1655,7 @@ if (global.config.enablefb) {
                       };
                   }
                   try {
-                    return await api.sendMessage(`${prefix} ${returndata.data}`, message.threadID, null, message.messageID, message.isGroup);
+                    return await api.sendMessage(returndata.data, message.threadID, null, message.messageID, message.isGroup);
                   } catch (err) {
                     log("[Facebook] Errored while sending response:", err);
                     if (err.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
