@@ -1542,7 +1542,7 @@ if (global.config.enablefb) {
                   }
                   return null;
                 }
-                api.sendMessage(botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
+                api.sendMessage(prefix + " " + botname + " | Connected. \r\n" + connectedmsg, id, function (err) {
                   if (err) {
                     log(
                       "[Facebook]",
@@ -1644,7 +1644,7 @@ if (global.config.enablefb) {
                   //Facebook: Sending messages/responses (yes)
                   switch (typeof returndata.data) {
                     case "object":
-                      returndata.data.body ? returndata.data.body = prefix + " " + returndata.data.body : prefix;
+                      returndata.data.body = (returndata.data.body ? prefix + " " + returndata.data.body : prefix);
                       break;
                     case "string":
                       returndata.data = prefix + " " + returndata.data;
@@ -1923,14 +1923,10 @@ if (global.config.enablefb) {
 
                       returnFunc({
                         handler: "internal",
-                        data: (
-                          prefix +
-                          " " +
-                          getLang("UNKNOWN_CMD", "FB-" + message.senderID).replace("{0}", global.config.commandPrefix) +
+                        data: getLang("UNKNOWN_CMD", "FB-" + message.senderID).replace("{0}", global.config.commandPrefix) +
                           (nearest.rating >= 0.3 ? `\n\n${getLang("UNKNOWN_CMD_DIDYOUMEAN", "FB-" + message.senderID)
                             .replace("{0}", '`' + global.config.commandPrefix + nearest.target + '`')
                             }` : "")
-                        )
                       });
                     }
                   }
