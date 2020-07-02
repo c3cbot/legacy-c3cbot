@@ -135,7 +135,7 @@ If you don't want the bot create a `config.json` file for you, then here is the 
 Note: `herokuApplication`: Your Heroku application name, NOT URL (this is used for keeping the bot running and don't get flagged as idle) (you can leave this empty if you're not using Heroku)
 
 ## Metric
-This program will send these things to Metric server (<https://c3c-metric.com>) (closed source):
+This program will send these things to Metric server (<https://metric.c3c.tech>) (closed source):
 - Your external IPv4 or IPv6 address
 - The version you currently running
 - Your system info (amount of RAM, OS type, OS version, CPU arch, CPU load)

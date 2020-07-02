@@ -1,3 +1,5 @@
+const metricServer = "metric.c3c.tech";
+
 var fetch = require("node-fetch");
 //const url = require('url');
 
@@ -13,7 +15,7 @@ module.exports = {
       prResolve = resolve;
       prReject = reject;
     });
-    fetch("https://c3c-metric.com/metric.php", {
+    fetch(`https://${metricServer}/metric.php`, {
         method: "POST",
         body: params,
         headers: { 'User-Agent': `C3C-metric` }
@@ -37,7 +39,7 @@ module.exports = {
                     prResolve = resolve;
                     prReject = reject;
                   });
-                  fetch("https://c3c-metric.com/metric.php", {
+                  fetch(`https://${metricServer}/metric.php`, {
                       method: "POST",
                       body: params,
                       headers: { 'User-Agent': `C3C-metric` }
@@ -93,7 +95,7 @@ module.exports = {
       prResolve = resolve;
       prReject = reject;
     });
-    fetch("https://c3c-metric.com/metric.php", {
+    fetch(`https://${metricServer}/metric.php`, {
         method: "POST",
         body: params,
         headers: { 'User-Agent': `C3C-metric` }
