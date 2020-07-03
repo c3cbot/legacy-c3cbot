@@ -266,7 +266,7 @@ var getLang = function (langVal, id, oLang) {
 var resolveID = function (type, data) {
   switch (type) {
     case "Facebook":
-      return "FB-" + data.msgdata.senderID;
+      return "FB-" + data.msgdata.senderID || data.msgdata.author;
     case "Discord":
       return "DC-" + data.msgdata.author.id;
     default:
@@ -1707,7 +1707,8 @@ if (global.config.enablefb) {
                           "[" + String(chhandling.handler) + "]"
                         ].concat(message));
                       },
-                      return: returnFunc
+                      return: returnFunc,
+                      resolvedLang: global.data.userLanguage[resolveID("Facebook", { msgdata: message })] || global.config.language
                     });
                     // eslint-disable-next-line no-await-in-loop
                     if (global.getType(chdata) == "Promise") chdata = await chdata;
@@ -1872,7 +1873,8 @@ if (global.config.enablefb) {
                                 }).handler + "]"
                               ].concat(message));
                             },
-                            return: returnFunc
+                            return: returnFunc,
+                            resolvedLang: global.data.userLanguage[resolveID("Facebook", { msgdata: message })] || global.config.language
                           });
                           if (global.getType(returndata) == "Promise") {
                             returndata = await returndata;
@@ -2492,8 +2494,8 @@ if (global.config.enablediscord) {
                   "[" + String(chhandling.handler) + "]"
                 ].concat(message));
               },
-              // eslint-disable-next-line no-loop-func
-              return: returnFunc
+              return: returnFunc,
+              resolvedLang: global.data.userLanguage[resolveID("Discord", { msgdata: message })] || global.config.language
             });
             // eslint-disable-next-line no-await-in-loop
             if (global.getType(chdata) == "Promise") chdata = await chdata;
@@ -2566,19 +2568,8 @@ if (global.config.enablediscord) {
                     "[" + global.commandMapping[arg[0].substr(1)].handler + "]"
                   ].concat(message));
                 },
-                return: function returndata(returndata) {
-                  if (!returndata) return;
-                  if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                    message.reply((returndata.data || ""), {
-                      split: true
-                    });
-                  } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                    var body = returndata.data.body || "";
-                    delete returndata.data.body;
-                    returndata.data.split = true;
-                    message.reply(body, returndata.data);
-                  }
-                }
+                return: returnFunc,
+                resolvedLang: global.data.userLanguage[resolveID("Discord", { msgdata: message })] || global.config.language
               });
               if (global.getType(returndata) == "Promise") returndata = await returndata;
             } catch (ex) {
