@@ -2,6 +2,14 @@
 /* eslint-disable no-process-env */
 
 (async () => {
+  var semver = require("semver");
+  var nodeVersion = semver.parse(process.version);
+  if (nodeVersion.major < 12 || (nodeVersion.major == 12 && nodeVersion.minor < 9)) {
+    console.error("ERROR: Node.JS 12+ (>=12.9) required in this version!");
+    console.error("Node.JS version running this bot:", process.version);
+    process.exit(1);
+  }
+
   var childProcess = require("child_process");
   var http = require("http");
   var fs = require("fs");
