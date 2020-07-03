@@ -2017,7 +2017,7 @@ if (global.config.enablefb) {
                     if (message.logMessageData.addedParticipants[n].userFbId == botID) {
                       returnFunc({
                         handler: "internal",
-                        data: global.config.botname + " | Connected. \n" + 
+                        data: global.config.botname + " | Connected. \n" +
                           getLang("CONNECTED_MESSAGE").replace("{0}", global.config.commandPrefix)
                       });
                       log("[Facebook]", message.author, "added Bot to", message.threadID);
@@ -2427,6 +2427,43 @@ if (global.config.enablediscord) {
   var discordMessageHandler = async function (message) {
     var nointernalresolve = false;
     var receivetime = new Date();
+
+    let returnFunc = async function returnFunc(returndata) {
+      if (typeof returndata == "object") {
+        switch (returndata.handler) {
+          case "internal":
+            if (typeof returndata.data != "string") return { error: "Data must be a string." };
+            try {
+              return message.reply((returndata.data || "\u200B"), {
+                split: true
+              });
+            } catch (ex) {
+              return {
+                error: ex
+              }
+            }
+          case "internal-raw":
+            if (global.getType(returndata.data) != "Object") return { error: "Data must be an object." };
+            var body = returndata.data.body || "\u200B";
+            delete returndata.data.body;
+            returndata.data.split = true;
+            try {
+              return message.reply(body, returndata.data);
+            } catch (ex) {
+              return {
+                err: ex
+              }
+            }
+          default:
+            return {
+              error: `Invalid handler: ${returndata.handler}`
+            };
+        }
+      } else if (typeof returndata != "undefined") {
+        log("[Discord]", "Received an unknown response from plugin:", returndata);
+      }
+    };
+
     for (var n in global.chatHook) {
       if (global.chatHook[n].listenplatform & 2) {
         var chhandling = global.chatHook[n];
@@ -2456,19 +2493,7 @@ if (global.config.enablediscord) {
                 ].concat(message));
               },
               // eslint-disable-next-line no-loop-func
-              return: function returndata(returndata) {
-                if (!returndata) return;
-                if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                  message.reply((returndata.data || ""), {
-                    split: true
-                  });
-                } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                  var body = returndata.data.body || "";
-                  delete returndata.data.body;
-                  returndata.data.split = true;
-                  message.reply(body, returndata.data);
-                }
-              }
+              return: returnFunc
             });
             // eslint-disable-next-line no-await-in-loop
             if (global.getType(chdata) == "Promise") chdata = await chdata;
@@ -2563,20 +2588,7 @@ if (global.config.enablediscord) {
                 data: "plerr: " + ex.stack
               };
             }
-            if (typeof returndata == "object") {
-              if (returndata.handler == "internal" && typeof returndata.data == "string") {
-                message.reply((returndata.data || ""), {
-                  split: true
-                });
-              } else if (returndata.handler == "internal-raw" && typeof returndata.data == "object") {
-                var body = returndata.data.body || "";
-                delete returndata.data.body;
-                returndata.data.split = true;
-                message.reply(body, returndata.data);
-              }
-            } else if (typeof returndata != "undefined") {
-              log("[Facebook]", "Received an unknown response from plugin:", returndata);
-            }
+            returnFunc(returndata);
           }
         } else {
           if (!global.config.hideUnknownCommandMessage) {
