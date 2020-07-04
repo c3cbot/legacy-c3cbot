@@ -1635,7 +1635,12 @@ if (global.config.enablefb) {
                     !(global.config.facebookAllowOptionalResponseNoDelay && returndata.noDelay)
                   ) {
                     for (let i = 1; i <= (msPerMsg / 29500).ceil(0); i++) {
-                      let stopTyping = api.sendTypingIndicator(message.threadID, () => { }, message.isGroup);
+                      let stopTyping;
+                      await new Promise(resolve => {
+                        stopTyping = api.sendTypingIndicator(message.threadID, () => {
+                          resolve();
+                        }, message.isGroup);
+                      });
                       await new Promise(resolve => setTimeout(resolve, (i == (msPerMsg / 29500).ceil(0)) ? (msPerMsg % 29500) : 29500));
                       stopTyping();
                     }
