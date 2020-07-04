@@ -1,5 +1,5 @@
 UNKNOWN_CMD: "コマンドが間違っています。`{0}help` を使用して、使用可能なすべてのコマンドを表示します。"
-UNKNOWN_CMD_DIDYOUMEAN: "`{0}` を使用するつもりでしたか？"
+UNKNOWN_CMD_DIDYOUMEAN: "{0} を使用するつもりでしたか？"
 UNSUPPORTED_INTERFACE: "申し訳ありませんが、このコマンドはこのインターフェイスではサポートされていません。"
 HELP_ARGS: "[ページ番号]"
 HELP_DESC: "使用可能なすべてのコマンドをリストします。"
