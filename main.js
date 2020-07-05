@@ -1505,6 +1505,7 @@ if (global.config.enablefb) {
       if (isGroup) {
         let tryfetch = true;
         if (
+          !global.data.cacheName["FB-" + id] ||
           global.data.cacheNameExpires["FB-" + id] <= Date.now() || 
           !!force
         ) {
@@ -1516,6 +1517,7 @@ if (global.config.enablefb) {
           tryfetch = true;
         }
         if (tryfetch) {
+          global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now();
           api.getThreadInfo(id, function (err, ret) {
             if (err) return log("[Facebook] Failed to fetch names (from thread):", err);
             for (let z in ret.userInfo) {
@@ -1523,6 +1525,7 @@ if (global.config.enablefb) {
               global.data.cacheName["FB-" + ret.userInfo[z].id] = ret.userInfo[z].name;
               global.data.cacheNameExpires["FB-" + ret.userInfo[z].id] = Date.now() + 604800000; //cacheName expires in 7 days.
             }
+            ret.isGroup ? global.data.cacheName["FB-" + id] = ret.threadName : "";
             global.data.cacheNameExpires["FB-" + id] = Date.now() + 604800000; //cacheName for thread expires in 7 days.
             try {
               callingback();
