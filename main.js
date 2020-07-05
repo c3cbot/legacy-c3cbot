@@ -1497,29 +1497,67 @@ if (global.config.enablefb) {
       }
     }, 1000);
 
-    function fetchName(id, force, callingback) {
+    function fetchName(id, force, callingback, isGroup) {
       if (!callingback) {
         callingback = function () { };
       }
-      if (!global.data.cacheName["FB-" + id] ||
-        global.data.cacheName["FB-" + id].startsWith("FETCHING-") ||
-        global.data.cacheNameExpires["FB-" + id] <= Date.now() ||
-        !!force) {
-        if (typeof global.data.cacheName["FB-" + id] == "string" && global.data.cacheName["FB-" + id].startsWith("FETCHING-") && !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)) return callingback();
-        global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now();
-        api.getUserInfo(id, function (err, ret) {
-          if (err) return log("[Facebook] Failed to fetch names:", err);
-          log("[CACHENAME]", id + " => " + ret[id].name);
-          global.data.cacheName["FB-" + id] = ret[id].name;
-          global.data.cacheNameExpires["FB-" + id] = Date.now() + 604800000; //cacheName expires in 7 days.
-          try {
-            callingback();
-          } catch (ex) {
-            log("[INTERNAL]", ex);
-          }
-        });
+
+      if (isGroup) {
+        let tryfetch = true;
+        if (
+          global.data.cacheNameExpires["FB-" + id] <= Date.now() || 
+          !!force
+        ) {
+          tryfetch = true;
+        } else if (
+          global.data.cacheName["FB-" + id].startsWith("FETCHING-") &&
+          parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000
+        ) {
+          tryfetch = true;
+        }
+        if (tryfetch) {
+          api.getThreadInfo(id, function (err, ret) {
+            if (err) return log("[Facebook] Failed to fetch names (from thread):", err);
+            for (let z in ret.userInfo) {
+              log("[CACHENAME]", "Batch operation:", ret.userInfo[z].id + " => " + ret.userInfo[z].name);
+              global.data.cacheName["FB-" + ret.userInfo[z].id] = ret.userInfo[z].name;
+              global.data.cacheNameExpires["FB-" + ret.userInfo[z].id] = Date.now() + 604800000; //cacheName expires in 7 days.
+            }
+            global.data.cacheNameExpires["FB-" + id] = Date.now() + 604800000; //cacheName for thread expires in 7 days.
+            try {
+              callingback();
+            } catch (ex) {
+              log("[INTERNAL]", ex);
+            }
+          });
+        } else {
+          callingback();
+        }
       } else {
-        callingback();
+        if (!global.data.cacheName["FB-" + id] ||
+          global.data.cacheName["FB-" + id].startsWith("FETCHING-") ||
+          global.data.cacheNameExpires["FB-" + id] <= Date.now() ||
+          !!force) {
+          if (
+            typeof global.data.cacheName["FB-" + id] == "string" && 
+            global.data.cacheName["FB-" + id].startsWith("FETCHING-") && 
+            !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)
+          ) return callingback(global.data.cacheName["FB-" + id]);
+          global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now();
+          api.getUserInfo(id, function (err, ret) {
+            if (err) return log("[Facebook] Failed to fetch names:", err);
+            log("[CACHENAME]", id + " => " + ret[id].name);
+            global.data.cacheName["FB-" + id] = ret[id].name;
+            global.data.cacheNameExpires["FB-" + id] = Date.now() + 604800000; //cacheName expires in 7 days.
+            try {
+              callingback(global.data.cacheName["FB-" + id]);
+            } catch (ex) {
+              log("[INTERNAL]", ex);
+            }
+          });
+        } else {
+          callingback(global.data.cacheName["FB-" + id]);
+        }
       }
     }
     facebook.api.fetchName = fetchName;
@@ -1726,11 +1764,12 @@ if (global.config.enablefb) {
             nointernalresolve = true;
           }
 
+          fetchName(message.threadID, false, () => fetchName(message.senderID || message.author, false, () => {}, false), true);
+
           switch (message.type) {
             case "message":
               !global.deliveryFacebook[message.threadID] ? global.deliveryFacebook[message.threadID] = [] : "";
               global.deliveryFacebook[message.threadID].push(message.messageID);
-              fetchName(message.senderID);
               if (message.isGroup) {
                 !global.data.facebookChatGroupList ? global.data.facebookChatGroupList = [] : "";
                 if (global.data.facebookChatGroupList.indexOf(message.threadID) == -1) global.data
@@ -2447,7 +2486,7 @@ if (global.config.enablediscord) {
             } catch (ex) {
               return {
                 error: ex
-              }
+              };
             }
           case "internal-raw":
             if (global.getType(returndata.data) != "Object") return { error: "Data must be an object." };
@@ -2459,7 +2498,7 @@ if (global.config.enablediscord) {
             } catch (ex) {
               return {
                 err: ex
-              }
+              };
             }
           default:
             return {
