@@ -58,7 +58,7 @@
         })
         .catch(_ => { }));
     }
-    var child = childProcess.spawn("node", ["main.js"], {
+    var child = childProcess.spawn("node", ["--trace-warnings", "main.js"], {
       cwd: __dirname,
       maxBuffer: 16384 * 1024,
       stdio: 'inherit',
