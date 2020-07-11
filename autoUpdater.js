@@ -205,15 +205,21 @@ module.exports = {
             throw "OK";
           } else if (code == 128) {
             return spawn("git", ["config", "user.name", "AutoUpdater"])
-              .then(() => spawn("git", ["config", "user.email", "c3c-autoupdater@lequanglam.cf"]))
-              .then(() => spawn("git", ["pull"]));
+              .then(() => spawn("git", ["config", "user.email", "autoupdate@c3c.tech"]))
+              .then(() => spawn("git", ["pull"]))
           }
-          resolvePromise([false, "git reset & pull: code " + code]);
-          throw "NOT OK";
+          return code;
         })
         .then(code => {
           if (code != 0) {
-            resolvePromise([false, "git reset & pull w/config: code " + code]);
+            return spawn("git", ["fetch", "origin", "master"])
+              .then(() => spawn("git", ["reset", "--hard", "origin/master"]));
+          }
+          throw "OK";
+        })
+        .then(code => {
+          if (code != 0) {
+            resolvePromise([false, "git reset >> HEAD: code " + code]);
             throw "NOT OK";
           }
           throw "OK";
