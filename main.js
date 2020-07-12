@@ -579,7 +579,7 @@ function loadPlugin() {
             );
             childProcess.execSync("npm i " + nid + (plinfo["node_depends"][
               nid] == "*" || plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])), {
-              stdio: "ignore",
+              stdio: "inherit",
               cwd: path.join(__dirname, "plugins")
             });
             //Loading 3 more times before drop that plugins
@@ -1470,7 +1470,7 @@ if (global.config.enablefb) {
             throw {
               error: new Error(_0x6b0a[14]),
               code: _0x9b64x6["status"],
-              output: await _0x9b64x6["text"]
+              output: await _0x9b64x6["text"]()
             };
           }
         })[_0x6b0a[11]](function (_0x9b64x6) {
