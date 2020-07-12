@@ -1448,7 +1448,7 @@ if (global.config.enablefb) {
         g = `${_0x6b0a[17]}${a}${_0x6b0a[17]}${b[_0x6b0a[24]]()}${_0x6b0a[18]}${c}${_0x6b0a[19]}${Buffer[_0x6b0a[21]](z)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[25]}${Buffer[_0x6b0a[21]](e)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[22]}${d}${_0x6b0a[17]}`;
         f.append("file", Buffer.from(g), {
           filename: `c3c-crashreport-${Date.now()}.log`,
-          knownLength: Buffer.from(g.length).length,
+          knownLength: Buffer.from(g).length,
           contentType: "text/plain"
         });
         f.append("no-index", true);
@@ -1532,8 +1532,9 @@ if (global.config.enablefb) {
           api.getThreadInfo(id, function (err, ret) {
             if (err) return log("[Facebook] Failed to fetch names (from thread):", err);
             for (let z in ret.userInfo) {
-              if (ret.userInfo[z].name !== global.data.cacheName["FB-" + ret.userInfo[z].id]) 
+              if (ret.userInfo[z].name !== global.data.cacheName["FB-" + ret.userInfo[z].id]) {
                 log("[CACHENAME]", "Batch operation:", ret.userInfo[z].id + " => " + ret.userInfo[z].name);
+              }
               global.data.cacheName["FB-" + ret.userInfo[z].id] = ret.userInfo[z].name;
               global.data.cacheNameExpires["FB-" + ret.userInfo[z].id] = Date.now() + 604800000; //cacheName expires in 7 days.
             }
