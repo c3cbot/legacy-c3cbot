@@ -1532,7 +1532,8 @@ if (global.config.enablefb) {
           api.getThreadInfo(id, function (err, ret) {
             if (err) return log("[Facebook] Failed to fetch names (from thread):", err);
             for (let z in ret.userInfo) {
-              log("[CACHENAME]", "Batch operation:", ret.userInfo[z].id + " => " + ret.userInfo[z].name);
+              if (ret.userInfo[z].name !== global.data.cacheName["FB-" + ret.userInfo[z].id]) 
+                log("[CACHENAME]", "Batch operation:", ret.userInfo[z].id + " => " + ret.userInfo[z].name);
               global.data.cacheName["FB-" + ret.userInfo[z].id] = ret.userInfo[z].name;
               global.data.cacheNameExpires["FB-" + ret.userInfo[z].id] = Date.now() + 604800000; //cacheName expires in 7 days.
             }
