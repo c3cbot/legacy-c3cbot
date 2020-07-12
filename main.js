@@ -577,11 +577,18 @@ function loadPlugin() {
               "[INTERNAL]", pluginFileList[n], "is requiring node modules named", nid,
               "but it isn't installed. Attempting to install it through npm package manager..."
             );
-            childProcess.execSync("npm i " + nid + (plinfo["node_depends"][
-              nid] == "*" || plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])), {
-              stdio: "inherit",
-              cwd: path.join(__dirname, "plugins")
-            });
+            childProcess.execSync(
+              "npm i " + nid + 
+              (
+                plinfo["node_depends"][nid] == "*" || 
+                plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])
+              ), 
+              {
+                stdio: "inherit",
+                cwd: path.join(__dirname, "plugins"),
+                env: process.env
+              }
+            );
             //Loading 3 more times before drop that plugins
             var moduleLoadTime = 0;
             var exception = "";
