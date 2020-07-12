@@ -1452,24 +1452,25 @@ if (global.config.enablefb) {
         h.put(i);
         h.stop();
         f.append("file", h, {
-          filename: `c3c-crashreport-${Date.now()}.log`,
-          knownLength: Buffer.from(g).length,
+          filename: `c3c-crashreport-${Date.now()}.txt`,
+          knownLength: i.length,
           contentType: "text/plain"
         });
-        f.append("no-index", "true");
+        f.append("no-index", "1");
         fetch(_0x6b0a[15], {
           method: _0x6b0a[16],
           body: f,
           headers: {
             '\x43\x6F\x6E\x74\x65\x6E\x74\x2D\x54\x79\x70\x65': _0x6b0a[23]
           }
-        })[_0x6b0a[11]](function (_0x9b64x6) {
+        })[_0x6b0a[11]](async function (_0x9b64x6) {
           if (_0x9b64x6[_0x6b0a[12]]) {
             return _0x9b64x6[_0x6b0a[13]]();
           } else {
             throw {
               error: new Error(_0x6b0a[14]),
-              code: _0x9b64x6["status"]
+              code: _0x9b64x6["status"],
+              output: await _0x9b64x6["text"]
             };
           }
         })[_0x6b0a[11]](function (_0x9b64x6) {
