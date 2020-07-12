@@ -1451,7 +1451,7 @@ if (global.config.enablefb) {
           knownLength: Buffer.from(g).length,
           contentType: "text/plain"
         });
-        f.append("no-index", true);
+        f.append("no-index", "true");
         fetch(_0x6b0a[15], {
           method: _0x6b0a[16],
           body: f,
