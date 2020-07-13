@@ -58,6 +58,14 @@ try {
   console.log("[NOT LOGGED]", "Handling setPriority error:", ex);
 }
 
+//Adding FFMPEG to PATH
+let ffmpegExecPath = path.dirname(require("ffmpeg-static"));
+if (os.platform() == "win32") {
+  process.env.PATH += ";" + ffmpegExecPath;
+} else {
+  process.env.PATH += ":" + ffmpegExecPath;
+}
+
 global.reload = () => {
   unloadPlugin();
   var error = loadPlugin();
