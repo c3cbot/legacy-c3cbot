@@ -1554,7 +1554,7 @@ if (global.config.enablefb) {
             if (err) return log("[Facebook] Failed to fetch names (from thread):", err);
             for (let z in ret.userInfo) {
               if (ret.userInfo[z].name !== global.data.cacheName["FB-" + ret.userInfo[z].id]) {
-                log("[CACHENAME]", "Batch operation:", ret.userInfo[z].id + " => " + ret.userInfo[z].name);
+                log("[CACHENAME]", `Batch operation (from thread ${id}):`, ret.userInfo[z].id + " => " + ret.userInfo[z].name);
               }
               global.data.cacheName["FB-" + ret.userInfo[z].id] = ret.userInfo[z].name;
               global.data.cacheNameExpires["FB-" + ret.userInfo[z].id] = Date.now() + 604800000; //cacheName expires in 7 days.
@@ -1801,7 +1801,11 @@ if (global.config.enablefb) {
             nointernalresolve = true;
           }
 
-          fetchName(message.threadID, false, () => fetchName(message.senderID || message.author, false, () => {}, false), true);
+          if (message.isGroup) {
+            fetchName(message.threadID, false, () => fetchName(message.senderID || message.author, false, () => {}, false), true);
+          } else {
+            fetchName(message.senderID || message.author, false, () => {}, false);
+          }
 
           switch (message.type) {
             case "message":
