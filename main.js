@@ -1959,7 +1959,8 @@ if (global.config.enablefb) {
                               ].concat(message));
                             },
                             return: returnFunc,
-                            resolvedLang: global.data.userLanguage[resolveID("Facebook", { msgdata: message })] || global.config.language
+                            resolvedLang: global.data.userLanguage[resolveID("Facebook", { msgdata: message })] || global.config.language,
+                            content: message.body
                           });
                           if (global.getType(returndata) == "Promise") {
                             returndata = await returndata;
@@ -2654,7 +2655,8 @@ if (global.config.enablediscord) {
                   ].concat(message));
                 },
                 return: returnFunc,
-                resolvedLang: global.data.userLanguage[resolveID("Discord", { msgdata: message })] || global.config.language
+                resolvedLang: global.data.userLanguage[resolveID("Discord", { msgdata: message })] || global.config.language,
+                content: message.content
               });
               if (global.getType(returndata) == "Promise") returndata = await returndata;
             } catch (ex) {
