@@ -51,8 +51,8 @@
       console.log(`[Loader] 7378278/RESTART error code found. Restarting...`);
     }
     if (fs.existsSync(path.join(__dirname, "c3c-nextbootupdate"))) {
-      await (spawn("npm", ["install"])
-        .then(() => spawn("npm", ["update"]))
+      await (spawn("npm", ["--production", "install"])
+        .then(() => spawn("npm", ["--depth", "9999", "update"]))
         .then(() => {
           fs.unlinkSync(path.join(__dirname, "c3c-nextbootupdate"));
         })

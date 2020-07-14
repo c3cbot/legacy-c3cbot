@@ -229,13 +229,13 @@ module.exports = {
             try {
               //fs.unlinkSync("package-lock.json");
             } catch (ex) { }
-            spawn("npm", ["install"])
+            spawn("npm", ["--production", "install"])
               .then(code => {
                 if (code != 0) {
                   fs.writeFileSync(path.join(__dirname, "c3c-nextbootupdate"), "");
                   throw null;
                 }
-                return spawn("npm", ["update"]);
+                return spawn("npm", ["--depth", "9999", "update"]);
               })
               .then(code => {
                 if (code != 0) {

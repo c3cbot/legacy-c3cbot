@@ -504,6 +504,8 @@ if (global.config.autoUpdateTimer > 0 && global.config.autoUpdate) {
 
 //Plugin Load
 ensureExists(path.join(__dirname, "plugins/"));
+ensureExists(path.join(__dirname, "plugins/node_modules"));
+ensureExists(path.join(__dirname, "plugins/node_modules/node_modules"));
 
 function checkPluginCompatibly(version) {
   version = version.toString();
@@ -573,7 +575,7 @@ function loadPlugin() {
         for (var nid in plinfo["node_depends"]) {
           var defaultmodule = require("module")
             .builtinModules;
-          var moduledir = path.join(__dirname, "plugins", "node_modules", nid);
+          var moduledir = path.join(__dirname, "plugins", "node_modules", "node_modules", nid);
           try {
             if (defaultmodule.indexOf(nid) != -1 || (["jimp", "wait-for-stuff", "deasync", "discord.js", "fca-unofficial"]).indexOf(nid) != -1) {
               global.nodemodule[nid] = require(nid);
@@ -586,7 +588,7 @@ function loadPlugin() {
               "but it isn't installed. Attempting to install it through npm package manager..."
             );
             childProcess.execSync(
-              "npm i " + nid + 
+              "npm --prefix ./node_modules --loglevel error --package-lock false --save false -- install " + nid + 
               (
                 plinfo["node_depends"][nid] == "*" || 
                 plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])
@@ -594,7 +596,8 @@ function loadPlugin() {
               {
                 stdio: "inherit",
                 cwd: path.join(__dirname, "plugins"),
-                env: process.env
+                env: process.env,
+                shell: true
               }
             );
             //Loading 3 more times before drop that plugins
