@@ -594,7 +594,7 @@ function loadPlugin() {
               ), 
               {
                 stdio: "inherit",
-                cwd: path.join(__dirname, "plugins", "nodemodule"),
+                cwd: path.join(__dirname, "plugins", "nodemodules"),
                 env: process.env,
                 shell: true
               }
