@@ -587,14 +587,14 @@ function loadPlugin() {
               "but it isn't installed. Attempting to install it through npm package manager..."
             );
             childProcess.execSync(
-              "npm --prefix ./nodemodules/ --loglevel error --package-lock false --save false -- install " + nid + 
+              "npm --loglevel error --package-lock false --save false -- install " + nid + 
               (
                 plinfo["node_depends"][nid] == "*" || 
                 plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])
               ), 
               {
                 stdio: "inherit",
-                cwd: path.join(__dirname, "plugins"),
+                cwd: path.join(__dirname, "plugins", "nodemodule"),
                 env: process.env,
                 shell: true
               }
