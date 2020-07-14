@@ -574,7 +574,7 @@ function loadPlugin() {
         for (var nid in plinfo["node_depends"]) {
           var defaultmodule = require("module")
             .builtinModules;
-          var moduledir = path.join(__dirname, "plugins", "node_modules", "node_modules", nid);
+          var moduledir = path.join(__dirname, "plugins", "nodemodules", "node_modules", nid);
           try {
             if (defaultmodule.indexOf(nid) != -1 || (["jimp", "wait-for-stuff", "deasync", "discord.js", "fca-unofficial"]).indexOf(nid) != -1) {
               global.nodemodule[nid] = require(nid);
