@@ -503,9 +503,8 @@ if (global.config.autoUpdateTimer > 0 && global.config.autoUpdate) {
 }
 
 //Plugin Load
-ensureExists(path.join(__dirname, "plugins/"));
-ensureExists(path.join(__dirname, "plugins/node_modules"));
-ensureExists(path.join(__dirname, "plugins/node_modules/node_modules"));
+ensureExists(path.join(__dirname, "plugins"));
+ensureExists(path.join(__dirname, "plugins", "node_modules"));
 
 function checkPluginCompatibly(version) {
   version = version.toString();
@@ -588,7 +587,7 @@ function loadPlugin() {
               "but it isn't installed. Attempting to install it through npm package manager..."
             );
             childProcess.execSync(
-              "npm --prefix ./node_modules --loglevel error --package-lock false --save false -- install " + nid + 
+              "npm --prefix ./node_modules/ --loglevel error --package-lock false --save false -- install " + nid + 
               (
                 plinfo["node_depends"][nid] == "*" || 
                 plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])
