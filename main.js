@@ -1720,10 +1720,7 @@ if (global.config.enablefb) {
                   //Facebook: Sending messages/responses (yes)
                   switch (typeof returndata.data) {
                     case "object":
-                      returndata.data.body = (returndata.data.body ? prefix + " " + returndata.data.body : prefix);
-                      break;
                     case "string":
-                      returndata.data = prefix + " " + returndata.data;
                       break;
                     default:
                       return {
