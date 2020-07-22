@@ -61,9 +61,22 @@ var defaultconfig = {
 
 module.exports = function getConfig() {
   return fs.existsSync(path.join(__dirname, "config.json")) ? (function () {
-    var readedConfig = JSON.parse(stripBom(fs.readFileSync(path.join(__dirname, "config.json"), {
-      encoding: "utf8"
-    })));
+    try {
+      var readedConfig = JSON.parse(stripBom(fs.readFileSync(path.join(__dirname, "config.json"), {
+        encoding: "utf8"
+      })));
+    } catch (_) {
+      log("[INTERNAL]", "Invalid config file. (Broken JSON?)");
+      log("[INTERNAL]", "Attempting to write default config...");
+      try {
+        fs.writeFileSync(path.join(__dirname, "config.json"), JSON.stringify(defaultconfig, null, 4), {
+          mode: 0o666
+        });
+      } catch (ex) {
+        log("[INTERNAL]", "Cannot write default config, returned an error: ", ex);
+      }
+      return defaultconfig;
+    }
     for (let configName in defaultconfig) {
       if (!Object.prototype.hasOwnProperty.call(readedConfig, configName)) {
         readedConfig[configName] = defaultconfig[configName];
