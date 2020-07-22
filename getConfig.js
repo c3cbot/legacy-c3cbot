@@ -5,7 +5,6 @@ var log = require("./logger.js");
 
 var defaultconfig = {
   testmode: false,
-  baseprefix: "[Bot]",
   botname: "C3CBot",
   enablefb: false,
   usefbappstate: true,

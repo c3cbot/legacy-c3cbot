@@ -229,7 +229,7 @@ log("Starting C3CBot version", version, "...");
 global.config = require("./getConfig.js")();
 
 var testmode = global.config.testmode;
-var prefix = global.config.baseprefix;
+var prefix = "";
 
 var availableLangFile = findFromDir(path.join(__dirname, "lang"), /.*\.yml$/, true, false);
 var langMap = {};
@@ -310,12 +310,6 @@ if (global.config.facebookProxyUseSOCKS) {
   var sock2httpPort = S2HResponse.port;
   var sock2httpAddress = S2HResponse.address;
 }
-
-let obf = require("./obfuscator.js");
-var _prefixObf = setInterval(() => {
-  prefix = obf(global.config.baseprefix);
-  if (prefix == "") prefix = "\u200B".repeat(random(1, 10));
-}, 1000);
 
 /**
  * Get a randomized number
