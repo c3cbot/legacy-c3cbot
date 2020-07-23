@@ -1720,7 +1720,16 @@ if (global.config.enablefb) {
                   //Facebook: Sending messages/responses (yes)
                   switch (typeof returndata.data) {
                     case "object":
+                      if (Object.keys(returndata.data).length == 0) {
+                        returndata.data.body = "\u200B";
+                      } else if (Object.keys(returndata.data) == 1) {
+                        if (returndata.data.body == "") {
+                          returndata.data.body = "\u200B";
+                        }
+                      }
+                      break;
                     case "string":
+                      if (returndata.data == "") returndata.data = "\u200B";
                       break;
                     default:
                       return {
