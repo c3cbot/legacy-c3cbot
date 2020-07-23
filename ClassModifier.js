@@ -1,4 +1,6 @@
-/* eslint-disable no-undef */
+const replaceAll = require('string.prototype.replaceall');
+String.prototype.replaceAll = replaceAll;
+
 String.prototype.pad = function (width, z) {
   z = z || '0';
   var n = this.valueOf() + '';
@@ -126,4 +128,16 @@ JSON.parse = function parseWithBigInt(jsonString, reviver) {
     return value;
   }
   return ogParse(jsonString, r);
+}
+
+//Add another way to replace string
+String.prototype.objectReplace = function objectReplace(obj) {
+  return Object.keys(obj).reduce((s, v) => s.replaceAll(String(v[0]), String(v[1])), this.valueOf());
+}
+String.prototype.fReplace = function fReplace(...args) {
+  let str = this.valueOf();
+  for (let i in args) {
+    str = str.replaceAll(`{${i}}`, args[i]);
+  }
+  return str;
 }
