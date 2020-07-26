@@ -1,6 +1,6 @@
 const replaceAll = require('string.prototype.replaceall');
 String.prototype.replaceAll = function (searchValue, replaceValue) {
-  replaceAll(this, searchValue, replaceValue);
+  return replaceAll(this, searchValue, replaceValue);
 }
 
 String.prototype.pad = function (width, z) {
