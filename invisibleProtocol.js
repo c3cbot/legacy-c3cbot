@@ -27,12 +27,15 @@
     - Prefix: 1003
     - EOT suffix: 0010
 
-    - Notify other bots: PREFIX + SUFFIX (10030100) without any data 
+    - Notify other bots (ping): PREFIX + SUFFIX (10030100) without any data 
       in-between
 
     - Response to a ping: PREFIX + 00 (TYPE) + (ID of ping sender encoded as Base-4 and
       replaced with IPROTOCOL character mapping) + SUFFIX
 
+    - Timeout after ping: 10 seconds
+
+    
   still working on... this is a draft.
 */
 
@@ -82,14 +85,23 @@ let parseData = function parseData(message) {
     if (data === "") {
       return [{
         message: 
-          prefix.objectReplace(mapping) +
-          "00".objectReplace(mapping) +
-          BigInt(message.senderID).toString(4).objectReplace(mapping) +
-          suffix.objectReplace(mapping),
+          (
+            prefix +
+            "00" +
+            BigInt(message.senderID).toString(4) +
+            suffix
+          ).objectReplace(mapping),
         when: 0
       }];
     } else {
       //parse data from other bots.
     }
   }
+}
+
+let pingHeader = (prefix + suffix).objectReplace(mapping);
+
+module.exports = {
+  pingHeader,
+  parseData
 }
