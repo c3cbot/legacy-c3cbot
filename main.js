@@ -55,7 +55,7 @@ global.reload = () => {
   loadPlugin();
 };
 global.fbchat = (id, mess) => {
-  if (typeof facebook.api == "object") {
+  if (global.getType(facebook.api) === "Object") {
     var isGroup = (id.toString().length == 16);
     facebook.api.sendMessage(mess, id, () => { }, null, isGroup);
     return `Sent message: ${mess} to ${isGroup ? "Thread" : "User"} ID ${id}`;
@@ -190,7 +190,7 @@ setInterval(() => {
     }
   }
   global.stderrdata = "";
-}, 499);
+}, 200);
 
 //Handling rejected promise that are unhandled
 process.on('unhandledRejection', (reason, promise) => {
@@ -328,6 +328,7 @@ var _randomBytes = function (numbytes) {
 };
 //Cryptography
 var crypto = require('crypto');
+const { fade } = require("jimp");
 
 /**
  * Get a HMAC hash.
@@ -347,13 +348,6 @@ function _HMAC(publick, privatek, algo, output) {
   var value = hmac.digest(output);
   return value;
 }
-
-////Global data load
-//// global.dataSave = wait.for.promise(autosave('data' + (testmode ? "-test" : "") + '.json'));
-//// global.data = onChange(global.dataSave.data, function(){});
-//// global.watch('data', function (id, oldval, newval) {
-//// global.dataSave.data = global.data;
-//// });
 
 //* Load data
 if (testmode) {
@@ -421,8 +415,7 @@ var _titleClocking = setInterval(async () => {
           .rss / 1024 / 1024)
           .toFixed(0) + " MB USED";
   process.title = title;
-  // eslint-disable-next-line no-extra-boolean-cast
-  if (!!global.sshcurrsession) {
+  if (global.sshcurrsession) {
     if (typeof global.sshcurrsession == "object") {
       for (var session in global.sshstream) {
         try {
@@ -502,6 +495,7 @@ async function loadPlugin() {
   var pltemp1 = {}; //Plugin Info
   var pltemp2 = {}; //Plugin Executable
   global.fileMap = {};
+  global.privateFileMap = {};
   global.loadedPlugins = {};
   global.chatHook = [];
   !global.commandMapping ? global.commandMapping = {} : "";
@@ -540,15 +534,27 @@ async function loadPlugin() {
       } catch (ex) {
         throw "Executable file " + plinfo["plugin_exec"] + " not found.";
       }
-      if (typeof plinfo["file_map"] == "object" && !plinfo["file_map"].map) {
-        for (var fd in plinfo["file_map"]) {
+
+      if (global.getType(plinfo["file_map"]) == "Object") {
+        for (let fd in plinfo["file_map"]) {
           try {
             global.fileMap[plinfo["file_map"][fd]] = zip.entryDataSync(fd);
           } catch (ex) {
-            throw "File " + plinfo["plugin_exec"] + " not found.";
+            throw "File " + fd + " not found.";
           }
         }
       }
+      if (global.getType(plinfo["private_file_map"]) == "Object") {
+        global.fileMap[plinfo["plugin_scope"]] = {};
+        for (let fd in plinfo["file_map"]) {
+          try {
+            global.fileMap[plinfo["plugin_scope"]][plinfo["file_map"][fd]] = zip.entryDataSync(fd);
+          } catch (ex) {
+            throw "File " + fd + " not found.";
+          }
+        }
+      }
+
       if (typeof plinfo["node_depends"] == "object") {
         for (var nid in plinfo["node_depends"]) {
           var defaultmodule = require("module")
