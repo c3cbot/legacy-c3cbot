@@ -328,7 +328,6 @@ var _randomBytes = function (numbytes) {
 };
 //Cryptography
 var crypto = require('crypto');
-const { fade } = require("jimp");
 
 /**
  * Get a HMAC hash.
