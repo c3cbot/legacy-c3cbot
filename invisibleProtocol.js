@@ -39,6 +39,8 @@
   still working on... this is a draft.
 */
 
+if (global.getType(global.invisibleProtocol) != "Object") global.invisibleProtocol = {};
+
 let mapping = {
   "0": "\u200B",
   "1": "\u200E",
@@ -83,6 +85,13 @@ let parseData = function parseData(message) {
   let data = getData(message.body);
   if (data) {
     if (data === "") {
+      if (global.getType(global.invisibleProtocol[message.threadID]) == "Object") return null;
+      global.invisibleProtocol[message.threadID] = {
+        leadPing: message.senderID,
+        botList: [
+          message.api.getCurrentUserID()
+        ]
+      }
       return [{
         message: 
           (
@@ -94,7 +103,15 @@ let parseData = function parseData(message) {
         when: 0
       }];
     } else {
-      //parse data from other bots.
+      let rData = data.objectReplace(reverseMapping);
+      switch (rData.slice(0, 2)) {
+        case "00":
+          var decodedLeadPing = rData.slice(2);
+        
+          break;
+        case "01":
+          break;
+      }
     }
   }
 }

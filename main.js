@@ -68,8 +68,7 @@ if (os.platform() == "win32") {
 
 global.reload = () => {
   unloadPlugin();
-  var error = loadPlugin();
-  return `Reloaded${error.length == 0 ? " " : (" with error at: " + JSON.stringify(error, null, 2))}`;
+  loadPlugin();
 };
 global.fbchat = (id, mess) => {
   if (typeof facebook.api == "object") {
@@ -511,7 +510,9 @@ function checkPluginCompatibly(version) {
   }
 }
 
-function loadPlugin() {
+async function loadPlugin() {
+  let startLoading = Date.now();
+
   var error = [];
   global.plugins = {}; //Plugin Scope
   var pltemp1 = {}; //Plugin Info
@@ -649,6 +650,30 @@ function loadPlugin() {
     if (passed) {
       try {
         global.plugins[pltemp1[plname]["plugin_scope"]] = requireFromString(pltemp2[plname], path.join(pltemp1[plname].filename, pltemp1[plname]["plugin_exec"]));
+        if (typeof global.plugins[pltemp1[plname]["plugin_scope"]].onLoad == "function") {
+          await (async function (plname) {
+            let ret = global.plugins[pltemp1[plname]["plugin_scope"]].onLoad({
+              // eslint-disable-next-line no-loop-func
+              log: function logPlugin(...message) {
+                log.apply(global, [
+                  "[PLUGIN]",
+                  "[" + plname + "]"
+                ].concat(message));
+              }
+            });
+
+            if (global.getType(ret) == "Promise") {
+              ret = await ret;
+            }
+
+            if (global.getType(ret) == "Object") {
+              pltemp1[plname]["command_map"] = {
+                ...pltemp1[plname]["command_map"],
+                ...ret
+              }
+            }
+          })(String(plname));
+        }
         for (var cmd in pltemp1[plname]["command_map"]) {
           var cmdo = pltemp1[plname]["command_map"][cmd];
           if (!cmdo["hdesc"] || !cmdo["fscope"] || isNaN(parseInt(cmdo["compatibly"]))) {
@@ -701,19 +726,6 @@ function loadPlugin() {
             listenplatform: parseInt(pltemp1[plname]["chatHookPlatform"]),
             handler: plname
           });
-        }
-        if (typeof global.plugins[pltemp1[plname]["plugin_scope"]].onLoad == "function") {
-          (function (plname) {
-            global.plugins[pltemp1[plname]["plugin_scope"]].onLoad({
-              // eslint-disable-next-line no-loop-func
-              log: function logPlugin(...message) {
-                log.apply(global, [
-                  "[PLUGIN]",
-                  "[" + plname + "]"
-                ].concat(message));
-              }
-            });
-          })(String(plname));
         }
         global.loadedPlugins[plname] = {
           author: pltemp1[plname].author,
@@ -1044,7 +1056,7 @@ function loadPlugin() {
   global.commandMapping["reload"] = {
     args: {},
     desc: Object.fromEntries(Object.entries(langMap).map(x => [x[0], x[1]["RELOAD_DESC"]])),
-    scope: function (type, data) {
+    scope: async function (type, data) {
       if (!data.admin && !global.config.allowUserUseReloadCommand) {
         return {
           handler: "internal",
@@ -1052,7 +1064,7 @@ function loadPlugin() {
         };
       }
       unloadPlugin();
-      var error = loadPlugin();
+      var error = await loadPlugin();
       return {
         handler: "internal",
         data: `Reloaded ${error.length == 0 ? "" : ("with error at: " + JSON.stringify(error))}`
@@ -1132,6 +1144,15 @@ function loadPlugin() {
     handler: "INTERNAL"
   };
 
+  let pluginLoadingTimes = Date.now() - startLoading;
+  log("[INTERNAL]", "Plugin loading is done! (" + (pluginLoadingTimes / 1000) + "s)");
+  if (error.length) {
+    let d = "";
+    for (let plFile of error) {
+      d += `\r\n- ${plFile}`;
+    }
+    log("[INTERNAL]", "Warning: There're some plugins that are failed to load:", d);
+  }
   return error;
 }
 
