@@ -41,22 +41,6 @@ const StreamZip = require('node-stream-zip');
 ////var tf = require("@tensorflow/tfjs");
 global.sshcurrsession = {};
 global.sshstream = {};
-//! Changing this process's priority
-try {
-  os.setPriority(-17); //os.constants.priority.PRIORITY_HIGH
-} catch (ex) {
-  console.log(
-    "[NOT LOGGED]",
-    "WARNING: Look like you're not running this bot in Administrator/root mode, or you're using an older NodeJS version."
-  );
-  if (!os.setPriority) {
-    console.log(
-      "[NOT LOGGED]",
-      "Notice: Supported NodeJS version: 12, 13, 14"
-    );
-  }
-  console.log("[NOT LOGGED]", "Handling setPriority error:", ex);
-}
 
 //Adding FFMPEG to PATH
 let ffmpegExecPath = path.dirname(require("ffmpeg-static"));
