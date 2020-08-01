@@ -1525,15 +1525,16 @@ if (global.config.enablefb) {
           if (data.error) {
             return log("[Facebook] Error on delivery_receipts:", data);
           }
-          api.markAsSeen(function (err) {
+          if (!global.noMAS) api.markAsSeen(function (err) {
             if (err) {
+              global.noMAS = true;
               return log("[Facebook] Error on markAsSeen:", err);
             }
           });
         });
         global.deliveryFacebook = {};
       }
-    }, 1000);
+    }, 3000);
 
     function fetchName(id, force, callingback, isGroup) {
       if (!callingback) {
