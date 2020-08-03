@@ -544,10 +544,10 @@ async function loadPlugin() {
         }
       }
       if (global.getType(plinfo["private_file_map"]) == "Object") {
-        global.fileMap[plinfo["plugin_scope"]] = {};
-        for (let fd in plinfo["file_map"]) {
+        global.privateFileMap[plinfo["plugin_scope"]] = {};
+        for (let fd in plinfo["private_file_map"]) {
           try {
-            global.fileMap[plinfo["plugin_scope"]][plinfo["file_map"][fd]] = zip.entryDataSync(fd);
+            global.privateFileMap[plinfo["plugin_scope"]][plinfo["private_file_map"][fd]] = zip.entryDataSync(fd);
           } catch (ex) {
             throw "File " + fd + " not found.";
           }
