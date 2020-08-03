@@ -53,10 +53,7 @@ var defaultconfig = {
   autoUpdate: true,
   autoUpdateTimer: 60,
   configVersion: 1,
-  enableMetric: true,
-  metricHideBotAccountLink: true,
-  hideUnknownCommandMessage: false,
-  herokuApplication: ""
+  hideUnknownCommandMessage: false
 };
 
 module.exports = function getConfig() {
