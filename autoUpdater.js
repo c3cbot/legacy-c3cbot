@@ -126,13 +126,13 @@ module.exports = {
         return module.exports.checkForUpdate(true);
       }
       try {
-        var githubVersion = semver.valid(semver.coerce(JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/lequanglam/c3c/master/package.json", {
+        var githubVersion = semver.valid(semver.coerce(JSON.parse(syncrequest("GET", "https://raw.githubusercontent.com/c3cbot/c3c-0x/master/package.json", {
           headers: {
             "User-Agent": `C3CBot/${currVersion} request/0.0-sync`,
             "Accept": "application/vnd.github.v3.full+json"
           }
         }).body.toString()).version));
-        var githubHash = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/ref/heads/master", {
+        var githubHash = JSON.parse(syncrequest("GET", "https://api.github.com/repos/c3cbot/c3c-0x/git/ref/heads/master", {
           headers: {
             "User-Agent": `C3CBot/${currVersion} request/0.0-sync`,
             "Accept": "application/vnd.github.v3.full+json"
@@ -152,7 +152,7 @@ module.exports = {
       };
     } else if (pr == null || forceStable) {
       //Handling stable version
-      var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/lequanglam/c3c/git/refs/tags", {
+      var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/c3cbot/c3c-0x/git/refs/tags", {
         headers: {
           "User-Agent": `C3CBot/${currVersion} request/0.0-sync`,
           "Accept": "application/vnd.github.v3.full+json"
