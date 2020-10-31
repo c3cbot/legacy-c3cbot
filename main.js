@@ -560,7 +560,7 @@ async function loadPlugin() {
             .builtinModules;
           var moduledir = path.join(__dirname, "plugins", "nodemodules", "node_modules", nid);
           try {
-            if (defaultmodule.indexOf(nid) != -1 || (["jimp", "wait-for-stuff", "deasync", "discord.js", "fca-unofficial"]).indexOf(nid) != -1) {
+            if (defaultmodule.indexOf(nid) != -1 || (["jimp", "wait-for-stuff", "deasync", "discord.js", "fca-unofficial", "ffmpeg-static"]).indexOf(nid) !== -1) {
               global.nodemodule[nid] = require(nid);
             } else {
               global.nodemodule[nid] = require(moduledir);
