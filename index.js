@@ -1,12 +1,13 @@
-/* eslint-disable no-console */
-/* eslint-disable no-process-env */
+/* 
+    Copyright (C) 2020  BadAimWeeb/TeamDec1mus
 
+    Just call this a bootloader.
+*/
 (async () => {
   var semver = require("semver");
   var nodeVersion = semver.parse(process.version);
   if (nodeVersion.major < 12 || (nodeVersion.major == 12 && nodeVersion.minor < 9)) {
-    console.error("ERROR: Node.JS 12+ (>=12.9) required in this version!");
-    console.error("Node.JS version running this bot:", process.version);
+    console.error("ERROR: Node.js 12+ (>=12.9) is required to run this! (current: " + process.version + ")");
     process.exit(1);
   }
 
@@ -29,7 +30,7 @@
     return new Promise(resolve => {
       var npmProcess = childProcess.spawn(cmd, arg, {
         shell: true,
-        stdio: "pipe",
+        stdio: "inherit",
         cwd: __dirname
       });
       npmProcess.on("close", function (code) {
@@ -38,17 +39,10 @@
     });
   }
 
-  /**
-   * C3CLoader Function
-   *
-   * @param   {boolean}    first  First time?
-   *
-   * @return  {undefined}         Nothing
-   */
-  async function loader(first) {
-    if (!first) {
+  async function loader(message = "") {
+    if (message !== "") {
       console.log();
-      console.log(`[Loader] 7378278/RESTART error code found. Restarting...`);
+      console.log("[Loader] " + message);
     }
     if (fs.existsSync(path.join(__dirname, "c3c-nextbootupdate"))) {
       await (spawn("npm", ["--production", "install"])
@@ -56,24 +50,27 @@
         .then(() => {
           fs.unlinkSync(path.join(__dirname, "c3c-nextbootupdate"));
         })
-        .catch(_ => { }));
+        .catch(() => { }));
     }
-    var child = childProcess.spawn("node", ["--trace-warnings", "main.js"], {
+    var child = childProcess.spawn("node", ["--experimental-repl-await", "--trace-warnings", "main.js"], {
       cwd: __dirname,
       maxBuffer: 16384 * 1024,
-      stdio: 'inherit',
+      stdio: "inherit",
       shell: true
     });
     child.on("close", async (code) => {
-      //UNIX, why? (limited to 8-bit)
-      //Original code: 7378278
-      if (code % 256 == 102) {
-        await loader(false);
+      if (code % 256 === 102) {
+        await loader("Restarting");
+        return;
+      }
+
+      if (code % 256 === 134) {
+        await loader("Known bug detected (error 134, 'Assertion `num == numcpus` failed.'). Restarting...");
         return;
       }
 
       console.log();
-      console.log(`[Loader] main.js throw ${code} (not 7378278/RESTART). Shutting down...`);
+      console.log(`[Loader] Error code ${code}. Stopping...`);
       process.exit();
     });
     child.on("error", function (err) {
@@ -81,5 +78,5 @@
       console.log("[Loader] Error:", err);
     });
   }
-  await loader(true);
+  await loader();
 })();
