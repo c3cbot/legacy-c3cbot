@@ -1788,7 +1788,7 @@ if (global.config.enablefb) {
                   ) {
                     let chdata = chhandling.resolverFunc("Facebook", {
                       time: receivetime,
-                      msgdata: message,
+                      msgdata: JSON.parse(JSON.stringify(message)),
                       facebookapi: api,
                       discordapi: client,
                       prefix: prefix,
@@ -1957,7 +1957,7 @@ if (global.config.enablefb) {
                           returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
                             args: argv,
                             time: receivetime,
-                            msgdata: message,
+                            msgdata: JSON.parse(JSON.stringify(message)),
                             facebookapi: api,
                             discordapi: client,
                             prefix: prefix,
@@ -2579,7 +2579,7 @@ if (global.config.enablediscord) {
           ) {
             let chdata = chhandling.resolverFunc("Discord", {
               time: receivetime,
-              msgdata: message,
+              msgdata: {...message},
               discordapi: client,
               // eslint-disable-next-line no-nested-ternary
               facebookapi: (typeof facebook == "object" ? (typeof facebook.api == "object" ? facebook
@@ -2655,7 +2655,7 @@ if (global.config.enablediscord) {
               returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
                 args: JSON.parse(JSON.stringify(arg)),
                 time: currenttime,
-                msgdata: message,
+                msgdata: {...message},
                 prefix: prefix,
                 admin: admin,
                 mentions: mentions,
