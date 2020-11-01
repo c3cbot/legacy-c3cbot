@@ -24,6 +24,7 @@
     res.write(`This is just a dummy HTTP server to fool Heroku. https://i.imgur.com/KgsYleA.png \r\nC3CBot - https://github.com/lequanglam/c3c`);
     res.end();
   });
+  // eslint-disable-next-line no-process-env
   herokuCompatible.listen(process.env.PORT || 0, "0.0.0.0");
 
   function spawn(cmd, arg) {
