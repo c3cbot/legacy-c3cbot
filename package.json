@@ -1,6 +1,6 @@
 {
   "name": "c3cbot",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "A customizable bot that runs on Facebook and Discord.",
   "main": "index.js",
   "scripts": {
@@ -10,18 +10,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lequanglam/c3c.git"
+    "url": "git+https://github.com/c3cbot/c3c-0x.git"
   },
   "keywords": [
     "C\u001b[6~3C",
     "C3C"
   ],
-  "author": "lequanglam",
+  "author": "BadAimWeeb",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/lequanglam/c3c/issues"
+    "url": "https://github.com/c3cbot/c3c-0x/issues"
   },
-  "homepage": "https://github.com/lequanglam/c3c#readme",
+  "homepage": "https://github.com/c3cbot/c3c-0x#readme",
   "dependencies": {
     "@discordjs/opus": "^0.1.0",
     "@tensorflow/tfjs": "^1.7.1",
