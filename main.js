@@ -42,6 +42,17 @@ const StreamZip = require('node-stream-zip');
 global.sshcurrsession = {};
 global.sshstream = {};
 
+// Force update the nodemodule dir in plugins at startup
+childProcess.execSync(
+  "npm --depth 9999 update",
+  {
+    stdio: "inherit",
+    cwd: path.join(__dirname, "plugins", "nodemodules"),
+    env: process.env,
+    shell: true
+  }
+);
+
 //Adding FFMPEG to PATH
 let fStatic = require("ffmpeg-static");
 let ffmpegExecPath = path.dirname(fStatic);
@@ -572,11 +583,11 @@ async function loadPlugin() {
               "but it isn't installed. Attempting to install it through npm package manager..."
             );
             childProcess.execSync(
-              "npm --loglevel error --package-lock false --save false -- install " + nid + 
+              "npm --loglevel error --package-lock false --save false -- install " + nid +
               (
-                plinfo["node_depends"][nid] == "*" || 
-                plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])
-              ), 
+                plinfo["node_depends"][nid] == "*" ||
+                  plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])
+              ),
               {
                 stdio: "inherit",
                 cwd: path.join(__dirname, "plugins", "nodemodules"),
@@ -660,7 +671,7 @@ async function loadPlugin() {
               pltemp1[plname]["command_map"] = {
                 ...pltemp1[plname]["command_map"],
                 ...ret
-              }
+              };
             }
           })(String(plname));
         }
@@ -1546,7 +1557,7 @@ if (global.config.enablefb) {
         let tryfetch = true;
         if (
           !global.data.cacheName["FB-" + id] ||
-          global.data.cacheNameExpires["FB-" + id] <= Date.now() || 
+          global.data.cacheNameExpires["FB-" + id] <= Date.now() ||
           !!force
         ) {
           tryfetch = true;
@@ -1584,8 +1595,8 @@ if (global.config.enablefb) {
           global.data.cacheNameExpires["FB-" + id] <= Date.now() ||
           !!force) {
           if (
-            typeof global.data.cacheName["FB-" + id] == "string" && 
-            global.data.cacheName["FB-" + id].startsWith("FETCHING-") && 
+            typeof global.data.cacheName["FB-" + id] == "string" &&
+            global.data.cacheName["FB-" + id].startsWith("FETCHING-") &&
             !(parseInt(global.data.cacheName["FB-" + id].substr(9)) - Date.now() < -120000)
           ) return callingback(global.data.cacheName["FB-" + id]);
           global.data.cacheName["FB-" + id] = "FETCHING-" + Date.now();
@@ -1816,9 +1827,9 @@ if (global.config.enablefb) {
           }
 
           if (message.isGroup) {
-            fetchName(message.threadID, false, () => fetchName(message.senderID || message.author, false, () => {}, false), true);
+            fetchName(message.threadID, false, () => fetchName(message.senderID || message.author, false, () => { }, false), true);
           } else {
-            fetchName(message.senderID || message.author, false, () => {}, false);
+            fetchName(message.senderID || message.author, false, () => { }, false);
           }
 
           switch (message.type) {
@@ -2580,7 +2591,7 @@ if (global.config.enablediscord) {
           ) {
             let chdata = chhandling.resolverFunc("Discord", {
               time: receivetime,
-              msgdata: {...message},
+              msgdata: { ...message },
               discordapi: client,
               // eslint-disable-next-line no-nested-ternary
               facebookapi: (typeof facebook == "object" ? (typeof facebook.api == "object" ? facebook
@@ -2656,7 +2667,7 @@ if (global.config.enablediscord) {
               returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
                 args: JSON.parse(JSON.stringify(arg)),
                 time: currenttime,
-                msgdata: {...message},
+                msgdata: { ...message },
                 prefix: prefix,
                 admin: admin,
                 mentions: mentions,
