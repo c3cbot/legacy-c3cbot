@@ -43,7 +43,8 @@ global.sshcurrsession = {};
 global.sshstream = {};
 
 //Adding FFMPEG to PATH
-let ffmpegExecPath = path.dirname(require("ffmpeg-static"));
+let fStatic = require("ffmpeg-static");
+let ffmpegExecPath = path.dirname(fStatic);
 if (os.platform() == "win32") {
   process.env.PATH += ";" + ffmpegExecPath;
 } else {
@@ -1955,7 +1956,7 @@ if (global.config.enablefb) {
                         let returndata;
                         try {
                           returndata = global.commandMapping[arg[0].substr(1)].scope("Facebook", {
-                            args: argv,
+                            args: JSON.parse(JSON.stringify(argv)),
                             time: receivetime,
                             msgdata: JSON.parse(JSON.stringify(message)),
                             facebookapi: api,
