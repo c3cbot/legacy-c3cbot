@@ -1891,10 +1891,16 @@ if (global.config.enablefb) {
                 .map(function (z) {
                   return z.replace(/"/g, "");
                 });
-              if (arg.indexOf("@everyone") != -1 && (global.config.allowEveryoneTagEvenBlacklisted || ((global
-                .config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1
-                ) && !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message
-                  .senderID))) && !global.data.everyoneTagBlacklist[message.threadID]) {
+              if (arg.indexOf("@everyone") != -1 && 
+                (global.config.allowEveryoneTagEvenBlacklisted || 
+                  (
+                    (global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || 
+                    (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1)
+                  )
+                ) && 
+                !global.data.everyoneTagBlacklist[message.threadID] && 
+                global.config.blacklistedUsers.indexOf("FB-" + message.senderID) === -1
+              ) {
                 api.getThreadInfo(message.threadID, function (err, data) {
                   var participants = data.participantIDs;
                   var character = "@";
@@ -1926,9 +1932,10 @@ if (global.config.enablefb) {
                 });
               }
               if (message.body.startsWith(global.config.commandPrefix) && !nointernalresolve) {
-                if ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) ||
-                  (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1) &&
-                  !Object.prototype.hasOwnProperty.call(global.config.blacklistedUsers, "FB-" + message.senderID)
+                if (
+                  ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) ||
+                  (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1)) &&
+                  global.config.blacklistedUsers.indexOf("FB-" + message.senderID) !== -1
                 ) {
                   log(
                     "[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")",
