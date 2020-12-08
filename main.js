@@ -1935,7 +1935,7 @@ if (global.config.enablefb) {
                 if (
                   ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) ||
                   (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1)) &&
-                  global.config.blacklistedUsers.indexOf("FB-" + message.senderID) !== -1
+                  global.config.blacklistedUsers.indexOf("FB-" + message.senderID) === -1
                 ) {
                   log(
                     "[Facebook]", message.senderID, "(" + global.data.cacheName["FB-" + message.senderID] + ")",
@@ -2625,10 +2625,10 @@ if (global.config.enablediscord) {
     if (message.content.startsWith(global.config.commandPrefix) && !nointernalresolve) {
       if (((global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) != -1) ||
         (!global.config.discordlistenwhitelist && global.config.discordlisten.indexOf(message.channel.id) == -1)) &&
-        !message.author.bot && !Object.prototype.hasOwnProperty.call(
+        !message.author.bot && !(Array.prototype.indexOf.call(
           global.config.blacklistedUsers,
           ("DC-" + message.author.id)
-        )) {
+        ) + 1)) {
         log(
           "[Discord]", message.author.id, "(" + message.author.tag + ")", "issued command in", message.channel.id +
           " (" + message.channel.name + "):",
