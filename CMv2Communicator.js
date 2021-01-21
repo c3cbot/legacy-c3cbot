@@ -41,24 +41,22 @@ const PING_INTERVAL = 30;
       },
       botName: global.config.botname,
       prefix: global.config.prefix,
-      interfaceList: global.config.sendInterfaceInfoToMetric
-        ? [
-          ...(
-            !isNaN(parseInt(global.facebookid)) ? [{
-              interfaceID: 1,
-              type: "Facebook",
-              accountID: global.facebookid
-            }] : []
-          ),
-          ...(
-            !isNaN(parseInt(global.discordid)) ? [{
-              interfaceID: 2,
-              type: "Discord",
-              accountID: global.discordid
-            }] : []
-          )
-        ]
-        : []
+      interfaceList: global.config.sendInterfaceInfoToMetric ? [
+        ...(
+          !isNaN(parseInt(global.facebookid)) ? [{
+            interfaceID: 1,
+            type: "Facebook",
+            accountID: global.facebookid
+          }] : []
+        ),
+        ...(
+          !isNaN(parseInt(global.discordid)) ? [{
+            interfaceID: 2,
+            type: "Discord",
+            accountID: global.discordid
+          }] : []
+        )
+      ] : []
     };
   }
 
