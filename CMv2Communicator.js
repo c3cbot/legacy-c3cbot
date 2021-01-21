@@ -41,8 +41,8 @@ const PING_INTERVAL = 30;
       },
       botName: global.config.botname,
       prefix: global.config.prefix,
-      interfaceList: global.config.sendInterfaceInfoToMetric ?
-        [
+      interfaceList: global.config.sendInterfaceInfoToMetric
+        ? [
           ...(
             !isNaN(parseInt(global.facebookid)) ? [{
               interfaceID: 1,
@@ -57,7 +57,8 @@ const PING_INTERVAL = 30;
               accountID: global.discordid
             }] : []
           )
-        ] : []
+        ]
+        : []
     };
   }
 
