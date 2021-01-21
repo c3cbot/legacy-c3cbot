@@ -219,6 +219,7 @@ var cUpdate = autoUpdater.checkForUpdate();
 
 //Outputs version 
 var version = cUpdate.currVersion;
+global.cVersion = version;
 log("Starting C3CBot version", version, "...");
 
 global.config = require("./getConfig.js")();
@@ -415,10 +416,12 @@ var autosave = setInterval(function (testmode, log) {
 }, 10000, testmode, log);
 
 var currentCPUPercentage = 0;
+global.currentCPUPercentage = 0;
 var _titleClocking = setInterval(async () => {
   var titleescape1 = String.fromCharCode(27) + ']0;';
   var titleescape2 = String.fromCharCode(7);
   currentCPUPercentage = await (new CPULoad(1000));
+  global.currentCPUPercentage = currentCPUPercentage;
   var title = global.config.botname + " v" + version + " | " + (currentCPUPercentage * 100)
     .toFixed(0) + "% CPU" + " | " + ((os.totalmem() - os.freemem()) / 1024 / 1024)
       .toFixed(0) + " MB" + "/" + (os.totalmem() / 1024 / 1024)
@@ -1191,9 +1194,9 @@ var client = {};
 var facebook = {};
 var tried2FA = false;
 var facebookloggedIn = true;
-var facebookid = "Disabled";
+global.facebookid = "Disabled";
 if (global.config.enablefb) {
-  facebookid = "Not logged in";
+  global.facebookid = "Not logged in";
   global.markAsReadFacebook = {};
   global.deliveryFacebook = {};
   global.facebookGlobalBanClock = {};
@@ -1424,7 +1427,7 @@ if (global.config.enablefb) {
       log("[Facebook]", "Verified using 2FA secret in config.");
     }
     log("[Facebook]", "Logged in.");
-    facebookid = api.getCurrentUserID();
+    global.facebookid = api.getCurrentUserID();
 
     if (global.config.usefbappstate) {
       try {
@@ -2530,15 +2533,15 @@ if (typeof global.data.cacheNameExpires != "object") {
   }
 }
 typeof global.data.everyoneTagBlacklist != "object" ? global.data.everyoneTagBlacklist = {} : "";
-var discordid = "Disabled";
+global.discordid = "Disabled";
 if (global.config.enablediscord) {
-  discordid = "Not logged in";
+  global.discordid = "Not logged in";
   var Discord = require('discord.js');
   global.Discord = Discord;
   client = new Discord.Client();
   client.on('ready', () => {
     log("[Discord]", "Logged in as", client.user.tag + ".");
-    discordid = client.user.id;
+    global.discordid = client.user.id;
   });
   client.on('error', error => {
     log("[Discord]", "Crashed with error: ", error);
@@ -2815,4 +2818,7 @@ rl.on('SIGTERM', () => process.emit('SIGINT'));
 rl.on('SIGINT', () => process.emit('SIGINT'));
 process.on('exit', shutdownHandler);
 
-//nulled metric code.
+// CMv2 communicator
+if (global.config.enableMetric) {
+  require("./CMv2Communicator");
+}

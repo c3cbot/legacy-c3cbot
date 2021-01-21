@@ -53,7 +53,9 @@ var defaultconfig = {
   autoUpdate: true,
   autoUpdateTimer: 60,
   configVersion: 1,
-  hideUnknownCommandMessage: false
+  hideUnknownCommandMessage: false,
+  enableMetric: true,
+  sendInterfaceInfoToMetric: false
 };
 
 module.exports = function getConfig() {
