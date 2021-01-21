@@ -23,7 +23,7 @@ const PING_INTERVAL = 30;
 
   async function generateExtraData() {
     return {
-      description: await fs.promises.readFile("./bot_description.txt"),
+      description: await fs.promises.readFile("./bot_description.txt", { encoding: "utf8" }),
       ram: {
         total: os.totalmem(),
         free: os.freemem(),
@@ -62,8 +62,15 @@ const PING_INTERVAL = 30;
 
   try {
     let io = socketIO.io(METRIC_SERVER);
-    let ioACKP = util.promisify(io.emit);
+    io.on('connect', () => log("[CMv2]", "Connected. Authenticating..."));
+    io.on('disconnect', r => log("[CMv2]", `Disconnected (reason: ${r}), attempting to reconnect...`));
 
+    let ioACKP = function wrapper(...args) {
+      return new Promise(r => {
+        io.send(...args, r);
+      });
+    }
+    log("[CMv2]", "Starting CMv2 connection...");
     // Check in the internal storage if there is a id-secret pair
     if (
       typeof global.data.metric !== "object" ||
@@ -71,7 +78,7 @@ const PING_INTERVAL = 30;
       typeof global.data.metric[1] !== "string"
     ) {
       // Requesting a new pair of metric ID
-      let ack = await ioACKP("private message", {
+      let ack = await ioACKP({
         callEvent: "register",
         type: "C3CBot",
         version: global.cVersion,
@@ -80,7 +87,7 @@ const PING_INTERVAL = 30;
 
       global.data.metric = [ack.id, ack.secret];
     } else {
-      await ioACKP("private message", {
+      await ioACKP({
         callEvent: "ping",
         id: global.data.metric[0],
         secret: global.data.metric[1],
@@ -89,10 +96,11 @@ const PING_INTERVAL = 30;
         extraData: JSON.stringify(await generateExtraData())
       });
     }
+    log("[CMv2]", "Initatized connection with ID " + global.data.metric[0]);
 
     setInterval(async () => {
       try {
-        await ioACKP("private message", {
+        await ioACKP({
           callEvent: "ping",
           id: global.data.metric[0],
           secret: global.data.metric[1],
@@ -101,10 +109,10 @@ const PING_INTERVAL = 30;
           extraData: JSON.stringify(await generateExtraData())
         });
       } catch (_) {
-        log("CMv2 Protocol handler encountered an error:", _);
+        log("[CMv2]", "CMv2 Protocol handler encountered an error:", _);
       }
     }, PING_INTERVAL * 1000);
   } catch (_) {
-    log("CMv2 Protocol handler encountered an error:", _);
+    log("[CMv2]", "CMv2 Protocol handler encountered an error:", _);
   }
-});
+})();

@@ -42,17 +42,6 @@ const StreamZip = require('node-stream-zip');
 global.sshcurrsession = {};
 global.sshstream = {};
 
-// Force update the nodemodule dir in plugins at startup
-childProcess.execSync(
-  "npm --depth 9999 update",
-  {
-    stdio: "inherit",
-    cwd: path.join(__dirname, "plugins", "nodemodules"),
-    env: process.env,
-    shell: true
-  }
-);
-
 //Adding FFMPEG to PATH
 let fStatic = require("ffmpeg-static");
 let ffmpegExecPath = path.dirname(fStatic);
@@ -603,7 +592,6 @@ async function loadPlugin() {
             var exception = "";
             var success = false;
             for (moduleLoadTime = 1; moduleLoadTime <= 3; moduleLoadTime++) {
-              wait.for.promise(new Promise(x => setTimeout(x, 200)));
               require.cache = {};
               try {
                 if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
