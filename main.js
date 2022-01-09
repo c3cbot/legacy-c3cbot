@@ -831,7 +831,7 @@ async function loadPlugin() {
     args: {},
     desc: {},
     scope: function (_type, _data) {
-      var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/c3cbot/c3c-0x/git/refs/tags", {
+      var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/c3cbot/legacy-c3cbot/git/refs/tags", {
         headers: {
           "User-Agent": global.config.fbuseragent
         }
@@ -841,7 +841,7 @@ async function loadPlugin() {
       var latestgithubversion = latestrelease.ref.replace("refs/tags/", "");
       var codedata = JSON.parse(syncrequest(
         "GET",
-        "https://raw.githubusercontent.com/c3cbot/c3c-0x/master/package.json", {
+        "https://raw.githubusercontent.com/c3cbot/legacy-c3cbot/master/package.json", {
         headers: {
           "User-Agent": global.config.fbuseragent
         }
@@ -2293,7 +2293,7 @@ if (global.config.enableSSHRemoteConsole) {
             global.sshstream[conninfo.ip + ":" + conninfo.port].write(global.config.botname + " v" +
               version + (global.config.botname != "C3CBot" ? " (Powered by C3C)" : ""));
             global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
-            global.sshstream[conninfo.ip + ":" + conninfo.port].write("https://github.com/c3cbot/c3c-0x");
+            global.sshstream[conninfo.ip + ":" + conninfo.port].write("https://github.com/c3cbot/legacy-c3cbot");
             global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
             global.sshstream[conninfo.ip + ":" + conninfo.port].write("\r\n");
             var sshrl = readline.createInterface({
