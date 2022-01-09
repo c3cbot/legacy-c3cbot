@@ -1,3 +1,5 @@
+// Copyright 2018-2022 BadAimWeeb. All rights reserved. MIT license.
+
 function compareTwoStrings(first, second) {
   first = first.replace(/\s+/g, '')
   second = second.replace(/\s+/g, '')

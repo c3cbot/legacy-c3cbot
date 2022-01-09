@@ -1,3 +1,5 @@
+// Copyright 2018-2022 BadAimWeeb. All rights reserved. MIT license.
+
 const replaceAll = require('string.prototype.replaceall');
 String.prototype.replaceAll = function (searchValue, replaceValue) {
   return replaceAll(this, searchValue, replaceValue);

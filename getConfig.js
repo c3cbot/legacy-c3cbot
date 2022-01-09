@@ -1,3 +1,5 @@
+// Copyright 2018-2022 BadAimWeeb. All rights reserved. MIT license.
+
 var fs = require("fs");
 var path = require("path");
 var stripBom = require("strip-bom");

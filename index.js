@@ -1,8 +1,4 @@
-/* 
-    Copyright (C) 2020  BadAimWeeb/TeamDec1mus
-
-    Just call this a bootloader.
-*/
+// Copyright 2020-2022 BadAimWeeb. All rights reserved. MIT license.
 (async () => {
   var semver = require("semver");
   var nodeVersion = semver.parse(process.version);

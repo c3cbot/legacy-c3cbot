@@ -1,3 +1,5 @@
+// Copyright 2018-2022 BadAimWeeb. All rights reserved. MIT license.
+
 /* eslint-disable consistent-this */
 /* eslint-disable no-loop-func */
 /* eslint-disable require-atomic-updates */
@@ -5,10 +7,6 @@
 /* eslint-disable no-process-env */
 
 require("./ClassModifier.js");
-var _sizeObject = function (object) {
-  return Object.keys(object)
-    .length;
-};
 global.nodemodule = {};
 var os = require("os");
 var FormData = require('form-data');
@@ -41,14 +39,31 @@ const StreamZip = require('node-stream-zip');
 ////var tf = require("@tensorflow/tfjs");
 global.sshcurrsession = {};
 global.sshstream = {};
+//Cryptography
+var crypto = require('crypto');
+let aes = require("aes-js");
 
-//Adding FFMPEG to PATH
-let fStatic = require("ffmpeg-static");
-let ffmpegExecPath = path.dirname(fStatic);
-if (os.platform() == "win32") {
-  process.env.PATH += ";" + ffmpegExecPath;
-} else {
-  process.env.PATH += ":" + ffmpegExecPath;
+// Encrypted state feature (added in 0.8)
+function encryptState(data, key) {
+  let hashEngine = crypto.createHash("sha256");
+  let hashKey = hashEngine.update(key).digest();
+
+  let bytes = aes.utils.utf8.toBytes(data);
+  let aesCtr = new aes.ModeOfOperation.ctr(hashKey);
+  let encryptedData = aesCtr.encrypt(bytes);
+
+  return aes.utils.hex.fromBytes(encryptedData);
+}
+
+function decryptState(data, key) {
+  let hashEngine = crypto.createHash("sha256");
+  let hashKey = hashEngine.update(key).digest();
+
+  let encryptedBytes = aes.utils.hex.toBytes(data);
+  let aesCtr = new aes.ModeOfOperation.ctr(hashKey);
+  let decryptedData = aesCtr.decrypt(encryptedBytes);
+
+  return aes.utils.utf8.fromBytes(decryptedData);
 }
 
 global.reload = () => {
@@ -328,8 +343,6 @@ var _randomBytes = function (numbytes) {
   return crypto.randomBytes(numbytes)
     .toString('hex');
 };
-//Cryptography
-var crypto = require('crypto');
 
 /**
  * Get a HMAC hash.
@@ -565,7 +578,15 @@ async function loadPlugin() {
           var moduledir = path.join(__dirname, "plugins", "nodemodules", "node_modules", nid);
           try {
             if (defaultmodule.indexOf(nid) != -1 || (["jimp", "wait-for-stuff", "deasync", "discord.js", "fca-unofficial", "ffmpeg-static"]).indexOf(nid) !== -1) {
-              global.nodemodule[nid] = require(nid);
+              try {
+                global.nodemodule[nid] = require(nid);
+              } catch (e) {
+                log("[INTERNAL]", nid, "failed to load using CommonJS require() method. Attempting to load using ES module import()...");
+                let importModule = wait.for.promise(
+                  await import(nid)
+                );
+                global.nodemodule[nid] = importModule;
+              }
             } else {
               global.nodemodule[nid] = require(moduledir);
             }
@@ -575,7 +596,7 @@ async function loadPlugin() {
               "but it isn't installed. Attempting to install it through npm package manager..."
             );
             childProcess.execSync(
-              "npm --loglevel error --package-lock false --save false -- install " + nid +
+              "npm --loglevel error --package-lock false --save true -- install " + nid +
               (
                 plinfo["node_depends"][nid] == "*" ||
                   plinfo["node_depends"][nid] == "" ? "" : ("@" + plinfo["node_depends"][nid])
@@ -594,10 +615,14 @@ async function loadPlugin() {
             for (moduleLoadTime = 1; moduleLoadTime <= 3; moduleLoadTime++) {
               require.cache = {};
               try {
-                if (defaultmodule.indexOf(nid) != -1 || nid == "jimp") {
+                try {
                   global.nodemodule[nid] = require(nid);
-                } else {
-                  global.nodemodule[nid] = require(moduledir);
+                } catch (e) {
+                  log("[INTERNAL]", nid, "failed to load using CommonJS require() method. Attempting to load using ES module import()...");
+                  let importModule = wait.for.promise(
+                    await import(nid)
+                  );
+                  global.nodemodule[nid] = importModule;
                 }
                 success = true;
                 break;
@@ -1190,195 +1215,6 @@ if (global.config.enablefb) {
   global.facebookGlobalBanClock = {};
   !Array.isArray(global.data.fbBannedUsers) ? global.data.fbBannedUsers = [] : "";
 
-  var fbGlobalBanTrigger = function (threadID, forceNoClock) {
-    var checkFunc = function (threadID) {
-      var isGroup = threadID.length == 16;
-      log("[GLOBAL-BAN]", `Checking banned status for ${isGroup ? "thread" : "user"} ${threadID}...`);
-      fetch("https://c3cbot.tk/global-banlist.json")
-        .then(f => {
-          if (f.ok) {
-            return f.json();
-          } else {
-            throw new Error("Cannot fetch Global Ban List from server c3cbot.tk (GitHub Pages).");
-          }
-        })
-        .then(j => {
-          if (!isGroup) {
-            if (Object.hasOwnProperty.call(j.facebook, threadID)) {
-              log("[GLOBAL-BAN]", `WARNING: User ${threadID} found on Ban List (Permanently banned)`);
-              log("[GLOBAL-BAN]", `Banned reason: ${j.facebook[threadID].reason}`);
-              log("[GLOBAL-BAN]", "Triggering banned payload...");
-              facebook.api.sendMessage(
-                `!ALERT! GLOBAL-BAN\r\nYou are permanently banned from C3CBot Network.\r\nReason: ${j.facebook[threadID].reason}`,
-                threadID,
-                function (error) {
-                  if (error) {
-                    log("[GLOBAL-BAN]", `Warning: Cannot trigger sendMessage for ${threadID}. Error:`, error);
-                    if (error.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                      log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                      facebookloggedIn = false;
-                      process.exit(7378278);
-                    }
-                  }
-                  facebook.api.changeBlockedStatus(threadID, true, function (err) {
-                    if (err) {
-                      return log(
-                        "[GLOBAL-BAN]",
-                        `Warning: Cannot trigger changeBlockStatus for ${threadID}. Error:`, err
-                      );
-                    }
-                    clearInterval(global.facebookGlobalBanClock[threadID]);
-                    delete global.facebookGlobalBanClock[threadID];
-                  });
-                }
-              );
-            } else {
-              log("[GLOBAL-BAN]", `User ${threadID} hasn't been banned.`);
-            }
-          } else {
-            if (Object.hasOwnProperty.call(j.facebook, threadID)) {
-              log("[GLOBAL-BAN]", `WARNING: Thread ${threadID} found on Ban List (Permanently banned)`);
-              log("[GLOBAL-BAN]", `Banned reason: ${j.facebook[threadID].reason}`);
-              log("[GLOBAL-BAN]", "Triggering thread banned payload...");
-              facebook.api.sendMessage(
-                `!ALERT! GLOBAL-BAN\r\nThis thread has been permanently banned from C3CBot Network.\r\nReason: ${j.facebook[threadID].reason}`,
-                threadID,
-                function (error) {
-                  if (error) {
-                    log("[GLOBAL-BAN]", `Warning: Cannot trigger sendMessage for ${threadID}. Error:`, error);
-                    if (error.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                      log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                      facebookloggedIn = false;
-                      process.exit(7378278);
-                    }
-                  }
-                  facebook.api.removeUserFromGroup(facebook.api.getCurrentUserID(), threadID, function (err) {
-                    if (err) {
-                      return log(
-                        "[GLOBAL-BAN]",
-                        `ERROR: Cannot trigger removeUserFromGroup for ${threadID}. Error:`, err
-                      );
-                    }
-                    clearInterval(global.facebookGlobalBanClock[threadID]);
-                    delete global.facebookGlobalBanClock[threadID];
-                  });
-                }
-              );
-            } else {
-              log("[GLOBAL-BAN]", `Thread ${threadID} isn't banned. Checking member ban...`);
-              facebook.api.getThreadInfo(threadID, function (err, data) {
-                if (err) {
-                  return log("[GLOBAL-BAN]", `ERROR: Cannot get thread info for thread ${threadID}.`);
-                }
-                log("[GLOBAL-BAN]", `Got member data for thread ${threadID}.`);
-                var bannedUsers = [];
-                var banNoKickUsers = [];
-                var leave = false;
-                for (var i in data.participantIDs) {
-                  if (Object.hasOwnProperty.call(j.facebook, data.participantIDs[i])) {
-                    if (j.facebook[data.participantIDs[i]].noAdding) {
-                      leave = true;
-                      bannedUsers.push({
-                        id: data.participantIDs[i],
-                        reason: j.facebook[data.participantIDs[i]].reason,
-                        name: global.data.cacheName[data.participantIDs[i]]
-                      });
-                      log(
-                        "[GLOBAL-BAN]",
-                        `WARNING: User ${data.participantIDs[i]} in ${threadID} found on Ban List (Permanently banned) and has flag noAdding = true.`
-                      );
-                      log("[GLOBAL-BAN]", `Banned reason: ${j.facebook[data.participantIDs[i]].reason}`);
-                    } else {
-                      if (global.data.fbBannedUsers.indexOf(data.participantIDs[i]) == 1) {
-                        banNoKickUsers.push({
-                          id: data.participantIDs[i],
-                          reason: j.facebook[data.participantIDs[i]].reason,
-                          name: global.data.cacheName[data.participantIDs[i]]
-                        });
-                        log(
-                          "[GLOBAL-BAN]",
-                          `WARNING: User ${data.participantIDs[i]} in ${threadID} found on Ban List (Permanently banned)`
-                        );
-                        log("[GLOBAL-BAN]", `Banned reason: ${j.facebook[data.participantIDs[i]].reason}`);
-                      }
-                    }
-                  }
-                }
-                if (leave) {
-                  log("[GLOBAL-BAN]", `Triggering noAdding banned payload...`);
-                  facebook.api.sendMessage(
-                    `!ALERT! GLOBAL-BAN\r\nThis thread cannot add/use C3CBot because a member of this thread has been banned from adding Bots.\r\nBanned users with noAdding flags: ${JSON.stringify(bannedUsers.map(x => `https://fb.com/${x.id} (Reason: ${x.reason})`), null, 4)}`,
-                    threadID,
-                    function (error) {
-                      if (error) {
-                        log(
-                          "[GLOBAL-BAN]", `Warning: Cannot trigger sendMessage for ${threadID}. Error:`,
-                          error
-                        );
-                        if (error.error == "Not logged in." && global.config.facebookAutoRestartLoggedOut) {
-                          log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                          facebookloggedIn = false;
-                          process.exit(7378278);
-                        }
-                      }
-                      facebook.api.removeUserFromGroup(facebook.api.getCurrentUserID(), threadID, function (err) {
-                        if (err) {
-                          return log(
-                            "[GLOBAL-BAN]",
-                            `ERROR: Cannot trigger removeUserFromGroup for ${threadID}. Error:`, err
-                          );
-                        }
-                        clearInterval(global.facebookGlobalBanClock[threadID]);
-                        delete global.facebookGlobalBanClock[threadID];
-                      });
-                    }, "", isGroup
-                  );
-                } else {
-                  if (banNoKickUsers.length > 0) {
-                    log("[GLOBAL-BAN]", `Triggering member banned payload...`);
-                    facebook.api.sendMessage(
-                      `!ALERT! GLOBAL-BAN\r\nBanned users in this group: ${JSON.stringify(banNoKickUsers.map(x => `https://fb.com/${x.id} (Reason: ${x.reason})`), null, 4)}`,
-                      threadID,
-                      function (error) {
-                        if (error) {
-                          log(
-                            "[GLOBAL-BAN]", `Warning: Cannot trigger sendMessage for ${threadID}. Error:`,
-                            error
-                          );
-                          if (error.error == "Not logged in." && global.config
-                            .facebookAutoRestartLoggedOut) {
-                            log("[Facebook]", "Detected not logged in. Throwing 7378278 to restarting...");
-                            facebookloggedIn = false;
-                            process.exit(7378278);
-                          }
-                          return null;
-                        }
-                        global.data.fbBannedUsers = global.data.fbBannedUsers.concat(banNoKickUsers);
-                      }, "", isGroup
-                    );
-                  } else {
-                    log("[GLOBAL-BAN]", `Thread ${threadID} isn't banned by member ban.`);
-                  }
-                }
-              });
-            }
-          }
-        })
-        .catch(err => {
-          log(
-            "[GLOBAL-BAN]", `Failed to check banned status for ${isGroup ? "thread" : "user"} ${threadID}:`,
-            err
-          );
-        });
-    };
-    if (typeof global.facebookGlobalBanClock[threadID] == "undefined") {
-      global.facebookGlobalBanClock[threadID] = setInterval(checkFunc, 800000, threadID);
-      checkFunc(threadID);
-    } else if (forceNoClock) {
-      checkFunc(threadID);
-    }
-  };
-
   var facebookcb = function callback(err, api) {
     if (err) {
       if (err.error == "login-approval") {
@@ -1418,8 +1254,14 @@ if (global.config.enablefb) {
     global.facebookid = api.getCurrentUserID();
 
     if (global.config.usefbappstate) {
+      let data = JSON.stringify(api.getAppState());
+      if (process.env.C3CBOT_ENCRYPTED_KEY) {
+        // Encrypted state feature
+        data = encryptState(data, process.env.C3CBOT_ENCRYPTED_KEY);
+      }
+
       try {
-        fs.writeFileSync(path.join(__dirname, "fbstate.json"), JSON.stringify(api.getAppState()), {
+        fs.writeFileSync(path.join(__dirname, "fbstate.json"), data, {
           mode: 0o666
         });
       } catch (ex) {
@@ -1706,7 +1548,6 @@ if (global.config.enablefb) {
               return;
           }
           var receivetime = new Date();
-          fbGlobalBanTrigger(message.threadID);
 
           let returnFunc = async function returnFunc(returndata) {
             if (typeof returndata == "object") {
@@ -1882,14 +1723,14 @@ if (global.config.enablefb) {
                 .map(function (z) {
                   return z.replace(/"/g, "");
                 });
-              if (arg.indexOf("@everyone") != -1 && 
-                (global.config.allowEveryoneTagEvenBlacklisted || 
+              if (arg.indexOf("@everyone") != -1 &&
+                (global.config.allowEveryoneTagEvenBlacklisted ||
                   (
-                    (global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) || 
+                    (global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) ||
                     (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1)
                   )
-                ) && 
-                !global.data.everyoneTagBlacklist[message.threadID] && 
+                ) &&
+                !global.data.everyoneTagBlacklist[message.threadID] &&
                 global.config.blacklistedUsers.indexOf("FB-" + message.senderID) === -1
               ) {
                 api.getThreadInfo(message.threadID, function (err, data) {
@@ -1925,7 +1766,7 @@ if (global.config.enablefb) {
               if (message.body.startsWith(global.config.commandPrefix) && !nointernalresolve) {
                 if (
                   ((global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) != -1) ||
-                  (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1)) &&
+                    (!global.config.fblistenwhitelist && global.config.fblisten.indexOf(message.threadID) == -1)) &&
                   global.config.blacklistedUsers.indexOf("FB-" + message.senderID) === -1
                 ) {
                   log(
@@ -2303,7 +2144,10 @@ if (global.config.enablefb) {
   fbloginobj.email = global.config.fbemail;
   fbloginobj.password = global.config.fbpassword;
   if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "fbstate.json"))) {
-    fbloginobj.appState = JSON.parse(fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8'));
+    let d = JSON.parse(fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8'));
+    if (process.env.C3CBOT_ENCRYPTED_KEY) {
+      d = decryptState(d, process.env.C3CBOT_ENCRYPTED_KEY);
+    }
   }
   var configobj = {
     userAgent: global.config.fbuseragent,
@@ -2805,8 +2649,3 @@ process.on('SIGHUP', function () {
 rl.on('SIGTERM', () => process.emit('SIGINT'));
 rl.on('SIGINT', () => process.emit('SIGINT'));
 process.on('exit', shutdownHandler);
-
-// CMv2 communicator
-if (global.config.enableMetric) {
-  require("./CMv2Communicator");
-}

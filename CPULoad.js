@@ -1,3 +1,5 @@
+// Copyright 2018-2022 BadAimWeeb. All rights reserved. MIT license.
+
 var os = require("os");
 var wait = require('wait-for-stuff');
 
