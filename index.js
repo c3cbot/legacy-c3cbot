@@ -17,7 +17,7 @@
     res.writeHead(200, "OK", {
       "Content-Type": "text/plain"
     });
-    res.write(`This is just a dummy HTTP server to fool Heroku. https://i.imgur.com/KgsYleA.png \r\nC3CBot - https://github.com/lequanglam/c3c`);
+    res.write(`This is just a dummy HTTP server to fool Heroku. https://i.imgur.com/KgsYleA.png \r\nC3CBot - https://github.com/c3cbot/legacy-c3cbot`);
     res.end();
   });
   // eslint-disable-next-line no-process-env
