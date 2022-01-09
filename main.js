@@ -104,7 +104,7 @@ function findFromDir(startPath, filter, arrayOutput, recursive, callback) {
     nocallback = true;
   }
   if (!fs.existsSync(startPath)) {
-    throw "No such directory: " + startPath;
+    throw "No such dirror    Unexpected newline before ')'                                                      function-paren-newlinerectory: " + startPath;
   }
   var files = fs.readdirSync(startPath);
   var arrayFile = [];
@@ -2148,6 +2148,8 @@ if (global.config.enablefb) {
     if (process.env.C3CBOT_ENCRYPTED_KEY) {
       d = decryptState(d, process.env.C3CBOT_ENCRYPTED_KEY);
     }
+
+    fbloginobj.appstate = d;
   }
   var configobj = {
     userAgent: global.config.fbuseragent,
