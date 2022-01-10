@@ -257,7 +257,7 @@ module.exports = {
           }
         });
     } else {
-      var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/c3cbot/c3c-0x/git/refs/tags", {
+      var githubdata = JSON.parse(syncrequest("GET", "https://api.github.com/repos/c3cbot/legacy-c3cbot/git/refs/tags", {
         headers: {
           "User-Agent": `C3CBot/${currVersion} request/0.0-sync`,
           "Accept": "application/vnd.github.v3.full+json"
@@ -270,7 +270,7 @@ module.exports = {
       }
       //HTTP ZIP package method
       //var zipDownload = https.get(`https://github.com/c3cbot/c3c-0x/archive/${latestRelease}.zip`);
-      fetch(`https://github.com/c3cbot/c3c-0x/archive/${latestRelease}.zip`)
+      fetch(`https://github.com/c3cbot/legacy-c3cbot/archive/${latestRelease}.zip`)
         .then(f => {
           if (!f.ok) {
             throw new Error(`HTTP/1.1 ${f.status}`);
