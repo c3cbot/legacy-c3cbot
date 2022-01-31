@@ -1256,10 +1256,8 @@ if (global.config.enablefb) {
     if (global.config.usefbappstate) {
       let data = JSON.stringify(api.getAppState());
       if (process.env.C3CBOT_ENCRYPTED_KEY) {
-        // Encrypted state feature
         data = encryptState(data, process.env.C3CBOT_ENCRYPTED_KEY);
       }
-
       try {
         fs.writeFileSync(path.join(__dirname, "fbstate.json"), data, {
           mode: 0o666
@@ -2144,12 +2142,8 @@ if (global.config.enablefb) {
   fbloginobj.email = global.config.fbemail;
   fbloginobj.password = global.config.fbpassword;
   if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "fbstate.json"))) {
-    let d = JSON.parse(fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8'));
-    if (process.env.C3CBOT_ENCRYPTED_KEY) {
-      d = decryptState(d, process.env.C3CBOT_ENCRYPTED_KEY);
-    }
-
-    fbloginobj.appstate = d;
+    let data = fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8')
+    fbloginobj.appState = (process.env.C3CBOT_ENCRYPTED_KEY) ? JSON.parse(decryptState(data, process.env.C3CBOT_ENCRYPTED_KEY)) : data;
   }
   var configobj = {
     userAgent: global.config.fbuseragent,
