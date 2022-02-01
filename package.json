@@ -37,7 +37,7 @@
     "jimp": "^0.16.1",
     "js-yaml": "^3.13.1",
     "libsodium-wrappers": "^0.7.6",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "node-stream-zip": "^1.11.2",
     "nsfwjs": "^2.1.0",
     "opusscript": "^0.0.7",
