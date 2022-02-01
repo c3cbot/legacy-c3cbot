@@ -582,10 +582,7 @@ async function loadPlugin() {
                 global.nodemodule[nid] = require(nid);
               } catch (e) {
                 log("[INTERNAL]", nid, "failed to load using CommonJS require() method. Attempting to load using ES module import()...");
-                let importModule = wait.for.promise(
-                  await import(nid)
-                );
-                global.nodemodule[nid] = importModule;
+                global.nodemodule[nid] = await import(nid);
               }
             } else {
               global.nodemodule[nid] = require(moduledir);
@@ -619,10 +616,7 @@ async function loadPlugin() {
                   global.nodemodule[nid] = require(nid);
                 } catch (e) {
                   log("[INTERNAL]", nid, "failed to load using CommonJS require() method. Attempting to load using ES module import()...");
-                  let importModule = wait.for.promise(
-                    await import(nid)
-                  );
-                  global.nodemodule[nid] = importModule;
+                  global.nodemodule[nid] = await import(nid);
                 }
                 success = true;
                 break;
