@@ -65,6 +65,7 @@ function decryptState(data, key) {
 
   return aes.utils.utf8.fromBytes(decryptedData);
 }
+
 global.reload = () => {
   unloadPlugin();
   loadPlugin();
@@ -1251,10 +1252,11 @@ if (global.config.enablefb) {
     }
     log("[Facebook]", "Logged in.");
     global.facebookid = api.getCurrentUserID();
+
     if (global.config.usefbappstate) {
       let data = JSON.stringify(api.getAppState());
       if (process.env.C3CBOT_ENCRYPTED_KEY) {
-        data = encryptState(data, process.env.C3CBOT_ENCRYPTED_KEY); //You might not want to stringify this unless you wan't 2 quatation marks like a string
+        data = encryptState(data, process.env.C3CBOT_ENCRYPTED_KEY);
       }
       try {
         fs.writeFileSync(path.join(__dirname, "fbstate.json"), data, {
@@ -2141,7 +2143,7 @@ if (global.config.enablefb) {
   fbloginobj.password = global.config.fbpassword;
   if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "fbstate.json"))) {
     let data = fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8')
-    fbloginobj.appState = (process.env.C3CBOT_ENCRYPTED_KEY && data[0]!= '[') ? JSON.parse(decryptState(data, process.env.C3CBOT_ENCRYPTED_KEY)) : JSON.parse(data);
+    fbloginobj.appState = (process.env.C3CBOT_ENCRYPTED_KEY && data[0] != "[") ? JSON.parse(decryptState(data, process.env.C3CBOT_ENCRYPTED_KEY)) : JSON.parse(data);
   }
   var configobj = {
     userAgent: global.config.fbuseragent,
