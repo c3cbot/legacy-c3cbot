@@ -2138,7 +2138,7 @@ if (global.config.enablefb) {
   if (global.config.usefbappstate && fs.existsSync(path.join(__dirname, "fbstate.json"))) {
     let rawData = fs.readFileSync(path.join(__dirname, "fbstate.json"), 'utf8');
     try {
-      fbloginobj.appstate = JSON.parse(rawData);
+      fbloginobj.appState = JSON.parse(rawData);
       log("[Facebook]", "Successfully loaded plain-text state.");
       // Automatic encryption of unencrypted, plain-text state.
       if (process.env.C3CBOT_ENCRYPTED_KEY) {
@@ -2149,7 +2149,7 @@ if (global.config.enablefb) {
     } catch (_) {
       if (process.env.C3CBOT_ENCRYPTED_KEY) {
         try {
-          fbloginobj.appstate = JSON.parse(decryptState(rawData, process.env.C3CBOT_ENCRYPTED_KEY));
+          fbloginobj.appState = JSON.parse(decryptState(rawData, process.env.C3CBOT_ENCRYPTED_KEY));
           log("[Facebook]", "Successfully decrypted and loaded state with provided encryption key.");
         } catch (e) {
           log("[Facebook]", "Error: Could not decrypt state with provided encryption key. Please make sure that C3CBOT_ENCRYPTED_KEY has correct key, and/or state is not corrupted.");
