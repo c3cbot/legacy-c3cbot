@@ -2380,7 +2380,7 @@ if (global.config.enablediscord) {
   global.discordid = "Not logged in";
   var Discord = require('discord.js');
   global.Discord = Discord;
-  client = new Discord.Client();
+  client = new Discord.Client({intents: ['GUILDS', 'GUILD_MEMBERS', 'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGES','GUILD_VOICE_STATES', 'GUILD_PRESENCES']});
   client.on('ready', () => {
     log("[Discord]", "Logged in as", client.user.tag + ".");
     global.discordid = client.user.id;
@@ -2517,9 +2517,9 @@ if (global.config.enablediscord) {
                 facebook.api = {};
               }
               returndata = global.commandMapping[arg[0].substr(1)].scope("Discord", {
-                args: JSON.parse(JSON.stringify(arg)),
+                args: message.content.split(' ').filter(e=>e),
                 time: currenttime,
-                msgdata: { ...message },
+                msgdata: message,
                 prefix: prefix,
                 admin: admin,
                 mentions: mentions,
